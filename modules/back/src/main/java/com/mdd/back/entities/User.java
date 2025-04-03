@@ -11,7 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table("users")
+@Table(value = "users", schema = "mddsocial")
 public class User extends BaseEntity {
     @Id
     private UUID id;
