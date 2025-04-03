@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: mddback
+  flyway:
+    enabled: true
+    url: jdbc:${P6_DB_URL:postgresql://localhost:5432/dbmdd}
+    user: ${P6_DB_USER:mdduser}
+    driver-class-name: org.postgresql.Driver
+    password: ${P6_DB_PASSWORD:mddpw}
+    #   locations: classpath:db/migration
+    postgresql:
+      transactional-lock: false
+  r2dbc:
+    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432/dbmdd}
+    username: ${P6_DB_USER:mdduser}
+    password: ${P6_DB_PASSWORD:mddpw}
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/dbmdd
+#    username: ${P6_DB_USER:mdduser}
+#    password: ${P6_DB_PASSWORD:mddpw}
+#    driver-class-name: org.postgresql.Driver
+logging:
+  level:
+    org.springframework: DEBUG
+    com.mdd.back: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'beans'
