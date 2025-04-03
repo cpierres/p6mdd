@@ -7,9 +7,9 @@ spring:
     user: ${P6_DB_USER:mdduser}
     driver-class-name: org.postgresql.Driver
     password: ${P6_DB_PASSWORD:mddpw}
+    default-schema: mddsocial
+    schemas: mddsocial
     #   locations: classpath:db/migration
-    postgresql:
-      transactional-lock: false
   r2dbc:
     url: r2dbc:${P6_DB_URL:postgresql://localhost:5432/dbmdd}
     username: ${P6_DB_USER:mdduser}

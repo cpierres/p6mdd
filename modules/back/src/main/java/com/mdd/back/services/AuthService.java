@@ -3,12 +3,16 @@ package com.mdd.back.services;
 import com.mdd.back.entities.User;
 import com.mdd.back.exception.ResourceAlreadyExistException;
 import com.mdd.back.mappers.UserMapper;
+import com.mdd.back.models.LoginRequest;
 import com.mdd.back.models.RegisterRequest;
 import com.mdd.back.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -43,4 +47,28 @@ public class AuthService {
                     return userRepository.save(newUser);
                 }));
     }
+
+    /**
+     * Authentifie un utilisateur en fonction de son e-mail et de son mot de passe.
+     * Si l'e-mail de l'utilisateur n'est pas trouvé ou bien si le mot de passe fourni est incorrect,
+     * la méthode renvoie null sans lever d'exception.
+     * On ne veut pas donner d'indication précise sur la raison précise qui a empêché l'authentification.
+     *
+     * @param loginRequest La demande de connexion contenant l'e-mail et le mot de passe de l'utilisateur.
+     * @return L'ID de l'utilisateur s'il est authentifié avec succès, ou null si ce n'est pas le cas.
+     */
+    public Mono<UUID> login(LoginRequest loginRequest) {
+        return userRepository.findByEmail(loginRequest.getEmail())
+                .flatMap(user -> {
+                    // Vérification du mot de passe via le bean passwordEncoder (comparaison avec pw crypté)
+                    if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                        return Mono.just(user.getId());
+                    } else {
+                        // Retourner un Mono vide si le mot de passe est incorrect
+                        return Mono.empty();
+                    }
+                })
+                .switchIfEmpty(Mono.empty()); // Retourner Mono.just(null) si l'utilisateur n'est pas trouvé ou non authentifié
+    }
+
 }
