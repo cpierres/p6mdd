@@ -1,0 +1,22 @@
+package com.mdd.back.entities;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.relational.core.mapping.Column;
+
+import java.time.Instant;
+
+@Getter
+@Setter
+public abstract class BaseEntity {
+
+    @CreatedDate
+    @Column("created_at")
+    private Instant createdAt;
+
+    @LastModifiedDate
+    @Column("updated_at")
+    private Instant updatedAt;
+}
