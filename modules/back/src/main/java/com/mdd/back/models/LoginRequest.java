@@ -17,7 +17,7 @@ public class LoginRequest {
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
     private String email;
 
-    @Schema(description = "Mot de passe", example = "pw")
+    @Schema(description = "Mot de passe", example = "Test!1234")
     @NotBlank(message = "Le mot de passe ne peut pas être vide.")
     @Pattern(
             regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
@@ -25,4 +25,3 @@ public class LoginRequest {
     )
     private String password;
 }
-

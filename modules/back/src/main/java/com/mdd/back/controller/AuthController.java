@@ -10,17 +10,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.http.ResponseEntity.status;
 
+@Tag(
+        name = "auth-controller",
+        description = """
+                Cette API permet de gérer l'authentification, l'enregistrement, et les informations des utilisateurs
+                connectés. Les méthodes utilisent des tokens JWT pour une authentification stateless sécurisée.
+                """
+)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

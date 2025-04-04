@@ -22,11 +22,11 @@ public class RegisterRequest {
     @NotBlank(message = "Le nom de l'utilisateur est obligatoire")
     private String username;
 
-    @Schema(description = "Mot de passe", example = "pw")
+    @Schema(description = "Mot de passe", example = "Test!1234")
     @NotBlank(message = "Le mot de passe ne peut pas être vide")
     @Pattern(
-            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
-            message = "Le mot de passe doit contenir au moins 8 caractères, dont au moins 1 lettre majuscule, 1 lettre minuscule, 1 chiffre et 1 caractère spécial."
+            message = "Le mot de passe doit contenir au moins 8 caractères, dont au moins 1 lettre majuscule, 1 lettre minuscule, 1 chiffre et 1 caractère spécial.",
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
     )
     private String password;
 }
