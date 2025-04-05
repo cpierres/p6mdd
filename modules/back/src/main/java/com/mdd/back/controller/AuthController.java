@@ -1,6 +1,8 @@
 package com.mdd.back.controller;
 
 import com.mdd.back.exception.ResourceAlreadyExistException;
+import com.mdd.back.exception.ResourceNotFoundException;
+import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.*;
 import com.mdd.back.services.AuthService;
 import com.mdd.back.services.JwtService;
@@ -32,10 +34,12 @@ import static org.springframework.http.ResponseEntity.status;
 public class AuthController {
     private final AuthService authService;
     private final JwtService jwtService;
+    private final UserMapper userMapper;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService, JwtService jwtService, UserMapper userMapper) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.userMapper = userMapper;
     }
 
     @Operation(summary = "Enregistrement d'un utilisateur (doublon sur email interdit)",
@@ -90,6 +94,27 @@ public class AuthController {
                     return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
                 })
                 .switchIfEmpty(Mono.just(status(HttpStatus.UNAUTHORIZED).body(null)));
+    }
+
+    @Operation(summary = "Affichage de l'utilisateur connecté. Cet api est évidemment protégée.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Information sur l'utilisateur connecté (sans le mot de passe)",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "404", description = "Impossible de retrouver l'utilisateur connecté",
+                    content = @Content(mediaType = "application/json")),
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @GetMapping("/me")
+    public Mono<ResponseEntity<UserDto>> getCurrentUser() {
+        return authService.getAuthenticatedUser()
+                .map(userMapper::userToUserDto)
+                //.map(userDto -> ResponseEntity.ok(userDto)) // Retourner le DTO dans le `ResponseEntity`
+                .map(ResponseEntity::ok)
+                .onErrorResume(ResourceNotFoundException.class, ex ->
+                        Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(null)
+                        )); // Gérer les erreurs type 404
     }
 
 }

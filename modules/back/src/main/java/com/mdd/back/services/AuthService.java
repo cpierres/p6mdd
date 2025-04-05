@@ -2,16 +2,18 @@ package com.mdd.back.services;
 
 import com.mdd.back.entities.User;
 import com.mdd.back.exception.ResourceAlreadyExistException;
+import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.LoginRequest;
 import com.mdd.back.models.RegisterRequest;
 import com.mdd.back.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,6 +22,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+
     @Autowired
     public AuthService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -27,13 +30,21 @@ public class AuthService {
         this.userMapper = userMapper;
     }
 
+    /**
+     * Enregistre un nouvel utilisateur après vérifications et encodage du mot de passe.
+     *
+     * @param request L'objet contenant les informations de l'utilisateur à enregistrer,
+     *                telles que l'email, le username et le mot de passe.
+     * @return Un objet Mono contenant l'utilisateur enregistré si l'opération réussit,
+     *         ou une erreur si un utilisateur avec l'email spécifié existe déjà.
+     */
     public Mono<User> registerNewUser(RegisterRequest request) {
         // Vérifier si l'utilisateur existe déjà (de manière réactive)
         return userRepository.findByEmail(request.getEmail())
                 .flatMap(existingUser -> {
                     // Si un utilisateur existe déjà, on rejette l'opération avec une exception
                     return Mono.<User>error(new ResourceAlreadyExistException(
-                            "Un utilisateur avec cet email existe déjà !"));
+                            "Un utilisateur avec cet email: "+existingUser.getEmail()+" existe déjà !"));
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     // Si aucun utilisateur n'existe, procéder à l'enregistrement
@@ -69,6 +80,32 @@ public class AuthService {
                     }
                 })
                 .switchIfEmpty(Mono.empty()); // Retourner Mono.just(null) si l'utilisateur n'est pas trouvé ou non authentifié
+    }
+
+    /**
+     * Récupère l'utilisateur actuellement authentifié à partir du contexte de sécurité réactif.
+     * Si aucune authentification valide n'est trouvée ou si l'utilisateur n'existe pas dans la base de données,
+     * une exception est levée.
+     *
+     * @return Un Mono contenant l'utilisateur authentifié si celui-ci est trouvé et valide, sinon une erreur.
+     * @throws com.mdd.back.exception.ResourceNotFoundException Si le contexte d'authentification est vide,
+     *         si l'utilisateur n'est pas authentifié ou si l'utilisateur n'existe pas dans la base de données.
+     */
+    public Mono<User> getAuthenticatedUser() {
+        // Obtenir l'objet Authentication du Security Context
+        return Mono.deferContextual(contextView ->
+                ReactiveSecurityContextHolder.getContext() // Récupérer le SecurityContext en réactif
+                        .map(SecurityContext::getAuthentication)
+                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Authentication context is empty")))
+                        .flatMap(auth -> {
+                            if (auth == null || !auth.isAuthenticated()) {
+                                return Mono.error(new ResourceNotFoundException("User is not authenticated"));
+                            }
+                            String email = auth.getName(); // Récupération du username/email
+                            return userRepository.findByEmail(email)
+                                    .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non trouvé!")));
+                        })
+        );
     }
 
 }

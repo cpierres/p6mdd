@@ -40,4 +40,10 @@ public class GlobalExceptionHandler {
                 .body(new MessageResponse(ex.getMessage())));
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public Mono<ResponseEntity<MessageResponse>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.NOT_FOUND) // Code 404
+                .body(new MessageResponse(ex.getMessage())));
+    }
 }
