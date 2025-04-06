@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -26,7 +27,7 @@ import static org.springframework.http.ResponseEntity.status;
         name = "auth-controller",
         description = """
                 Cette API permet de gérer l'authentification, l'enregistrement, et les informations des utilisateurs
-                connectés. Les méthodes utilisent des tokens JWT pour une authentification stateless sécurisée.
+                connectés. Les méthodes protégées utilisent des tokens JWT pour une authentification stateless sécurisée.
                 """
 )
 @RestController
@@ -96,7 +97,7 @@ public class AuthController {
                 .switchIfEmpty(Mono.just(status(HttpStatus.UNAUTHORIZED).body(null)));
     }
 
-    @Operation(summary = "Affichage de l'utilisateur connecté. Cet api est évidemment protégée.")
+    @Operation(summary = "Affichage de l'utilisateur authentifié.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Information sur l'utilisateur connecté (sans le mot de passe)",
                     content = @Content(mediaType = "application/json",
@@ -115,6 +116,42 @@ public class AuthController {
                         Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body(null)
                         )); // Gérer les erreurs type 404
+    }
+
+    @Operation(
+            summary = "Met à jour les informations de l'utilisateur connecté",
+            description = "Cette méthode permet à l'utilisateur actuellement connecté de mettre à jour son profil. Les informations telles que l'email, le nom d'utilisateur et le mot de passe peuvent être modifiées."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Mise à jour réussie",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Requête invalide ou données de mise à jour mal formatées",
+                    content =  @Content(schema = @Schema(implementation = ValidationErrorResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Utilisateur non authentifié ou session expirée",
+                    content = @Content(mediaType = "application/json")
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Utilisateur introuvable",
+                    content = @Content(mediaType = "application/json")
+            )
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PutMapping("/me")
+    public Mono<ResponseEntity<UserDto>> updateAuthenticatedUser(
+            @Validated @RequestBody UpdateAuthenticatedUserRequest updateAuthenticatedUserRequest
+    ) {
+        return authService.updateAuthenticatedUser(updateAuthenticatedUserRequest)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
 }

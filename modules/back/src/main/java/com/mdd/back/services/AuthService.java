@@ -6,6 +6,8 @@ import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.LoginRequest;
 import com.mdd.back.models.RegisterRequest;
+import com.mdd.back.models.UpdateAuthenticatedUserRequest;
+import com.mdd.back.models.UserDto;
 import com.mdd.back.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -36,7 +38,7 @@ public class AuthService {
      * @param request L'objet contenant les informations de l'utilisateur à enregistrer,
      *                telles que l'email, le username et le mot de passe.
      * @return Un objet Mono contenant l'utilisateur enregistré si l'opération réussit,
-     *         ou une erreur si un utilisateur avec l'email spécifié existe déjà.
+     * ou une erreur si un utilisateur avec l'email spécifié existe déjà.
      */
     public Mono<User> registerNewUser(RegisterRequest request) {
         // Vérifier si l'utilisateur existe déjà (de manière réactive)
@@ -44,7 +46,7 @@ public class AuthService {
                 .flatMap(existingUser -> {
                     // Si un utilisateur existe déjà, on rejette l'opération avec une exception
                     return Mono.<User>error(new ResourceAlreadyExistException(
-                            "Un utilisateur avec cet email: "+existingUser.getEmail()+" existe déjà !"));
+                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà !"));
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     // Si aucun utilisateur n'existe, procéder à l'enregistrement
@@ -89,23 +91,51 @@ public class AuthService {
      *
      * @return Un Mono contenant l'utilisateur authentifié si celui-ci est trouvé et valide, sinon une erreur.
      * @throws com.mdd.back.exception.ResourceNotFoundException Si le contexte d'authentification est vide,
-     *         si l'utilisateur n'est pas authentifié ou si l'utilisateur n'existe pas dans la base de données.
+     *                                                          si l'utilisateur n'est pas authentifié ou si l'utilisateur n'existe pas dans la base de données.
      */
     public Mono<User> getAuthenticatedUser() {
         // Obtenir l'objet Authentication du Security Context
         return Mono.deferContextual(contextView ->
                 ReactiveSecurityContextHolder.getContext() // Récupérer le SecurityContext en réactif
                         .map(SecurityContext::getAuthentication)
-                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Authentication context is empty")))
+                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Authentication context vide")))
                         .flatMap(auth -> {
                             if (auth == null || !auth.isAuthenticated()) {
-                                return Mono.error(new ResourceNotFoundException("User is not authenticated"));
+                                return Mono.error(new ResourceNotFoundException("Utilisateur non authentifié"));
                             }
                             String email = auth.getName(); // Récupération du username/email
                             return userRepository.findByEmail(email)
                                     .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non trouvé!")));
                         })
         );
+    }
+
+//    public Mono<UserDto> updateAuthenticatedUser(UpdateAuthenticatedUserRequest request) {
+//        return getAuthenticatedUser()
+//                .flatMap(authenticatedUser -> {
+//                    String encodedPassword = passwordEncoder.encode(request.getPassword());
+//                    User updatedUser = userMapper.updateUserRequestToUser(request, encodedPassword);
+//                    updatedUser.setId(authenticatedUser.getId());//on conserve l'id original
+//                    Mono<User> userSaved = userRepository.save(updatedUser);
+//
+//                    //on retourne uniquement la partie affichable au retour (sans le nouveau mot de passe)
+//                    return userSaved.map(userMapper::userToUserDto);
+//                })
+//                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non authentifié ou introuvable")));
+//    }
+
+    public Mono<UserDto> updateAuthenticatedUser(UpdateAuthenticatedUserRequest request) {
+        return getAuthenticatedUser()
+                .flatMap(authenticatedUser -> {
+                    // Utilisation du mapper pour modifier l'utilisateur existant avec encodage du mot de passe
+                    //(injection du passwordEncoder grâce à @Context dans le mapper !)
+                    userMapper.updateAuthenticatedUserFromRequest(request, authenticatedUser, passwordEncoder);
+
+                    // Sauvegarder les modifications et retourner le DTO
+                    return userRepository.save(authenticatedUser)
+                            .map(userMapper::userToUserDto);
+                })
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non authentifié ou introuvable")));
     }
 
 }

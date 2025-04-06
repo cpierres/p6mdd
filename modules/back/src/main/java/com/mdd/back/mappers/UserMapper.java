@@ -2,10 +2,11 @@ package com.mdd.back.mappers;
 
 import com.mdd.back.entities.User;
 import com.mdd.back.models.RegisterRequest;
+import com.mdd.back.models.UpdateAuthenticatedUserRequest;
 import com.mdd.back.models.UserDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -13,10 +14,13 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", source = "encodedPassword")
-    @Mapping(target = "username", source = "request.username")
     User registerRequestToUser(RegisterRequest request, String encodedPassword);
 
-    @Mapping(target = "username", source = "username")
+    // pour mises à jour partielles avec encodage du mot de passe (encoder récupéré du contexte par injection)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "password", expression = "java(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : user.getPassword())")
+    void updateAuthenticatedUserFromRequest(UpdateAuthenticatedUserRequest request, @MappingTarget User user, @Context PasswordEncoder passwordEncoder);
+
     @Mapping(target = "created_at", source = "createdAt")
     @Mapping(target = "updated_at", source = "updatedAt")
     UserDto userToUserDto(User user);

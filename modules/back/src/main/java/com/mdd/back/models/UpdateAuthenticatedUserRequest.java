@@ -9,11 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Schema(description = "Objet représentant l'enregistrement d'un nouvel utilisateur")
+@Schema(description = "Objet représentant l'enregistrement de la mise à jour d'un utilisateur")
 @Getter
 @Setter
 @NoArgsConstructor
-public class RegisterRequest {
+public class UpdateAuthenticatedUserRequest {
     @Schema(description = "L'adresse e-mail doit être unique dans le système", example = "cpi@gmail.com")
     @Email(message = "L'adresse e-mail doit être valide")
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
