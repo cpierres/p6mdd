@@ -21,4 +21,8 @@ public class User extends BaseEntity {
     private String password;
 
     private String username;
+
+//    // Liste des topics UUID auxquels l'utilisateur est abonné
+//    private Set<UUID> subscribedTopics;
+
 }

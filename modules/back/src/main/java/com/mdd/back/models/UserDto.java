@@ -34,4 +34,5 @@ public class UserDto {
 
     @Schema(description = "Date/heure de mise à jour gérée par le système")
     private Instant updated_at;
+
 }

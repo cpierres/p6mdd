@@ -5,13 +5,10 @@ import com.mdd.back.models.RegisterRequest;
 import com.mdd.back.models.UpdateAuthenticatedUserRequest;
 import com.mdd.back.models.UserDto;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", source = "encodedPassword")
     User registerRequestToUser(RegisterRequest request, String encodedPassword);

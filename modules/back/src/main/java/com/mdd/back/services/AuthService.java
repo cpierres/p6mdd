@@ -103,26 +103,28 @@ public class AuthService {
                             if (auth == null || !auth.isAuthenticated()) {
                                 return Mono.error(new ResourceNotFoundException("Utilisateur non authentifié"));
                             }
-                            String email = auth.getName(); // Récupération du username/email
+                            String email = auth.getName();
                             return userRepository.findByEmail(email)
                                     .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non trouvé!")));
                         })
         );
     }
 
-//    public Mono<UserDto> updateAuthenticatedUser(UpdateAuthenticatedUserRequest request) {
-//        return getAuthenticatedUser()
-//                .flatMap(authenticatedUser -> {
-//                    String encodedPassword = passwordEncoder.encode(request.getPassword());
-//                    User updatedUser = userMapper.updateUserRequestToUser(request, encodedPassword);
-//                    updatedUser.setId(authenticatedUser.getId());//on conserve l'id original
-//                    Mono<User> userSaved = userRepository.save(updatedUser);
-//
-//                    //on retourne uniquement la partie affichable au retour (sans le nouveau mot de passe)
-//                    return userSaved.map(userMapper::userToUserDto);
-//                })
-//                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non authentifié ou introuvable")));
-//    }
+    /**
+     * Récupère l'ID de l'utilisateur actuellement authentifié.
+     * Si aucune authentification valide n'est trouvée ou si l'utilisateur n'existe pas dans la base de données,
+     * une exception est levée.
+     *
+     * @return Un Mono contenant l'UUID de l'utilisateur authentifié si celui-ci est trouvé et valide, sinon une erreur.
+     * @throws com.mdd.back.exception.ResourceNotFoundException Si le contexte d'authentification est vide,
+     *                                                          si l'utilisateur n'est pas authentifié ou si
+     *                                                          l'utilisateur n'existe pas dans la base de données.
+     */
+    public Mono<UUID> getAuthenticatedUserId() {
+        return getAuthenticatedUser() // Utilise la méthode existante
+                .map(User::getId) // Extrait l'UUID de l'utilisateur
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("ID utilisateur non trouvé!")));
+    }
 
     public Mono<UserDto> updateAuthenticatedUser(UpdateAuthenticatedUserRequest request) {
         return getAuthenticatedUser()
