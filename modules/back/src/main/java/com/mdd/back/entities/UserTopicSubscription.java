@@ -1,6 +1,7 @@
 package com.mdd.back.entities;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -11,14 +12,12 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(value = "topics", schema = "mddsocial")
-public class Topic {
+@Builder
+@Table(value = "user_topic_subscription", schema = "mddsocial")
+public class UserTopicSubscription {
+
     @Id
     private UUID id;
-    private String title;
-    private String description;
-
-//    // Liste des utilisateurs abonnés
-//    private Set<UUID> subscribedUsers;
-
+    private UUID userId;
+    private UUID topicId;
 }

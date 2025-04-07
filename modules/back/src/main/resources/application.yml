@@ -25,6 +25,7 @@ logging:
   level:
     org.springframework: DEBUG
     com.mdd.back: DEBUG
+
 management:
   endpoints:
     web:

@@ -26,7 +26,7 @@ import static org.springframework.http.ResponseEntity.status;
 @Tag(
         name = "auth-controller",
         description = """
-                Cette API permet de gérer l'authentification, l'enregistrement, et les informations des utilisateurs
+                Permet de gérer l'authentification, l'enregistrement, et les informations des utilisateurs
                 connectés. Les méthodes protégées utilisent des tokens JWT pour une authentification stateless sécurisée.
                 """
 )
