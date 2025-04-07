@@ -1,6 +1,7 @@
 package com.mdd.back.controller;
 
 import com.mdd.back.models.TopicDto;
+import com.mdd.back.models.TopicSubscribedForAuthUserDto;
 import com.mdd.back.services.TopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -80,6 +81,30 @@ public class TopicController {
     public Mono<ResponseEntity<Void>> unsubscribeAuthenticatedUser(@PathVariable UUID topicId) {
         return topicService.unsubscribeAuthenticatedUserFromTopic(topicId)
                 .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    // Obtenir les topics avec le flag d'abonnement pour l'utilisateur authentifié
+    @Operation(
+            summary = "Obtenir les topics avec le flag d'abonnement pour l'utilisateur authentifié",
+            description = "Récupère la liste de tous les topics et indique si l'utilisateur authentifié est abonné ou non à chacun.",
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Liste des topics avec l'état d'abonnement pour l'utilisateur authentifié.",
+                    content = @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = TopicSubscribedForAuthUserDto.class)))
+            ),
+            @ApiResponse(responseCode = "204", description = "Aucun topic ou abonnement trouvé."),
+            @ApiResponse(responseCode = "401", description = "L'utilisateur n'est pas authentifié ou autorisé.")
+    })
+    @GetMapping("/with-subscription-status")
+    public Mono<ResponseEntity<List<TopicSubscribedForAuthUserDto>>> getAllTopicsWithSubscriptionStatus() {
+        return topicService.getAllTopicsWithAuthUserSubscription()
+                .collectList()
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.noContent().build());
     }
 
 }
