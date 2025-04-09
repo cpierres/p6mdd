@@ -41,5 +41,6 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-
+frontend:
+  url: ${P6_FRONTEND_URL:http://localhost:4200}
 
