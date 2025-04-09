@@ -1,0 +1,61 @@
+<div class="container">
+  <div class="content">
+    <div class="container-back-arrow">
+      <app-back></app-back>
+      <h2>{{ headTitle }}</h2>
+    </div>
+
+    <div class="user-form-container">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div>
+          <mat-form-field appearance="fill">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email"/>
+            <mat-error *ngIf="form.get('email')?.hasError('required')">L'email est requis</mat-error>
+            <mat-error *ngIf="form.get('email')?.hasError('email')">Adresse email invalide</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field appearance="fill">
+            <mat-label>Nom d'utilisateur</mat-label>
+            <input matInput formControlName="username"/>
+            <mat-error *ngIf="form.get('username')?.hasError('required')">
+              Le nom d'utilisateur est requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field appearance="fill">
+            <mat-label>Mot de passe</mat-label>
+            <input matInput formControlName="password" type="password"/>
+            <mat-error *ngIf="form.get('password')?.hasError('required')">
+              Le mot de passe est requis
+            </mat-error>
+            <mat-error *ngIf="form.get('password')?.hasError('minLength')">
+              Le mot de passe doit contenir au moins 8 caractères
+            </mat-error>
+            <mat-error *ngIf="form.get('password')?.hasError('uppercase')">
+              Le mot de passe doit contenir au moins une majuscule
+            </mat-error>
+            <mat-error *ngIf="form.get('password')?.hasError('lowercase')">
+              Le mot de passe doit contenir au moins une minuscule
+            </mat-error>
+            <mat-error *ngIf="form.get('password')?.hasError('number')">
+              Le mot de passe doit contenir au moins un chiffre
+            </mat-error>
+            <mat-error *ngIf="form.get('password')?.hasError('specialCharacter')">
+              Le mot de passe doit contenir au moins un caractère spécial
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div class="button-container">
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" >
+            {{ labelSubmit || 'Soumettre' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
