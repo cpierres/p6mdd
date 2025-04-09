@@ -3,6 +3,7 @@ package com.mdd.back.config;
 import com.mdd.back.services.JwtService;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -29,6 +30,8 @@ import java.util.Arrays;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     /**
      * Configure la chaîne de filtrage de sécurité pour l'application, en définissant des politiques de sécurité telles
@@ -100,7 +103,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200")); // Remplacez par l'URL de votre frontend
+        corsConfig.setAllowedOrigins(Arrays.asList(this.frontendUrl));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         corsConfig.setAllowCredentials(true); // Si vous utilisez des cookies ou des sessions partagées
