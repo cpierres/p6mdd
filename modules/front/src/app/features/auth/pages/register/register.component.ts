@@ -28,11 +28,13 @@ export class RegisterComponent implements OnInit {
 
   /**
    * Méthode pour gérer les données du formulaire envoyées depuis UserFormComponent
-   * @param formData Données du formulaire utilisateur
+   * @param registerRequest
+   * @param event
    */
-  handleFormSubmit(formData: any): void {
-    console.log('Formulaire soumis avec les données :', formData);
-    const registerRequest = formData as RegisterRequest;
+  handleFormSubmit(registerRequest: RegisterRequest): void {
+    //TODO Nettoyage
+    //console.log('CPI RegisterComponent handleFormSubmit soumis avec les données :', registerRequest);
+
     // this.authService.register(registerRequest).subscribe({
     //   next: () => this.router.navigate(['/auth/login']),
     //   error: () => this.onError = true,

@@ -2,17 +2,17 @@
   <div class="content">
     <div class="container-back-arrow">
       <app-back></app-back>
-      <h2>{{ headTitle }}</h2>
     </div>
 
     <div class="user-form-container">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <h2>{{ headTitle }}</h2>
+      <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" type="email"/>
-            <mat-error *ngIf="form.get('email')?.hasError('required')">L'email est requis</mat-error>
-            <mat-error *ngIf="form.get('email')?.hasError('email')">Adresse email invalide</mat-error>
+            <mat-error *ngIf="form.get('email')?.hasError('required')">email requis</mat-error>
+            <mat-error *ngIf="form.get('email')?.hasError('email')">adresse email invalide</mat-error>
           </mat-form-field>
         </div>
 
@@ -21,37 +21,37 @@
             <mat-label>Nom d'utilisateur</mat-label>
             <input matInput formControlName="username"/>
             <mat-error *ngIf="form.get('username')?.hasError('required')">
-              Le nom d'utilisateur est requis
+              nom d'utilisateur requis
             </mat-error>
           </mat-form-field>
         </div>
 
-        <div>
+        <div class="form-field-container">
           <mat-form-field appearance="fill">
             <mat-label>Mot de passe</mat-label>
-            <input matInput formControlName="password" type="password"/>
+            <input matInput formControlName="password"  type="password" class="form-field"/>
             <mat-error *ngIf="form.get('password')?.hasError('required')">
-              Le mot de passe est requis
+              mot de passe requis
             </mat-error>
             <mat-error *ngIf="form.get('password')?.hasError('minLength')">
-              Le mot de passe doit contenir au moins 8 caractères
+              au moins 8 caractères
             </mat-error>
             <mat-error *ngIf="form.get('password')?.hasError('uppercase')">
-              Le mot de passe doit contenir au moins une majuscule
+              au moins une majuscule
             </mat-error>
             <mat-error *ngIf="form.get('password')?.hasError('lowercase')">
-              Le mot de passe doit contenir au moins une minuscule
+              au moins une minuscule
             </mat-error>
             <mat-error *ngIf="form.get('password')?.hasError('number')">
-              Le mot de passe doit contenir au moins un chiffre
+              au moins un chiffre
             </mat-error>
             <mat-error *ngIf="form.get('password')?.hasError('specialCharacter')">
-              Le mot de passe doit contenir au moins un caractère spécial
+              au moins un car. spécial
             </mat-error>
           </mat-form-field>
         </div>
         <div class="button-container">
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" >
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" class="submit-button">
             {{ labelSubmit || 'Soumettre' }}
           </button>
         </div>

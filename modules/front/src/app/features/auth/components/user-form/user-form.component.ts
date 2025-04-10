@@ -1,18 +1,19 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {NgIf} from '@angular/common';
+import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 
 @Component({
   selector: 'app-user-form',
+  //encapsulation: ViewEncapsulation.None,//pour pouvoir agir sur bug affichage de .mat-mdc-form-field-error-wrapper
   imports: [
     BackComponent,
     ReactiveFormsModule,
     MatFormField,
     MatInput,
-    MatFormField,
     MatButtonModule,
     MatError,
     MatLabel,
@@ -25,7 +26,7 @@ export class UserFormComponent implements OnInit {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
-  @Output() submit: EventEmitter<any> = new EventEmitter<any>();
+  @Output() submit: EventEmitter<RegisterRequest> = new EventEmitter<RegisterRequest>();
 
   constructor(private fb: FormBuilder) {
   }
@@ -39,11 +40,12 @@ export class UserFormComponent implements OnInit {
 
   }
 
-  onSubmit() {
+  onSubmit($event: Event) {
+    $event.preventDefault(); // Empêche la soumission HTML par défaut
+    $event.stopPropagation(); //sinon double soumission intempestive (avec event pour 2eme)
     // Émettre l'événement vers composant parent
     this.submit.emit(this.form.value); // Inclure les données du formulaire
   }
-
 
   /**
    * L'affichage des erreurs est gérée dans le template grâce au retour de cette méthode
