@@ -1,10 +1,12 @@
-import {Component, EventEmitter, input, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {NgIf} from '@angular/common';
 import {RegisterRequest} from '../../interfaces/registerRequest.interface';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {User} from '../../../user/interfaces/user.interface';
 
 @Component({
   selector: 'app-user-form',
@@ -22,7 +24,7 @@ import {RegisterRequest} from '../../interfaces/registerRequest.interface';
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
-export class UserFormComponent implements OnInit {
+export class UserFormComponent implements OnInit, OnDestroy {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
@@ -31,6 +33,9 @@ export class UserFormComponent implements OnInit {
   @Input() initialEditMode: boolean = true; // définir le mode initial (false = view, true = edit)
   // Propriété pour gérer le mode (par défaut : view)
   isEditMode: boolean = true;
+
+  @Input() currentUser$: BehaviorSubject<User | null> | null = null;
+  private subscription!: Subscription; // Penser à nettoyer l'abonnement
 
   constructor(private fb: FormBuilder) {
   }
@@ -44,6 +49,26 @@ export class UserFormComponent implements OnInit {
       username: [{value: '', disabled: !this.isEditMode}, [Validators.required]],
       password: [{value: '', disabled: !this.isEditMode}, [Validators.required, this.passwordValidator]],
     });
+
+    // Souscription à l'Observable optionnel 'currentUser$'
+    if (this.currentUser$) {
+      this.subscription = this.currentUser$.subscribe((user) => {
+        if (user) {
+          this.form.patchValue({
+            email: user.email,
+            username: user.username,
+            password: '', // Ne pas pré-remplir un mot de passe
+          });
+        }
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyez l'abonnement pour éviter des fuites mémoire
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   onSubmit($event: Event) {
