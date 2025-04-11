@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, input, Input, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
@@ -28,23 +28,50 @@ export class UserFormComponent implements OnInit {
   form!: FormGroup;
   @Output() submit: EventEmitter<RegisterRequest> = new EventEmitter<RegisterRequest>();
 
+  @Input() initialEditMode: boolean = true; // définir le mode initial (false = view, true = edit)
+  // Propriété pour gérer le mode (par défaut : view)
+  isEditMode: boolean = true;
+
   constructor(private fb: FormBuilder) {
   }
 
   ngOnInit(): void {
-    this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      username: ['', [Validators.required]],
-      password: ['', [Validators.required, this.passwordValidator]],
-    });
+    // Initialisation de isEditMode avec choix @Input
+    this.isEditMode = this.initialEditMode;
 
+    this.form = this.fb.group({
+      email: [{value: '', disabled: !this.isEditMode}, [Validators.required, Validators.email]],
+      username: [{value: '', disabled: !this.isEditMode}, [Validators.required]],
+      password: [{value: '', disabled: !this.isEditMode}, [Validators.required, this.passwordValidator]],
+    });
   }
 
   onSubmit($event: Event) {
     $event.preventDefault(); // Empêche la soumission HTML par défaut
     $event.stopPropagation(); //sinon double soumission intempestive (avec event pour 2eme)
-    // Émettre l'événement vers composant parent
-    this.submit.emit(this.form.value); // Inclure les données du formulaire
+
+    if (this.isEditMode) {
+      // Mode édition : On envoie les données au composant parent quand on enregistre
+      this.submit.emit(this.form.value);
+    } else {
+      // Mode vue : On passe en mode édition
+      this.toggleEditMode();
+    }
+  }
+
+  toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+
+    // Activer ou désactiver les champs en fonction du mode
+    if (this.isEditMode) {
+      this.form.get('email')?.enable();
+      this.form.get('username')?.enable();
+      this.form.get('password')?.enable();
+    } else {
+      this.form.get('email')?.disable();
+      this.form.get('username')?.disable();
+      this.form.get('password')?.disable();
+    }
   }
 
   /**
