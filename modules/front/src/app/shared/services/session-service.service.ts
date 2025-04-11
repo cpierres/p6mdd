@@ -19,6 +19,8 @@ export class SessionService {
   public logIn(user: User): void {
     this.user = user;
     this.isLogged = true;
+    console.log(
+      'SessionService.logIn - isLogged :',this.isLogged);
     this.next();
   }
 

@@ -1,40 +1,39 @@
 <header>
-  <mat-toolbar color="white">
-    <div class="logo">
-      <a routerLink="/">
-        <img src="assets/images/logo_mdd.png" height="113" width="195" alt="Monde du Développement"/>
-      </a>
-    </div>
+    <mat-toolbar color="white">
+        <div class="logo">
+            <a routerLink="/">
+                <img alt="Monde du Développement" src="assets/images/logo_mdd.png" height="113" width="195"/>
+            </a>
+            <!-- span>showRightMenu : {{showRightMenu}}  -  isMobile : {{isMobile}}</span -->
+        </div>
 
-     <div class="menu-desktop" *ngIf="showRightMenu && !isMobile">
-      <button mat-menu-item routerLink="/post/list">Articles</button>
-      <button mat-menu-item routerLink="/subscription/topics">Thèmes</button>
-      <button mat-menu-item routerLink="/auth/profile">
-        <img src="../../../../assets/images/profil.png" alt="User" width="40" />
-      </button>
-       <!-- TODO Nettoyage -->
-       <!-- mat-icon>person</mat-icon>
-       <mat-icon>person_outline</mat-icon>
-       <mat-icon>account_circle</mat-icon -->
-     </div>
+        <div class="menu-desktop" *ngIf="showRightMenu && !isMobile">
+            <button mat-menu-item routerLink="/post/list">Articles</button>
+            <button mat-menu-item routerLink="/subscription/topics">Thèmes</button>
+            <button mat-menu-item routerLink="/auth/profile">
+                <img ngSrc="assets/images/profil.png" alt="User" width="58" height="58"/>
+            </button>
+            <!-- TODO Nettoyage ne ressemble pas à la maquette -->
+            <!-- mat-icon>person</mat-icon>
+            <mat-icon>person_outline</mat-icon>
+            <mat-icon>account_circle</mat-icon -->
+        </div>
 
-      <!-- Menu burger pour mobile -->
-      <div class="menu-mobile" *ngIf="showRightMenu && isMobile">
-        <button mat-icon-button [matMenuTriggerFor]="menuMobile">
-          <mat-icon>menu</mat-icon>
-        </button>
-      </div>
+        <!-- Menu burger pour mobile -->
+        <div class="menu-mobile"> <!-- *ngIf="showRightMenu && isMobile" -->
+            <button mat-icon-button [matMenuTriggerFor]="menuMobile">
+                <mat-icon>menu</mat-icon>
+            </button>
+        </div>
     </mat-toolbar>
 
     <!-- Contenu burger -->
     <mat-menu #menuMobile="matMenu">
-      <button mat-menu-item routerLink="/post/list">Articles</button>
-      <button mat-menu-item routerLink="/subscription/topics">Thèmes</button>
-      <button mat-menu-item routerLink="/auth/profil">
-        <img src="../../../../assets/images/profil.png" alt="Profil" width="40" />
-      </button>
-
-
+        <button mat-menu-item routerLink="/post/list">Articles</button>
+        <button mat-menu-item routerLink="/subscription/topics">Thèmes</button>
+        <button mat-menu-item routerLink="/auth/profil">
+            <img ngSrc="assets/images/profil.png" alt="Profil" width="58" height="58"/>
+        </button>
     </mat-menu>
 
 </header>

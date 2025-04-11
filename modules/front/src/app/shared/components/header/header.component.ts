@@ -6,7 +6,7 @@ import {MatButtonModule, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {Subscription} from 'rxjs';
 import {SessionService} from '../../services/session-service.service';
-import {NgIf} from '@angular/common';
+import {NgIf, NgOptimizedImage} from '@angular/common';
 
 const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
 
@@ -22,7 +22,8 @@ const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
     MatMenu,
     MatButtonModule,
     MatMenuTrigger,
-    NgIf
+    NgIf,
+    NgOptimizedImage
   ],
   styleUrl: './header.component.scss'
 })
@@ -57,7 +58,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Nettoyage de la souscription pour éviter les fuites mémoire
+    // Nettoyage de la souscription pour éviter fuites mémoire
     this.sessionSubscription?.unsubscribe();
   }
 }

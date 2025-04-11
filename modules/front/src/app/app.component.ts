@@ -4,29 +4,31 @@ import {MatButtonModule} from '@angular/material/button';
 //import {MessagesComponent} from './shared/components/messages/messages.component';
 import {HeaderComponent} from './shared/components/header/header.component';
 import {NgIf} from '@angular/common';
+import {User} from './features/user/interfaces/user.interface';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  title = 'MDD';
+  title = 'MDD - Monde Du Développement';
   isHeaderVisible: boolean = false;
 
-  // Constante pour les routes où le header est caché
+  // Constante pour les routes pour lesquelles le header doit être caché
   private readonly hiddenHeaderRoutes: string[] = ['/', '/home'];
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-    //this.setHeaderVisibility(this.router.url);
+    this.setHeaderVisibility(this.router.url);
     this.subscribeToRouterEvents();
   }
 
-  // Abonne aux événements de navigation du Router
+  /**
+   * Abonne aux événements de navigation du Router
+   */
   private subscribeToRouterEvents(): void {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -44,4 +46,5 @@ export class AppComponent implements OnInit {
   private isRouteHidden(url: string): boolean {
     return this.hiddenHeaderRoutes.includes(url);
   }
+
 }
