@@ -20,8 +20,7 @@ export class RegisterComponent implements OnInit {
   public onError = false;
 
   constructor(private router: Router, private authService: AuthService) {
-    console.log("RegisterComponent constructor")
-
+    //console.log("RegisterComponent constructor")
   }
 
   ngOnInit(): void {this.headTitle = "Inscription";  }
@@ -29,7 +28,6 @@ export class RegisterComponent implements OnInit {
   /**
    * Méthode pour gérer les données du formulaire envoyées depuis UserFormComponent
    * @param registerRequest
-   * @param event
    */
   handleFormSubmit(registerRequest: RegisterRequest): void {
     //TODO Nettoyage
@@ -62,10 +60,10 @@ export class RegisterComponent implements OnInit {
     //   error => this.onError = true
     // );
 
-    //MENTOR2: syntaxe précédente (projet 3) dépréciée
+    //MENTOR2: syntaxe projet 3 frontend dépréciée en v19
     this.authService.register(registerRequest).subscribe({
       next: (response: AuthSuccess) => {
-        this.router.navigate(['/']);
+        this.router.navigate(['/post/list']);
       },
       error: () => {
         this.onError = true;

@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
 import {HomeComponent} from './home/home.component';
 import {RegisterComponent} from './features/auth/pages/register/register.component';
+import {PostListComponent} from './features/post/pages/post-list/post-list.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent, pathMatch: 'full' },
+  { path: '', redirectTo: 'home', pathMatch: 'full' }, // Route par défaut vers homes
+  { path: 'home', component: HomeComponent },
   { path: 'auth/register', component: RegisterComponent },
+  { path: 'post/list', component: PostListComponent },
   { path: '**', redirectTo: '' } // Redirection par défaut en cas d'URL non valide
 
 ];

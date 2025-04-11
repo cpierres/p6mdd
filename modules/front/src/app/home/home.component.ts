@@ -16,7 +16,7 @@ export class HomeComponent {
   }
 
   register() {
-    console.log("CPI navigate register");
+    //console.log("CPI navigate register");
     this.router.navigate(['/auth/register']);
   }
 }
