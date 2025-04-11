@@ -31,35 +31,6 @@ export class RegisterComponent implements OnInit {
    */
   handleFormSubmit(registerRequest: RegisterRequest): void {
     //TODO Nettoyage
-    //console.log('CPI RegisterComponent handleFormSubmit soumis avec les données :', registerRequest);
-
-    // this.authService.register(registerRequest).subscribe({
-    //   next: () => this.router.navigate(['/auth/login']),
-    //   error: () => this.onError = true,
-    // });
-
-    // this.authService.register(registerRequest).subscribe(
-    //   (response: AuthSuccess) => {
-    //     localStorage.setItem('token', response.token);
-    //      this.authService.me().subscribe((user: User) => {
-    //        this.sessionService.logIn(user);
-    //     this.router.navigate(['/']);
-    //     });
-    //   },
-    //   error => this.onError = true
-    // );
-
-    // this.authService.register(registerRequest).subscribe(
-    //   (response: AuthSuccess) => {
-    //     localStorage.setItem('token', response.token);
-    //     // this.authService.me().subscribe((user: User) => {
-    //     //   this.sessionService.logIn(user);
-    //       this.router.navigate(['/']);
-    //     // });
-    //   },
-    //   error => this.onError = true
-    // );
-
     //MENTOR2: syntaxe projet 3 frontend dépréciée en v19
     this.authService.register(registerRequest).subscribe({
       next: (response: AuthSuccess) => {

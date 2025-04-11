@@ -4,6 +4,9 @@ import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 import {BehaviorSubject} from 'rxjs';
 import {User} from '../../../user/interfaces/user.interface';
 import {AuthService} from '../../services/auth.service';
+import {AuthSuccess} from '../../interfaces/authSuccess.interface';
+import {Router} from '@angular/router';
+import {UserUpdate} from '../../../user/interfaces/user-update.interface';
 
 @Component({
   selector: 'app-profil',
@@ -19,8 +22,9 @@ export class ProfilComponent implements OnInit {
   initialEditMode: boolean = false;
 
   currentUser$: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
+  public onError = false;
 
-  constructor(private authService: AuthService) {
+  constructor(private authService: AuthService, private router: Router) {
   }
 
   ngOnInit(): void {
@@ -30,9 +34,15 @@ export class ProfilComponent implements OnInit {
     });
   }
 
-
-  handleFormSubmit(registerRequest: RegisterRequest): void {
-
+  handleFormSubmit(userUpdate: UserUpdate): void {
+    this.authService.updateMe(userUpdate).subscribe({
+      next: (response: AuthSuccess) => {
+        this.router.navigate(['/post/list']);
+      },
+      error: () => {
+        this.onError = true;
+      }
+    });
   }
 
 }

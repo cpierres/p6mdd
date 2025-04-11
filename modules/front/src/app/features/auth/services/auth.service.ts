@@ -7,6 +7,7 @@ import {AuthSuccess} from '../interfaces/authSuccess.interface';
 import {environment} from '../../../../environments/environment';
 import {User} from '../../user/interfaces/user.interface';
 import {SessionService} from '../../../shared/services/session-service.service';
+import {UserUpdate} from '../../user/interfaces/user-update.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -30,7 +31,6 @@ export class AuthService {
         console.log("register - token; "+response.token)
         localStorage.setItem('token', response.token);
         this.me().subscribe((user: User) => {
-          console.log("register me - user; "+user)
           this.sessionService.logIn(user);
         });
       }),
@@ -44,6 +44,18 @@ export class AuthService {
 
   public me(): Observable<User> {
     return this.http.get<User>(`${this.pathService}/me`);
+  }
+
+  public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
+    return this.http.put<AuthSuccess>(`${this.pathService}/me`, userUpdate).pipe(
+      tap((response: AuthSuccess) => {
+        console.log("updateMe - token; "+response.token)
+      }),
+      catchError(error => {
+        console.error('Erreur lors de l\'inscription :', error);
+        return throwError(() => error);
+      })
+    );
   }
 
 }

@@ -24,11 +24,12 @@ import {User} from '../../../user/interfaces/user.interface';
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
-export class UserFormComponent implements OnInit, OnDestroy {
+export class UserFormComponent<T = any>  implements OnInit, OnDestroy {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
-  @Output() submit: EventEmitter<RegisterRequest> = new EventEmitter<RegisterRequest>();
+  //pour SOLID (srp) rendre le type générique
+  @Output() submit: EventEmitter<T> = new EventEmitter<T>();
 
   @Input() initialEditMode: boolean = true; // définir le mode initial (false = view, true = edit)
   // Propriété pour gérer le mode (par défaut : view)
@@ -77,7 +78,7 @@ export class UserFormComponent implements OnInit, OnDestroy {
 
     if (this.isEditMode) {
       // Mode édition : On envoie les données au composant parent quand on enregistre
-      this.submit.emit(this.form.value);
+      this.submit.emit(this.form.value as T);// Emettre données typées dynamiquement
     } else {
       // Mode vue : On passe en mode édition
       this.toggleEditMode();
