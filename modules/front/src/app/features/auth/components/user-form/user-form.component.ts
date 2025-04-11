@@ -63,15 +63,11 @@ export class UserFormComponent implements OnInit {
     this.isEditMode = !this.isEditMode;
 
     // Activer ou désactiver les champs en fonction du mode
-    if (this.isEditMode) {
-      this.form.get('email')?.enable();
-      this.form.get('username')?.enable();
-      this.form.get('password')?.enable();
-    } else {
-      this.form.get('email')?.disable();
-      this.form.get('username')?.disable();
-      this.form.get('password')?.disable();
-    }
+    Object.keys(this.form.controls).forEach((key) => {
+      const control = this.form.get(key)!;
+      this.isEditMode ? control.enable() : control.disable();
+    });
+
   }
 
   /**
