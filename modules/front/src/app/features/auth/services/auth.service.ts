@@ -27,8 +27,10 @@ export class AuthService {
     // Dans le composant register, subscribe du projet 3 est déprécié
     return this.http.post<AuthSuccess>(`${this.pathService}/register`, registerRequest).pipe(
       tap((response: AuthSuccess) => {
+        console.log("register - token; "+response.token)
         localStorage.setItem('token', response.token);
         this.me().subscribe((user: User) => {
+          console.log("register me - user; "+user)
           this.sessionService.logIn(user);
         });
       }),
