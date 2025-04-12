@@ -1,12 +1,13 @@
 import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {MatToolbar} from '@angular/material/toolbar';
-import {RouterLink} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
 import {MatButtonModule, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {Subscription} from 'rxjs';
 import {SessionService} from '../../services/session-service.service';
 import {NgIf, NgOptimizedImage} from '@angular/common';
+import {LogoutComponent} from '../logout/logout.component';
 
 const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
 
@@ -23,7 +24,8 @@ const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
     MatButtonModule,
     MatMenuTrigger,
     NgIf,
-    NgOptimizedImage
+    NgOptimizedImage,
+    LogoutComponent
   ],
   styleUrl: './header.component.scss'
 })
@@ -32,7 +34,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private sessionSubscription: Subscription | undefined;
   isMobile: boolean = false;
 
-  constructor(private sessionService: SessionService) {}
+  constructor(private sessionService: SessionService, private router: Router) {}
 
   ngOnInit(): void {
     // Gestion de la souscription pour le statut de connexion
@@ -60,5 +62,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Nettoyage de la souscription pour éviter fuites mémoire
     this.sessionSubscription?.unsubscribe();
+  }
+
+  onLogout(): void {
+    this.sessionService.logOut();
+    this.router.navigate(['/']);
   }
 }

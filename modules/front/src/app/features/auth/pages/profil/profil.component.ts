@@ -7,11 +7,15 @@ import {AuthService} from '../../services/auth.service';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {Router} from '@angular/router';
 import {UserUpdate} from '../../../user/interfaces/user-update.interface';
+import {MatButton} from '@angular/material/button';
+import {SessionService} from '../../../../shared/services/session-service.service';
 
 @Component({
   selector: 'app-profil',
   imports: [
-    UserFormComponent
+    UserFormComponent,
+    MatButton,
+    MatButton
   ],
   templateUrl: './profil.component.html',
   styleUrl: './profil.component.css'
@@ -44,5 +48,6 @@ export class ProfilComponent implements OnInit {
       }
     });
   }
+
 
 }
