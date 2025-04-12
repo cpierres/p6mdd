@@ -4,7 +4,6 @@
             <a routerLink="/">
                 <img alt="Monde du Développement" src="assets/images/logo_mdd.png" height="113" width="195"/>
             </a>
-            <!-- span>showRightMenu : {{showRightMenu}}  -  isMobile : {{isMobile}}</span -->
         </div>
 
         <div class="menu-desktop" *ngIf="showRightMenu && !isMobile">
@@ -13,14 +12,10 @@
             <button mat-menu-item routerLink="/auth/profil">
                 <img ngSrc="assets/images/profil.png" alt="User" width="58" height="58"/>
             </button>
-            <!-- TODO Nettoyage ne ressemble pas à la maquette -->
-            <!-- mat-icon>person</mat-icon>
-            <mat-icon>person_outline</mat-icon>
-            <mat-icon>account_circle</mat-icon -->
         </div>
 
         <!-- Menu burger pour mobile -->
-        <div class="menu-mobile"> <!-- *ngIf="showRightMenu && isMobile" -->
+        <div class="menu-mobile" *ngIf="showRightMenu && isMobile">
             <button mat-icon-button [matMenuTriggerFor]="menuMobile">
                 <mat-icon>menu</mat-icon>
             </button>
