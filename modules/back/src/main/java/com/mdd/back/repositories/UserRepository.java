@@ -1,6 +1,8 @@
 package com.mdd.back.repositories;
 
 import com.mdd.back.entities.User;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
@@ -15,4 +17,15 @@ public interface UserRepository extends ReactiveCrudRepository<User, UUID> {
      * @return un Mono<User> contenant l'utilisateur si trouvé, sinon Mono.empty()
      */
     Mono<User> findByEmail(String email);
+
+    /**
+     * Le username devra être unique car c'est un critère de login au même titre que l'email
+     * @param username
+     * @return
+     */
+    Mono<User> findByUsername(String username);
+
+    Mono<Boolean> existsByEmail(@Email(message = "Email doit être valide") @NotBlank(message = "Email ne peut pas être vide") String email);
+
+    Mono<Boolean> existsByUsername(String username);
 }

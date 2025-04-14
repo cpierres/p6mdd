@@ -16,7 +16,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * Permet d'afficher un message synthétique lors de la validation des DTO
+     * Permet d'afficher un message synthétique lors de la validation des DTO (via  @Valid ou @Validated)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Mono<ResponseEntity<ValidationErrorResponse>> handleValidationException(MethodArgumentNotValidException ex) {
@@ -39,6 +39,36 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT) // Code 409
                 .body(new MessageResponse(ex.getMessage())));
     }
+
+    @ExceptionHandler(MultipleResourceAlreadyExistException.class)
+    public Mono<ResponseEntity<ValidationErrorResponse>> handleMultipleResourceAlreadyExistException(
+            MultipleResourceAlreadyExistException ex) {
+
+        // réponse structurée avec les erreurs des champs
+        String msgGeneral = resolveErrorMessage(ex.getMessage(),
+                "Un ou plusieurs conflits d'unicité existent");
+
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                msgGeneral, // Message général
+                ex.getFieldErrors() // Map des erreurs associées aux champs
+        );
+
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.CONFLICT) // Code 409 : Conflit
+                .body(response));
+    }
+
+    /**
+     * Résout le message d'erreur en vérifiant s'il est vide ou null.
+     *
+     * @param originalMessage Le message original.
+     * @param defaultMessage Le message par défaut à utiliser si l'original est vide.
+     * @return Le message d'erreur final.
+     */
+    private String resolveErrorMessage(String originalMessage, String defaultMessage) {
+        return (originalMessage == null || originalMessage.isEmpty()) ? defaultMessage : originalMessage;
+    }
+
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public Mono<ResponseEntity<MessageResponse>> handleResourceNotFoundException(ResourceNotFoundException ex) {

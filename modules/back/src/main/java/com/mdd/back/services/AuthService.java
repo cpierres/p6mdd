@@ -1,7 +1,7 @@
 package com.mdd.back.services;
 
 import com.mdd.back.entities.User;
-import com.mdd.back.exception.ResourceAlreadyExistException;
+import com.mdd.back.exception.MultipleResourceAlreadyExistException;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.LoginRequest;
@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -40,32 +42,69 @@ public class AuthService {
      * @return Un objet Mono contenant l'utilisateur enregistré si l'opération réussit,
      * ou une erreur si un utilisateur avec l'email spécifié existe déjà.
      */
+//    public Mono<User> registerNewUser(RegisterRequest request) {
+//        // Vérifier si l'utilisateur existe déjà (de manière réactive)
+//        return userRepository.findByEmail(request.getEmail())
+//                .flatMap(existingUser -> {
+//                    // Si un utilisateur existe déjà, on rejette l'opération avec une exception
+//                    return Mono.<User>error(new ResourceAlreadyExistException(
+//                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà. Veuillez en choisir un autre."));
+//                })
+//                .switchIfEmpty(userRepository.findByUsername(request.getUsername())
+//                        .flatMap(existingUser -> {
+//                            // Si un utilisateur existe déjà avec ce username, rejeter l'opération avec une exception
+//                            return Mono.<User>error(new ResourceAlreadyExistException(
+//                                    "Un utilisateur avec ce nom: " + existingUser.getUsername() + " existe déjà. Veuillez en choisir un autre."));
+//                        })
+//                )
+//                .switchIfEmpty(Mono.defer(() -> {
+//                    // Si aucun utilisateur n'existe, enregistrement
+//                    String encodedPassword = passwordEncoder.encode(request.getPassword());
+//
+//                    //Mapper le RegisterRequest vers entité User via mappping AUTOMATIQUE (mapstruct)
+//                    //en tenant compte du traitement particulier sur le password
+//                    User newUser = userMapper.registerRequestToUser(request, encodedPassword);
+//
+//                    // Sauvegarder l'utilisateur et retourner l'objet sauvegardé
+//                    return userRepository.save(newUser);
+//                }));
+//    }
     public Mono<User> registerNewUser(RegisterRequest request) {
-        // Vérifier si l'utilisateur existe déjà (de manière réactive)
-        return userRepository.findByEmail(request.getEmail())
-                .flatMap(existingUser -> {
-                    // Si un utilisateur existe déjà, on rejette l'opération avec une exception
-                    return Mono.<User>error(new ResourceAlreadyExistException(
-                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà. Veuillez en choisir un autre."));
-                })
-                .switchIfEmpty(userRepository.findByUsername(request.getUsername())
-                        .flatMap(existingUser -> {
-                            // Si un utilisateur existe déjà avec ce username, rejeter l'opération avec une exception
-                            return Mono.<User>error(new ResourceAlreadyExistException(
-                                    "Un utilisateur avec ce nom: " + existingUser.getUsername() + " existe déjà. Veuillez en choisir un autre."));
-                        })
-                )
-                .switchIfEmpty(Mono.defer(() -> {
-                    // Si aucun utilisateur n'existe, procéder à l'enregistrement
+        Map<String, String> errors = new HashMap<>();
+
+        Mono<Boolean> emailExists = userRepository.existsByEmail(request.getEmail());
+
+        Mono<Boolean> usernameExists = userRepository.existsByUsername(request.getUsername());
+
+        // Combine les 2 vérifications (asynchrone) pour capturer les résultats
+        return Mono.zip(emailExists, usernameExists)
+                .flatMap(results -> {
+                    boolean emailConflict = results.getT1();
+                    boolean usernameConflict = results.getT2();
+
+                    // Ajoutez les erreurs en cas de conflits détectés
+                    if (emailConflict) {
+                        errors.put("email", "Un utilisateur avec cet email existe déjà.");
+                    }
+                    if (usernameConflict) {
+                        errors.put("username", "Un utilisateur avec ce nom d'utilisateur existe déjà.");
+                    }
+
+                    // Si des conflits existent, exception
+                    if (!errors.isEmpty()) {
+                        return Mono.error(new MultipleResourceAlreadyExistException(errors));
+                    }
+
+                    // Si aucune erreur, encoder mot de passe et créer l'utilisateur
+                    // Si aucun utilisateur n'existe, enregistrement
                     String encodedPassword = passwordEncoder.encode(request.getPassword());
 
                     //Mapper le RegisterRequest vers entité User via mappping AUTOMATIQUE (mapstruct)
                     //en tenant compte du traitement particulier sur le password
                     User newUser = userMapper.registerRequestToUser(request, encodedPassword);
 
-                    // Sauvegarder l'utilisateur et retourner l'objet sauvegardé
                     return userRepository.save(newUser);
-                }));
+                });
     }
 
     /**
