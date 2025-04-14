@@ -6,6 +6,7 @@ import {AuthService} from '../../services/auth.service';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {Router} from '@angular/router';
 import {UserUpdate} from '../../../user/interfaces/user-update.interface';
+import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 
 @Component({
   selector: 'app-profil',
@@ -13,7 +14,7 @@ import {UserUpdate} from '../../../user/interfaces/user-update.interface';
     UserFormComponent,
   ],
   templateUrl: './profil.component.html',
-  styleUrl: './profil.component.css'
+  styleUrl: './profil.component.scss'
 })
 export class ProfilComponent implements OnInit {
   labelSubmit: string = "Sauvegarder";
@@ -22,8 +23,10 @@ export class ProfilComponent implements OnInit {
 
   currentUser$: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
   public onError = false;
+  backendFieldErrors: { [key: string]: string } = {};
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(private authService: AuthService, private router: Router,
+              private errorHandlingService: ErrorHandlingService) {
   }
 
   ngOnInit(): void {
@@ -38,8 +41,10 @@ export class ProfilComponent implements OnInit {
       next: (response: AuthSuccess) => {
         this.router.navigate(['/post/list']);
       },
-      error: () => {
+      error: (error) => {
         this.onError = true;
+        this.errorHandlingService.handleValidationErrors(error);
+        this.backendFieldErrors = this.errorHandlingService.getFieldErrors();
       }
     });
   }

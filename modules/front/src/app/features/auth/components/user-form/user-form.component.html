@@ -13,6 +13,9 @@
             <input matInput formControlName="email" type="email" [readonly]="!isEditMode"/>
             <mat-error *ngIf="form.get('email')?.hasError('required')">email requis</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('email')">adresse email invalide</mat-error>
+            <mat-error *ngIf="form.get('email')?.hasError('backend')">
+              {{ backendFieldErrors['email'] }}
+            </mat-error>
           </mat-form-field>
         </div>
 
@@ -22,6 +25,9 @@
             <input matInput formControlName="username" [readonly]="!isEditMode"/>
             <mat-error *ngIf="form.get('username')?.hasError('required')">
               nom d'utilisateur requis
+            </mat-error>
+            <mat-error *ngIf="form.get('username')?.hasError('backend')">
+              {{ backendFieldErrors['username'] }}
             </mat-error>
           </mat-form-field>
         </div>

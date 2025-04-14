@@ -9,6 +9,7 @@ import {User} from '../../user/interfaces/user.interface';
 import {SessionService} from '../../../shared/services/session-service.service';
 import {UserUpdate} from '../../user/interfaces/user-update.interface';
 import {MessagesService} from '../../../shared/services/messages.service';
+import {ValidationErrorResponse} from '../../../shared/interfaces/ValidationErrorResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -22,24 +23,26 @@ export class AuthService {
   }
 
   public register(registerRequest: RegisterRequest): Observable<AuthSuccess> {
-    // TODO MENTOR2 :j'ai modifié le code du projet 3 frontend pour éviter deprecatead v19
     // utilisation d'un pipe pour traiter le flux dans le service avant utilisation par le composant.
     // le routage se fera plutôt dans le composant appelant (SOLID : SRP)
     // Dans le composant register, subscribe du projet 3 est déprécié
     return this.http.post<AuthSuccess>(`${this.pathService}/register`, registerRequest).pipe(
       tap((response: AuthSuccess) => {
-        console.log("register - token; " + response.token)
+        //en cas de succès, on authentifie directement le nouvel utilisateur
         localStorage.setItem('token', response.token);
         this.me().subscribe((user: User) => {
           this.sessionService.logIn(user);
         });
       }),
       catchError(error => {
-        //TODO MENTOR3 correct ? comment mieux traiter les erreurs ?
-        console.error('Erreur lors de l\'inscription :', error);
+        if (error.status === 409 && error.error.fieldErrors) {
+          // Retourner directement ValidationErrorResponse pour gestion des erreurs backend
+          return throwError(() => error.error as ValidationErrorResponse);
+        }
+        //erreur générale (message simple sans détail par champ) affichée via message réactif en entête de page
         this.messagesService.showMessage(
           'Erreur lors de l\'inscription : ' + error.error.message,
-          "error"
+          "error" //niveau de l'erreur (c 1 type)
         );
         return throwError(() => error);
       })
@@ -56,10 +59,14 @@ export class AuthService {
         //console.log("updateMe - token; " + response.token)
       }),
       catchError(error => {
-        console.error('Erreur lors de la mise à jour de votre profil :', error);
+        if (error.status === 409 && error.error.fieldErrors) {
+          // Retourner directement ValidationErrorResponse pour gestion des erreurs backend
+          return throwError(() => error.error as ValidationErrorResponse);
+        }
+        //erreur générale (message simple sans détail par champ) affichée via message réactif en entête de page
         this.messagesService.showMessage(
-          'Erreur lors de la mise à jour de votre profil : ' + error.error.message,
-          "error"
+          'Erreur lors de l\'inscription : ' + error.error.message,
+          "error" //niveau de l'erreur (c 1 type)
         );
         return throwError(() => error);
       })

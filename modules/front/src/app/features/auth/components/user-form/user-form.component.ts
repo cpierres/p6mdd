@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, ViewEncapsulation} from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
@@ -24,7 +24,7 @@ import {User} from '../../../user/interfaces/user.interface';
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
-export class UserFormComponent<T = any>  implements OnInit, OnDestroy {
+export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
@@ -37,6 +37,8 @@ export class UserFormComponent<T = any>  implements OnInit, OnDestroy {
 
   @Input() currentUser$: BehaviorSubject<User | null> | null = null;
   private subscription!: Subscription; // Penser à nettoyer l'abonnement
+
+  @Input() backendFieldErrors: { [key: string]: string } = {}; // erreurs provenant du backend
 
   constructor(private fb: FormBuilder) {
   }
@@ -60,6 +62,18 @@ export class UserFormComponent<T = any>  implements OnInit, OnDestroy {
             username: user.username,
             password: '', // Ne pas pré-remplir un mot de passe
           });
+        }
+      });
+    }
+  }
+
+  ngOnChanges(): void {
+    if (this.backendFieldErrors) {
+      // on applique les erreurs backend aux contrôles de formulaire pour affichage
+      Object.keys(this.backendFieldErrors).forEach((field) => {
+        const control = this.form.get(field);
+        if (control) {
+          control.setErrors({ backend: true });
         }
       });
     }
