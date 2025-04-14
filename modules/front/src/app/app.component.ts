@@ -1,16 +1,15 @@
 import {Component, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
-//import {MessagesComponent} from './shared/components/messages/messages.component';
 import {HeaderComponent} from './shared/components/header/header.component';
 import {NgIf} from '@angular/common';
-import {User} from './features/user/interfaces/user.interface';
+import {MessagesComponent} from './shared/components/messages/messages.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf],
+  imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf, MessagesComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
   title = 'MDD - Monde Du Développement';

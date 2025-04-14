@@ -1,6 +1,5 @@
 package com.mdd.back.controller;
 
-import com.mdd.back.exception.ResourceAlreadyExistException;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.*;
@@ -65,11 +64,12 @@ public class AuthController {
                     //ResponseEntity.ok(user);
                     String token = jwtService.generateToken(user.getId(), user.getEmail());
                     return ok(new AuthSuccess(token));
-                }) // Retourner l'utilisateur créé si tout fonctionne
-                .onErrorResume(ResourceAlreadyExistException.class, ex -> {
-                    // Gérer l'exception si un utilisateur avec l'email existe déjà
-                    return Mono.just(ResponseEntity.badRequest().body(null));
-                });
+                }) // ne pas traiter l'erreur ici ; la laisser remonter dans gestionnaire global
+//                .onErrorResume(ResourceAlreadyExistException.class, ex -> {
+//                    // Gérer l'exception si un utilisateur avec l'email existe déjà
+//                    return Mono.just(ResponseEntity.badRequest().body(null));
+//                })
+                ;
     }
 
     @Operation(summary = "Authentification d'un utilisateur déjà enregistré, via son email et mot de passe",

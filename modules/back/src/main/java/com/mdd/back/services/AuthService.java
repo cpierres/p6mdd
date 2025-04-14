@@ -46,8 +46,15 @@ public class AuthService {
                 .flatMap(existingUser -> {
                     // Si un utilisateur existe déjà, on rejette l'opération avec une exception
                     return Mono.<User>error(new ResourceAlreadyExistException(
-                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà !"));
+                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà. Veuillez en choisir un autre."));
                 })
+                .switchIfEmpty(userRepository.findByUsername(request.getUsername())
+                        .flatMap(existingUser -> {
+                            // Si un utilisateur existe déjà avec ce username, rejeter l'opération avec une exception
+                            return Mono.<User>error(new ResourceAlreadyExistException(
+                                    "Un utilisateur avec ce nom: " + existingUser.getUsername() + " existe déjà. Veuillez en choisir un autre."));
+                        })
+                )
                 .switchIfEmpty(Mono.defer(() -> {
                     // Si aucun utilisateur n'existe, procéder à l'enregistrement
                     String encodedPassword = passwordEncoder.encode(request.getPassword());

@@ -8,6 +8,7 @@ import {environment} from '../../../../environments/environment';
 import {User} from '../../user/interfaces/user.interface';
 import {SessionService} from '../../../shared/services/session-service.service';
 import {UserUpdate} from '../../user/interfaces/user-update.interface';
+import {MessagesService} from '../../../shared/services/messages.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,8 +18,7 @@ export class AuthService {
 
   constructor(private http: HttpClient,
               private sessionService: SessionService,
-              ) {// private messagesService: MessagesService) {
-
+              private messagesService: MessagesService) {
   }
 
   public register(registerRequest: RegisterRequest): Observable<AuthSuccess> {
@@ -28,15 +28,19 @@ export class AuthService {
     // Dans le composant register, subscribe du projet 3 est déprécié
     return this.http.post<AuthSuccess>(`${this.pathService}/register`, registerRequest).pipe(
       tap((response: AuthSuccess) => {
-        console.log("register - token; "+response.token)
+        console.log("register - token; " + response.token)
         localStorage.setItem('token', response.token);
         this.me().subscribe((user: User) => {
           this.sessionService.logIn(user);
         });
       }),
       catchError(error => {
-        //TODO MENTOR2 correct ? comment mieux traiter les erreurs ?
+        //TODO MENTOR3 correct ? comment mieux traiter les erreurs ?
         console.error('Erreur lors de l\'inscription :', error);
+        this.messagesService.showMessage(
+          'Erreur lors de l\'inscription : ' + error.error.message,
+          "error"
+        );
         return throwError(() => error);
       })
     );
@@ -49,10 +53,14 @@ export class AuthService {
   public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
     return this.http.put<AuthSuccess>(`${this.pathService}/me`, userUpdate).pipe(
       tap((response: AuthSuccess) => {
-        console.log("updateMe - token; "+response.token)
+        //console.log("updateMe - token; " + response.token)
       }),
       catchError(error => {
-        console.error('Erreur lors de l\'inscription :', error);
+        console.error('Erreur lors de la mise à jour de votre profil :', error);
+        this.messagesService.showMessage(
+          'Erreur lors de la mise à jour de votre profil : ' + error.error.message,
+          "error"
+        );
         return throwError(() => error);
       })
     );
