@@ -9,11 +9,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Schema(description = "Objet représentant l'enregistrement de la mise à jour d'un utilisateur")
 @Getter
 @Setter
 @NoArgsConstructor
 public class UpdateAuthenticatedUserRequest {
+    @Schema(description = "Identifiant unique de l'utilisateur (uuid).", example = "uuid")
+    private String id;
+
     @Schema(description = "L'adresse e-mail doit être unique dans le système", example = "cpi@gmail.com")
     @Email(message = "L'adresse e-mail doit être valide")
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
@@ -31,4 +36,10 @@ public class UpdateAuthenticatedUserRequest {
             regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
     )
     private String password;
+
+    @Schema(description = "Date/heure de création en lecture seule car gérée par le système")
+    private Instant created_at;
+
+    @Schema(description = "Date/heure de mise à jour gérée par le système")
+    private Instant updated_at;
 }

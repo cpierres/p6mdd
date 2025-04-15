@@ -10,7 +10,10 @@
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" [readonly]="!isEditMode"/>
+            <input matInput formControlName="email" type="email" [readonly]="!isEditMode"
+            />
+            <mat-hint align="start" *ngIf="context === 'profil' && this.isEditMode" >
+              Si vous modifiez votre email, déconnectez-vous.</mat-hint>
             <mat-error *ngIf="form.get('email')?.hasError('required')">email requis</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('email')">adresse email invalide</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('backend')">
@@ -58,7 +61,7 @@
         </div>
         <div class="button-container">
           <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" class="submit-button">
-            {{ isEditMode ? (labelSubmit || 'Enregistrer') : 'Modifier' }}
+            {{ submitButtonLabel }}
           </button>
         </div>
       </form>

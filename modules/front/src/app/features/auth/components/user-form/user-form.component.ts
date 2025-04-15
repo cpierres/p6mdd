@@ -7,6 +7,7 @@ import {NgIf} from '@angular/common';
 import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {User} from '../../../user/interfaces/user.interface';
+import {MatFormFieldModule} from '@angular/material/form-field';
 
 @Component({
   selector: 'app-user-form',
@@ -14,7 +15,7 @@ import {User} from '../../../user/interfaces/user.interface';
   imports: [
     BackComponent,
     ReactiveFormsModule,
-    MatFormField,
+    MatFormFieldModule,
     MatInput,
     MatButtonModule,
     MatError,
@@ -24,7 +25,7 @@ import {User} from '../../../user/interfaces/user.interface';
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
-export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy {
+export class UserFormComponent<T = any> implements OnInit, OnChanges, OnDestroy {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
@@ -36,9 +37,14 @@ export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy
   isEditMode: boolean = true;
 
   @Input() currentUser$: BehaviorSubject<User | null> | null = null;
+  // Ajoutez une propriété pour stocker l'utilisateur actuel dans le composant
+  currentUser: User | null = null;
+
   private subscription!: Subscription; // Penser à nettoyer l'abonnement
 
   @Input() backendFieldErrors: { [key: string]: string } = {}; // erreurs provenant du backend
+
+  @Input() context: 'register' | 'profil' | 'login' = 'register';
 
   constructor(private fb: FormBuilder) {
   }
@@ -56,6 +62,7 @@ export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy
     // Souscription à l'Observable optionnel 'currentUser$'
     if (this.currentUser$) {
       this.subscription = this.currentUser$.subscribe((user) => {
+        this.currentUser = user;
         if (user) {
           this.form.patchValue({
             email: user.email,
@@ -73,7 +80,7 @@ export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy
       Object.keys(this.backendFieldErrors).forEach((field) => {
         const control = this.form.get(field);
         if (control) {
-          control.setErrors({ backend: true });
+          control.setErrors({backend: true});
         }
       });
     }
@@ -144,6 +151,22 @@ export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy
 
     // Retourner null si aucune erreur, sinon retourne l'objet contenant les erreurs détectées
     return Object.keys(errors).length ? errors : null;
+  }
+
+  /**
+   * Méthode pour vérifier si l'email a été modifié dans le contexte de la mise à jour du profil
+   */
+  isEmailModified(): boolean {
+    return this.context === 'profil' && this.currentUser
+      ? this.form.get('email')?.value !== this.currentUser.email
+      : false;
+  }
+
+  get submitButtonLabel(): string {
+    if (this.context === 'profil' && this.isEditMode && this.isEmailModified()) {
+      return 'Enregistrer et déconnecter'; // Libellé spécifique si l'email a été modifié
+    }
+    return this.isEditMode ? (this.labelSubmit || 'Enregistrer') : 'Modifier';
   }
 
 }

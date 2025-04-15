@@ -20,6 +20,7 @@ export class ProfilComponent implements OnInit {
   labelSubmit: string = "Sauvegarder";
   headTitle: string = "Profil utilisateur";
   initialEditMode: boolean = false;
+  context: string = "profil";
 
   currentUser$: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
   public onError = false;
@@ -30,16 +31,26 @@ export class ProfilComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Charger les données utilisateur
+    // Charger les données utilisateur pour alimenter la page
     this.authService.me().subscribe((user: User) => {
       this.currentUser$.next(user);
     });
   }
 
   handleFormSubmit(userUpdate: UserUpdate): void {
+    // Comparer l'email dans userUpdate avec celui de currentUser$
+    const currentEmail = this.currentUser$.value?.email;
+    const isEmailModified = currentEmail !== userUpdate.email;
+
     this.authService.updateMe(userUpdate).subscribe({
       next: (response: AuthSuccess) => {
-        this.router.navigate(['/post/list']);
+        // Si l'email a changé, rediriger vers la route de déconnexion
+        if (isEmailModified) {
+          this.router.navigate(['/logout']);
+        } else {
+          // Sinon, revenir en mode lecture
+          this.initialEditMode = false; // Désactive la modification
+        }
       },
       error: (error) => {
         this.onError = true;

@@ -20,7 +20,7 @@ export class SessionService {
     this.user = user;
     this.isLogged = true;
     console.log(
-      'SessionService.logIn - isLogged :',this.isLogged);
+      'SessionService.logIn - isLogged :',this.isLogged, 'user :', this.user);
     this.next();
   }
 

@@ -16,6 +16,9 @@ public interface UserMapper {
     // pour mises à jour partielles avec encodage du mot de passe (encoder récupéré du contexte par injection)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "password", expression = "java(request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : user.getPassword())")
+    @Mapping(target = "id", ignore = false)
+    @Mapping(source = "created_at", target = "createdAt")
+    @Mapping(source = "updated_at", target = "updatedAt")
     void updateAuthenticatedUserFromRequest(UpdateAuthenticatedUserRequest request, @MappingTarget User user, @Context PasswordEncoder passwordEncoder);
 
     @Mapping(target = "created_at", source = "createdAt")
