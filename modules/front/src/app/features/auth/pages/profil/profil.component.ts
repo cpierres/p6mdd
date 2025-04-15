@@ -1,12 +1,12 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
-import {BehaviorSubject} from 'rxjs';
 import {User} from '../../../user/interfaces/user.interface';
 import {AuthService} from '../../services/auth.service';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {Router} from '@angular/router';
 import {UserUpdate} from '../../../user/interfaces/user-update.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
+import {SessionService} from '../../../../shared/services/session-service.service';
 
 @Component({
   selector: 'app-profil',
@@ -16,49 +16,55 @@ import {ErrorHandlingService} from '../../../../shared/services/error-handling-s
   templateUrl: './profil.component.html',
   styleUrl: './profil.component.scss'
 })
-export class ProfilComponent implements OnInit {
+export class ProfilComponent {
   labelSubmit: string = "Sauvegarder";
   headTitle: string = "Profil utilisateur";
-  initialEditMode: boolean = false;
+  // Signals pour le mode édition et les données utilisateur
+  isEditMode = signal<boolean>(false);
+  currentUser = signal<User | null>(null);
+
   context: string = "profil";
 
-  currentUser$: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
   public onError = false;
-  backendFieldErrors: { [key: string]: string } = {};
+  backendFieldErrors = signal<{ [key: string]: string }>({});
 
   constructor(private authService: AuthService, private router: Router,
-              private errorHandlingService: ErrorHandlingService) {
-  }
-
-  ngOnInit(): void {
+              private errorHandlingService: ErrorHandlingService,
+              private sessionService: SessionService) {
     // Charger les données utilisateur pour alimenter la page
+    // (pour signal ne pas faire dans ngOnInit mais dans constructor)
     this.authService.me().subscribe((user: User) => {
-      this.currentUser$.next(user);
+      this.currentUser.set(user);
     });
   }
 
   handleFormSubmit(userUpdate: UserUpdate): void {
     // Comparer l'email dans userUpdate avec celui de currentUser$
-    const currentEmail = this.currentUser$.value?.email;
+    const currentEmail = this.currentUser()?.email;
     const isEmailModified = currentEmail !== userUpdate.email;
 
     this.authService.updateMe(userUpdate).subscribe({
       next: (response: AuthSuccess) => {
         // Si l'email a changé, rediriger vers la route de déconnexion
         if (isEmailModified) {
-          this.router.navigate(['/logout']);
+          this.sessionService.logOut();
+          this.router.navigate(['/']);
         } else {
-          // Sinon, revenir en mode lecture
-          this.initialEditMode = false; // Désactive la modification
+          // Sinon, revenir en mode lecture après la sauvegarde
+          this.isEditMode.set(false);
         }
       },
       error: (error) => {
         this.onError = true;
         this.errorHandlingService.handleValidationErrors(error);
-        this.backendFieldErrors = this.errorHandlingService.getFieldErrors();
+        this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
       }
     });
   }
 
+  // Méthode appelée quand le composant enfant veut changer le mode
+  handleEditModeChange(isEdit: boolean): void {
+    this.isEditMode.set(isEdit);
+  }
 
 }

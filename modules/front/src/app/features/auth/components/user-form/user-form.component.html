@@ -10,14 +10,13 @@
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" [readonly]="!isEditMode"
-            />
-            <mat-hint align="start" *ngIf="context === 'profil' && this.isEditMode" >
-              Si vous modifiez votre email, déconnectez-vous.</mat-hint>
+            <input matInput formControlName="email" type="email" />
+            <mat-hint align="start" *ngIf="context === 'profil' && this.isEditModeValue()" >
+              Si email modifié, vous devrez vous reconnecter</mat-hint>
             <mat-error *ngIf="form.get('email')?.hasError('required')">email requis</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('email')">adresse email invalide</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('backend')">
-              {{ backendFieldErrors['email'] }}
+              {{ backendFieldErrors()['email'] }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -25,12 +24,12 @@
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Nom d'utilisateur</mat-label>
-            <input matInput formControlName="username" [readonly]="!isEditMode"/>
+            <input matInput formControlName="username" />
             <mat-error *ngIf="form.get('username')?.hasError('required')">
               nom d'utilisateur requis
             </mat-error>
             <mat-error *ngIf="form.get('username')?.hasError('backend')">
-              {{ backendFieldErrors['username'] }}
+              {{ backendFieldErrors()['username'] }}
             </mat-error>
           </mat-form-field>
         </div>
@@ -38,7 +37,7 @@
         <div class="form-field-container">
           <mat-form-field appearance="fill">
             <mat-label>Mot de passe</mat-label>
-            <input matInput formControlName="password" type="password" [readonly]="!isEditMode"/>
+            <input matInput formControlName="password" type="password" />
             <mat-error *ngIf="form.get('password')?.hasError('required')">
               mot de passe requis
             </mat-error>
@@ -61,7 +60,7 @@
         </div>
         <div class="button-container">
           <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" class="submit-button">
-            {{ submitButtonLabel }}
+            {{ submitButtonLabel() }}
           </button>
         </div>
       </form>
