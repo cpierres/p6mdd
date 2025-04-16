@@ -19,7 +19,7 @@ public class RegisterRequest {
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
     private String email;
 
-    @Schema(description = "Nom et prénom de l'utilisateur", example="Christophe Pierrès")
+    @Schema(description = "Nom de l'utilisateur", example="cpierres")
     @NotBlank(message = "Le nom de l'utilisateur est obligatoire")
     private String username;
 

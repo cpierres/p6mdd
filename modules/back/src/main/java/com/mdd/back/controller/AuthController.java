@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.ResponseEntity.ok;
-import static org.springframework.http.ResponseEntity.status;
 
 @Tag(
         name = "auth-controller",
@@ -42,7 +41,7 @@ public class AuthController {
         this.userMapper = userMapper;
     }
 
-    @Operation(summary = "Enregistrement d'un utilisateur (doublon sur email interdit)",
+    @Operation(summary = "Enregistrement d'un utilisateur (doublon sur email et username interdit)",
             description = """
                     Suite à son enregistrement, le nouvel utilisateur est directement connecté (authentification stateless Bearer jwt)
                     """)
@@ -53,7 +52,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Raison(s) de l'erreur (validation de RegisterRequest)",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ValidationErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Un utilisateur avec cet email existe déjà",
+            @ApiResponse(responseCode = "409", description = "Un utilisateur avec cet email ou ce nom existe déjà",
                     content = @Content(mediaType = "application/json"))
     })
     @SecurityRequirement(name = "") // Aucun schéma de sécurité
@@ -72,10 +71,10 @@ public class AuthController {
                 ;
     }
 
-    @Operation(summary = "Authentification d'un utilisateur déjà enregistré, via son email et mot de passe",
+    @Operation(summary = "Authentification d'un utilisateur via son email ou son nom et son mot de passe",
             description = """
                     L'utilisateur sera connecté via une authentification stateless (token).
-                    Si email et/ou mot de passe incorrect, message erreur (ne précisant volontairement
+                    Si email/username et/ou mot de passe incorrect, message erreur (ne précisant volontairement
                     pas quel élément est en erreur).
                     """,
             security = @SecurityRequirement(name = "") // Désactive la sécurité
@@ -84,17 +83,26 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Succès : retour du token JWT ",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = AuthSuccess.class))),
-            @ApiResponse(responseCode = "401", description = "Login ou mot de passe incorrect",
+            @ApiResponse(responseCode = "401", description = "Login (email ou nom) ou mot de passe incorrect",
                     content = @Content(mediaType = "application/json"))
     })
+//    @PostMapping("/login")
+//    public Mono<ResponseEntity<AuthSuccess>> login(@Valid @RequestBody LoginRequest loginRequest) {
+//        return authService.login(loginRequest)
+//                .flatMap(userId -> {
+//                    String token = jwtService.generateToken(userId, loginRequest.getEmail());
+//                    return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
+//                })
+//                .switchIfEmpty(Mono.just(status(HttpStatus.UNAUTHORIZED).body(null)));
+//    }
     @PostMapping("/login")
     public Mono<ResponseEntity<AuthSuccess>> login(@Valid @RequestBody LoginRequest loginRequest) {
         return authService.login(loginRequest)
                 .flatMap(userId -> {
-                    String token = jwtService.generateToken(userId, loginRequest.getEmail());
+                    String token = jwtService.generateToken(userId, loginRequest.getIdentifier());
                     return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
                 })
-                .switchIfEmpty(Mono.just(status(HttpStatus.UNAUTHORIZED).body(null)));
+                .switchIfEmpty(Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())); // Échec login
     }
 
     @Operation(summary = "Affichage de l'utilisateur authentifié.")
@@ -131,7 +139,7 @@ public class AuthController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Requête invalide ou données de mise à jour mal formatées",
-                    content =  @Content(schema = @Schema(implementation = ValidationErrorResponse.class))
+                    content = @Content(schema = @Schema(implementation = ValidationErrorResponse.class))
             ),
             @ApiResponse(
                     responseCode = "401",

@@ -52,26 +52,32 @@ public class AuthService {
 
 
     /**
-     * Authentifie un utilisateur en fonction de son e-mail et de son mot de passe.
-     * Si l'e-mail de l'utilisateur n'est pas trouvé ou bien si le mot de passe fourni est incorrect,
+     * Authentifie un utilisateur en fonction de son e-mail ou nom d'utulisateur et de son mot de passe.
+     * Si l'e-mail ou le nom de l'utilisateur n'ont pas été trouvés ou bien si le mot de passe fourni est incorrect,
      * la méthode renvoie null sans lever d'exception.
      * On ne veut pas donner d'indication précise sur la raison précise qui a empêché l'authentification.
      *
-     * @param loginRequest La demande de connexion contenant l'e-mail et le mot de passe de l'utilisateur.
+     * @param loginRequest La demande de connexion contenant l'e-mail ou nom ainsi que le mot de passe de l'utilisateur.
      * @return L'ID de l'utilisateur s'il est authentifié avec succès, ou null si ce n'est pas le cas.
      */
     public Mono<UUID> login(LoginRequest loginRequest) {
-        return userRepository.findByEmail(loginRequest.getEmail())
+        String identifier = loginRequest.getIdentifier(); // email ou username
+        String password = loginRequest.getPassword();
+
+        // Déterminer si l'identifiant est un email
+        boolean isEmail = identifier.contains("@");
+
+        // Recherche utilisateur par email ou username
+        return (isEmail ? userRepository.findByEmail(identifier) : userRepository.findByUsername(identifier))
+                .switchIfEmpty(Mono.empty()) // Aucun utilisateur trouvé
                 .flatMap(user -> {
-                    // Vérification du mot de passe via le bean passwordEncoder (comparaison avec pw crypté)
-                    if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                    // Vérifier que le mot de passe concorde
+                    if (passwordEncoder.matches(password, user.getPassword())) {
                         return Mono.just(user.getId());
                     } else {
-                        // Retourner un Mono vide si le mot de passe est incorrect
-                        return Mono.empty();
+                        return Mono.empty(); // Mot de passe incorrect
                     }
-                })
-                .switchIfEmpty(Mono.empty()); // Retourner Mono.just(null) si l'utilisateur n'est pas trouvé ou non authentifié
+                });
     }
 
     /**

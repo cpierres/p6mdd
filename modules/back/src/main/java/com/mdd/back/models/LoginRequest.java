@@ -1,7 +1,6 @@
 package com.mdd.back.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
@@ -12,10 +11,9 @@ import lombok.Setter;
 @Setter
 public class LoginRequest {
 
-    @Schema(description = "L'adresse e-mail doit être unique dans le système", example = "cpi@gmail.com")
-    @Email(message = "L'adresse e-mail doit être valide")
-    @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
-    private String email;
+    @Schema(description = "L'adresse e-mail et le nom d'utilisateur doivent être uniques", example = "cpierres")
+    @NotBlank(message = "L'adresse e-mail ou le nom d'utilisateur doivent être renseignés")
+    private String identifier;
 
     @Schema(description = "Mot de passe", example = "Test!1234")
     @NotBlank(message = "Le mot de passe ne peut pas être vide.")
