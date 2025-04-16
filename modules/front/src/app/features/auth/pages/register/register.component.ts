@@ -1,10 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {Router} from '@angular/router';
 import {AuthService} from '../../services/auth.service';
 import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
+import {User} from '../../../user/interfaces/user.interface';
 
 @Component({
   selector: 'app-register',
@@ -20,7 +21,11 @@ export class RegisterComponent implements OnInit {
   headTitle: string = "Inscription";
   onError = false;
 
-  backendFieldErrors: { [key: string]: string } = {};
+  // Signals pour le mode édition et les données utilisateur
+  isEditMode = signal<boolean>(true);
+  currentUser = signal<User | null>(null);
+
+  backendFieldErrors = signal<{ [key: string]: string }>({});
 
   constructor(private router: Router,
               private authService: AuthService,
@@ -29,6 +34,8 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.headTitle = "Inscription";
+    this.isEditMode.set(true);
+    this.currentUser.set(null);
   }
 
   /**
@@ -43,7 +50,7 @@ export class RegisterComponent implements OnInit {
       error: (error) => {
         this.onError = true;
         this.errorHandlingService.handleValidationErrors(error);
-        this.backendFieldErrors = this.errorHandlingService.getFieldErrors();
+        this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
       }
     });
 

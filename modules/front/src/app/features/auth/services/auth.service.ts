@@ -56,7 +56,14 @@ export class AuthService {
   public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
     return this.http.put<AuthSuccess>(`${this.pathService}/me`, userUpdate).pipe(
       tap((response: AuthSuccess) => {
-        //console.log("updateMe - token; " + response.token)
+        //on se ré-authentifie au cas où l'utilisateur aurait changé son email pour actualiser le contexte de sécurité
+        console.log(
+          'AuthService.updateMe - token :',
+          localStorage.getItem('token'))
+        // this.me().subscribe((user: User) => {
+        //   this.sessionService.logIn(user);
+        // });
+        //this.sessionService.logOut();
       }),
       catchError(error => {
         if (error.status === 409 && error.error.fieldErrors) {

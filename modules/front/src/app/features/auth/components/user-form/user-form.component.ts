@@ -1,12 +1,21 @@
-import {Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, ViewEncapsulation} from '@angular/core';
+import {
+  Component, computed, effect,
+  EventEmitter,
+  Input, OnDestroy,
+  OnInit,
+  Output, signal,
+  Signal,
+  ViewEncapsulation
+} from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatError, MatInput, MatLabel} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {NgIf} from '@angular/common';
-import {RegisterRequest} from '../../interfaces/registerRequest.interface';
-import {BehaviorSubject, Subscription} from 'rxjs';
 import {User} from '../../../user/interfaces/user.interface';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {log} from '@angular-devkit/build-angular/src/builders/ssr-dev-server';
+import {Subject, takeUntil} from 'rxjs';
 
 @Component({
   selector: 'app-user-form',
@@ -14,7 +23,7 @@ import {User} from '../../../user/interfaces/user.interface';
   imports: [
     BackComponent,
     ReactiveFormsModule,
-    MatFormField,
+    MatFormFieldModule,
     MatInput,
     MatButtonModule,
     MatError,
@@ -24,90 +33,115 @@ import {User} from '../../../user/interfaces/user.interface';
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
-export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy {
+export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   @Input() headTitle: string | undefined;
   @Input() labelSubmit: string | undefined;
   form!: FormGroup;
-  //pour SOLID (srp) rendre le type générique
+  //pour SOLID (srp) rendre le type retourné générique
   @Output() submit: EventEmitter<T> = new EventEmitter<T>();
 
-  @Input() initialEditMode: boolean = true; // définir le mode initial (false = view, true = edit)
-  // Propriété pour gérer le mode (par défaut : view)
-  isEditMode: boolean = true;
+  // @Input() initialEditMode: boolean = true; // définir le mode initial (false = view, true = edit)
+  // // Propriété pour gérer le mode (par défaut : view)
+  // isEditMode: boolean = true;
+  //
+  // @Input() currentUser$: BehaviorSubject<User | null> | null = null;
+  // // Ajoutez une propriété pour stocker l'utilisateur actuel dans le composant
+  // currentUser: User | null = null;
+  //
+  // private subscription!: Subscription; // Penser à nettoyer l'abonnement
+  @Input({required: true}) isEditMode!: Signal<boolean>;
+  @Input({required: true}) currentUser!: Signal<User | null>;
 
-  @Input() currentUser$: BehaviorSubject<User | null> | null = null;
-  private subscription!: Subscription; // Penser à nettoyer l'abonnement
+  readonly userEmail = computed(() => this.currentUser()?.email || "");
 
-  @Input() backendFieldErrors: { [key: string]: string } = {}; // erreurs provenant du backend
+  @Output() editModeChange = new EventEmitter<boolean>(); // Communique au parent lorsqu'on change le mode.
+
+  /** Signal local mutable pour gérer le mode en cas de modif interne */
+  private editMode = signal<boolean>(false);
+
+  /** Signal calculé : combine le mode initial global (parent) et local si bouton "Modifier" */
+  readonly isEditModeValue = computed(() => this.editMode() || this.isEditMode());
+
+  @Input() backendFieldErrors!: Signal<{ [key: string]: string }>;// erreurs provenant du backend
+
+  @Input() context: 'register' | 'profil' | 'login' = 'register';
+
+  readonly emailValue = signal<string>(''); // Signal pour le champ email
+  private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
+
+    effect(() => {
+      // Mise à jour du formulaire avec les données de l'utilisateur (via Signal)
+      const user = this.currentUser();
+      if (user) {
+        this.form.patchValue({
+          email: user.email,
+          username: user.username,
+          password: '' // Pas de pré-remplissage pour des raisons de sécurité
+        });
+      }
+
+      const errors = this.backendFieldErrors();
+      if (errors) {
+        Object.keys(errors).forEach((field) => {
+          const control = this.form.get(field);
+          if (control) {
+            control.setErrors({backend: true});
+          }
+        });
+      }
+
+      if (this.isEditModeValue()) {
+        this.form.enable();
+      } else {
+        this.form.disable();
+      }
+
+    });
   }
 
   ngOnInit(): void {
-    // Initialisation de isEditMode avec choix @Input
-    this.isEditMode = this.initialEditMode;
+    // // Initialisation de isEditMode avec choix @Input
+    // this.isEditMode = this.initialEditMode;
 
+    // Initialisation du formulaire
     this.form = this.fb.group({
-      email: [{value: '', disabled: !this.isEditMode}, [Validators.required, Validators.email]],
-      username: [{value: '', disabled: !this.isEditMode}, [Validators.required]],
-      password: [{value: '', disabled: !this.isEditMode}, [Validators.required, this.passwordValidator]],
+      email: [{value: '', disabled: !this.isEditMode()}, [Validators.required, Validators.email]],
+      username: [{value: '', disabled: !this.isEditMode()}, [Validators.required]],
+      password: [{value: '', disabled: !this.isEditMode()}, [Validators.required]]
     });
 
-    // Souscription à l'Observable optionnel 'currentUser$'
-    if (this.currentUser$) {
-      this.subscription = this.currentUser$.subscribe((user) => {
-        if (user) {
-          this.form.patchValue({
-            email: user.email,
-            username: user.username,
-            password: '', // Ne pas pré-remplir un mot de passe
-          });
+    // Écoute des changements dans le champ email et mise à jour du Signal
+    this.form.get('email')?.valueChanges
+      .pipe(takeUntil(this.destroy$)) // Arrête l'observable au moment du `destroy`
+      .subscribe((email) => {
+        if (email !== undefined) {
+          this.emailValue.set(email); // Mise à jour du Signal
         }
       });
-    }
-  }
 
-  ngOnChanges(): void {
-    if (this.backendFieldErrors) {
-      // on applique les erreurs backend aux contrôles de formulaire pour affichage
-      Object.keys(this.backendFieldErrors).forEach((field) => {
-        const control = this.form.get(field);
-        if (control) {
-          control.setErrors({ backend: true });
-        }
-      });
-    }
-  }
-
-  ngOnDestroy(): void {
-    // Nettoyez l'abonnement pour éviter des fuites mémoire
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
   }
 
   onSubmit($event: Event) {
     $event.preventDefault(); // Empêche la soumission HTML par défaut
     $event.stopPropagation(); //sinon double soumission intempestive (avec event pour 2eme)
 
-    if (this.isEditMode) {
+    if (this.isEditModeValue()) {
       // Mode édition : On envoie les données au composant parent quand on enregistre
+      this.exitEditMode();
       this.submit.emit(this.form.value as T);// Emettre données typées dynamiquement
     } else {
-      // Mode vue : On passe en mode édition
-      this.toggleEditMode();
+      // Bascule le mode local en édition.
+      this.editMode.set(true); // Active le mode édition en interne.
+      this.editModeChange.emit(true); // Informe le parent (si nécessaire).
     }
   }
 
-  toggleEditMode() {
-    this.isEditMode = !this.isEditMode;
-
-    // Activer ou désactiver les champs en fonction du mode
-    Object.keys(this.form.controls).forEach((key) => {
-      const control = this.form.get(key)!;
-      this.isEditMode ? control.enable() : control.disable();
-    });
-
+  /** Méthode appelée quand la sauvegarde réussit */
+  exitEditMode(): void {
+    this.editMode.set(false); // Revenir en lecture seule (consultation).
+    this.editModeChange.emit(false); // Informer le parent pour synchronisation.
   }
 
   /**
@@ -144,6 +178,31 @@ export class UserFormComponent<T = any>  implements OnInit, OnChanges, OnDestroy
 
     // Retourner null si aucune erreur, sinon retourne l'objet contenant les erreurs détectées
     return Object.keys(errors).length ? errors : null;
+  }
+
+  /**
+   * Méthode pour vérifier si l'email a été modifié dans le contexte de la mise à jour du profil
+   */
+  readonly isEmailModifiedForProfil = computed(() => {
+    return this.context === 'profil' && this.currentUser()
+      ? this.emailValue() !== this.currentUser()?.email // Compare "emailValue" (Signal) avec l'email utilisateur
+      : false;
+  });
+
+  readonly submitButtonLabel = computed(() => {
+    console.log('submitButtonLabel Recalculation triggered...','context:', this.context,
+      'isEditModeValue:', this.isEditModeValue(),
+      'isEmailModifiedForProfil:', this.isEmailModifiedForProfil());
+
+    if (this.context === 'profil' && this.isEditModeValue() && this.isEmailModifiedForProfil()) {
+      return 'Enregistrer et déconnecter'; // Libellé spécifique si l'email a été modifié pour Profil
+    }
+    return this.isEditModeValue() ? (this.labelSubmit || 'Enregistrer') : 'Modifier';
+  });
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

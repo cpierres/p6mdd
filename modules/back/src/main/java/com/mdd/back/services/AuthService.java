@@ -1,7 +1,6 @@
 package com.mdd.back.services;
 
 import com.mdd.back.entities.User;
-import com.mdd.back.exception.MultipleResourceAlreadyExistException;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.LoginRequest;
@@ -16,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -25,13 +22,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserValidator userValidator;
 
 
     @Autowired
-    public AuthService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, UserValidator userValidator) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
+        this.userValidator = userValidator;
     }
 
     /**
@@ -42,70 +41,15 @@ public class AuthService {
      * @return Un objet Mono contenant l'utilisateur enregistré si l'opération réussit,
      * ou une erreur si un utilisateur avec l'email spécifié existe déjà.
      */
-//    public Mono<User> registerNewUser(RegisterRequest request) {
-//        // Vérifier si l'utilisateur existe déjà (de manière réactive)
-//        return userRepository.findByEmail(request.getEmail())
-//                .flatMap(existingUser -> {
-//                    // Si un utilisateur existe déjà, on rejette l'opération avec une exception
-//                    return Mono.<User>error(new ResourceAlreadyExistException(
-//                            "Un utilisateur avec cet email: " + existingUser.getEmail() + " existe déjà. Veuillez en choisir un autre."));
-//                })
-//                .switchIfEmpty(userRepository.findByUsername(request.getUsername())
-//                        .flatMap(existingUser -> {
-//                            // Si un utilisateur existe déjà avec ce username, rejeter l'opération avec une exception
-//                            return Mono.<User>error(new ResourceAlreadyExistException(
-//                                    "Un utilisateur avec ce nom: " + existingUser.getUsername() + " existe déjà. Veuillez en choisir un autre."));
-//                        })
-//                )
-//                .switchIfEmpty(Mono.defer(() -> {
-//                    // Si aucun utilisateur n'existe, enregistrement
-//                    String encodedPassword = passwordEncoder.encode(request.getPassword());
-//
-//                    //Mapper le RegisterRequest vers entité User via mappping AUTOMATIQUE (mapstruct)
-//                    //en tenant compte du traitement particulier sur le password
-//                    User newUser = userMapper.registerRequestToUser(request, encodedPassword);
-//
-//                    // Sauvegarder l'utilisateur et retourner l'objet sauvegardé
-//                    return userRepository.save(newUser);
-//                }));
-//    }
     public Mono<User> registerNewUser(RegisterRequest request) {
-        Map<String, String> errors = new HashMap<>();
-
-        Mono<Boolean> emailExists = userRepository.existsByEmail(request.getEmail());
-
-        Mono<Boolean> usernameExists = userRepository.existsByUsername(request.getUsername());
-
-        // Combine les 2 vérifications (asynchrone) pour capturer les résultats
-        return Mono.zip(emailExists, usernameExists)
-                .flatMap(results -> {
-                    boolean emailConflict = results.getT1();
-                    boolean usernameConflict = results.getT2();
-
-                    // Ajoutez les erreurs en cas de conflits détectés
-                    if (emailConflict) {
-                        errors.put("email", "Un utilisateur avec cet email existe déjà.");
-                    }
-                    if (usernameConflict) {
-                        errors.put("username", "Un utilisateur avec ce nom d'utilisateur existe déjà.");
-                    }
-
-                    // Si des conflits existent, exception
-                    if (!errors.isEmpty()) {
-                        return Mono.error(new MultipleResourceAlreadyExistException(errors));
-                    }
-
-                    // Si aucune erreur, encoder mot de passe et créer l'utilisateur
-                    // Si aucun utilisateur n'existe, enregistrement
+        return userValidator.validateUniqueEmailAndUsername(null, request.getEmail(), request.getUsername())
+                .then(Mono.defer(() -> {
                     String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-                    //Mapper le RegisterRequest vers entité User via mappping AUTOMATIQUE (mapstruct)
-                    //en tenant compte du traitement particulier sur le password
                     User newUser = userMapper.registerRequestToUser(request, encodedPassword);
-
                     return userRepository.save(newUser);
-                });
+                }));
     }
+
 
     /**
      * Authentifie un utilisateur en fonction de son e-mail et de son mot de passe.
@@ -175,15 +119,28 @@ public class AuthService {
     public Mono<UserDto> updateAuthenticatedUser(UpdateAuthenticatedUserRequest request) {
         return getAuthenticatedUser()
                 .flatMap(authenticatedUser -> {
-                    // Utilisation du mapper pour modifier l'utilisateur existant avec encodage du mot de passe
-                    //(injection du passwordEncoder grâce à @Context dans le mapper !)
-                    userMapper.updateAuthenticatedUserFromRequest(request, authenticatedUser, passwordEncoder);
+                    // Vérifier si les données ont changé
+                    boolean emailChanged = !authenticatedUser.getEmail().equals(request.getEmail());
+                    boolean usernameChanged = !authenticatedUser.getUsername().equals(request.getUsername());
 
-                    // Sauvegarder les modifications et retourner le DTO
+                    if (emailChanged || usernameChanged) {
+                        // Validation d'unicité uniquement si les champs ont changé
+                        return userValidator.validateUniqueEmailAndUsername(authenticatedUser.getId(), request.getEmail(), request.getUsername())
+                                .then(Mono.defer(() -> {
+                                    // Mise à jour après validation réussie
+                                    userMapper.updateAuthenticatedUserFromRequest(request, authenticatedUser, passwordEncoder);
+                                    return userRepository.save(authenticatedUser)
+                                            .map(userMapper::userToUserDto);
+                                }));
+                    }
+
+                    // Si aucune donnée ne change, sauvegarde directe
+                    userMapper.updateAuthenticatedUserFromRequest(request, authenticatedUser, passwordEncoder);
                     return userRepository.save(authenticatedUser)
                             .map(userMapper::userToUserDto);
                 })
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non authentifié ou introuvable")));
+
     }
 
 }
