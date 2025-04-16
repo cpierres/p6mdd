@@ -3,10 +3,12 @@ import {HomeComponent} from './home/home.component';
 import {RegisterComponent} from './features/auth/pages/register/register.component';
 import {PostListComponent} from './features/post/pages/post-list/post-list.component';
 import {ProfilComponent} from './features/auth/pages/profil/profil.component';
+import {LoginPageComponent} from './features/auth/pages/login/login.component';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers homes
   {path: 'home', component: HomeComponent},
+  {path: 'auth/login', component: LoginPageComponent},
   {path: 'auth/register', component: RegisterComponent},
   {path: 'post/list', component: PostListComponent},
   {path: 'auth/profil', component: ProfilComponent},
