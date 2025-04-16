@@ -99,8 +99,10 @@ public class AuthService {
                             if (auth == null || !auth.isAuthenticated()) {
                                 return Mono.error(new ResourceNotFoundException("Utilisateur non authentifié"));
                             }
-                            String email = auth.getName();
-                            return userRepository.findByEmail(email)
+                            //on peut s'authentifier soit par username, soit par email
+                            String identifier = auth.getName();
+                            boolean isEmail = identifier.contains("@");
+                            return (isEmail ? userRepository.findByEmail(identifier) : userRepository.findByUsername(identifier))
                                     .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non trouvé!")));
                         })
         );

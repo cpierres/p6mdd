@@ -11,6 +11,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {Router} from '@angular/router';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
+import {MessagesService} from '../../../../shared/services/messages.service';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +30,8 @@ import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 export class LoginPageComponent implements OnInit {
   form!: FormGroup;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {}
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router,
+              private messagesService: MessagesService) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -41,7 +43,7 @@ export class LoginPageComponent implements OnInit {
   onSubmit(): void {
     if (this.form.valid) {
       const loginRequest: LoginRequest = this.form.value;
-
+      this.messagesService.clear();
       this.authService.login(loginRequest).subscribe({
         next: (response: AuthSuccess) => {
           // Redirige l'utilisateur vers une page sécurisée après connexion

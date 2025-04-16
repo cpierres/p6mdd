@@ -190,9 +190,9 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   });
 
   readonly submitButtonLabel = computed(() => {
-    console.log('submitButtonLabel Recalculation triggered...','context:', this.context,
-      'isEditModeValue:', this.isEditModeValue(),
-      'isEmailModifiedForProfil:', this.isEmailModifiedForProfil());
+    // console.log('submitButtonLabel Recalculation triggered...','context:', this.context,
+    //   'isEditModeValue:', this.isEditModeValue(),
+    //   'isEmailModifiedForProfil:', this.isEmailModifiedForProfil());
 
     if (this.context === 'profil' && this.isEditModeValue() && this.isEmailModifiedForProfil()) {
       return 'Enregistrer et déconnecter'; // Libellé spécifique si l'email a été modifié pour Profil
