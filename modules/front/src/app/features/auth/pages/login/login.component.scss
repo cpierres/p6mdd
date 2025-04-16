@@ -1,0 +1,87 @@
+.container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: 20px auto;
+  width: 100%;}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.container-back-arrow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+  position: relative;
+}
+.user-form-container {
+  width: 80%; /* Largeur spécifique pour le formulaire */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.back-arrow {
+  position: absolute;
+  left: 0;
+}
+
+h2 {
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Conteneur global des champs */
+.form-field-container {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+mat-form-field {
+  width: 100%;
+  display: block;
+  margin-bottom: 1.5rem; /* Ajouter une marge entre les champ et éviter chevauchement */
+}
+
+.error-messages {
+  min-height: 1.2rem; /* Réserve de l'espace pour les messages, même lorsqu'une seule erreur s'affiche */
+  display: block;
+  flex-direction: column; /* Organisation verticale des erreurs */
+  justify-content: flex-start;
+}
+
+.mat-mdc-form-field-error-wrapper {
+  position: relative;//le absolute d'origine pose pb (chevauchement erreurs sur bouton)
+  overflow: visible;
+  width: 100%;
+}
+
+mat-error {
+  font-size: 0.80rem; /* Taille adaptée pour les messages d'erreur */
+  display: flex;
+  height: 14px; /* hauteur fixe pour éviter pb avec bouton (bug de .mat-mdc-form-field-error-wrapper) */
+  margin: 1px 0 0 0; /* Distance des messages d'erreur au champ */
+  color: #d32f2f;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1rem;
+  position: relative; /* S'assure qu'il reste en flow avec le contenu */
+}
+
+.submit-button {
+  width: 150px;
+  height: 40px;
+}

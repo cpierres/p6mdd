@@ -10,6 +10,7 @@ import {SessionService} from '../../../shared/services/session-service.service';
 import {UserUpdate} from '../../user/interfaces/user-update.interface';
 import {MessagesService} from '../../../shared/services/messages.service';
 import {ValidationErrorResponse} from '../../../shared/interfaces/ValidationErrorResponse';
+import {LoginRequest} from '../interfaces/loginRequest.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -80,4 +81,26 @@ export class AuthService {
     );
   }
 
+  public login(request: LoginRequest): Observable<AuthSuccess> {
+    return this.http.post<AuthSuccess>(`${this.pathService}/login`, request).pipe(
+      tap((response: AuthSuccess) => {
+        // Stocker le token JWT retourné par le backend
+        localStorage.setItem('token', response.token);
+
+        // Récupérer les informations utilisateur et initialiser la session
+        this.me().subscribe((user: User) => {
+          this.sessionService.logIn(user);
+        });
+      }),
+      catchError(error => {
+        // Gestion des erreurs
+        if (error.status === 401) {
+          this.messagesService.showMessage('Identifiant (email ou nom) ou mot de passe incorrect', 'error');
+        } else {
+          this.messagesService.showMessage('Une erreur est survenue lors de la connexion', 'error');
+        }
+        return throwError(() => error);
+      })
+    );
+  }
 }

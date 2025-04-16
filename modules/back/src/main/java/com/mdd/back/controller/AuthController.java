@@ -86,15 +86,6 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Login (email ou nom) ou mot de passe incorrect",
                     content = @Content(mediaType = "application/json"))
     })
-//    @PostMapping("/login")
-//    public Mono<ResponseEntity<AuthSuccess>> login(@Valid @RequestBody LoginRequest loginRequest) {
-//        return authService.login(loginRequest)
-//                .flatMap(userId -> {
-//                    String token = jwtService.generateToken(userId, loginRequest.getEmail());
-//                    return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
-//                })
-//                .switchIfEmpty(Mono.just(status(HttpStatus.UNAUTHORIZED).body(null)));
-//    }
     @PostMapping("/login")
     public Mono<ResponseEntity<AuthSuccess>> login(@Valid @RequestBody LoginRequest loginRequest) {
         return authService.login(loginRequest)
