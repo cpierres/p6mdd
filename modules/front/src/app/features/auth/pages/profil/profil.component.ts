@@ -7,11 +7,15 @@ import {Router} from '@angular/router';
 import {UserUpdate} from '../../../user/interfaces/user-update.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 import {SessionService} from '../../../../shared/services/session-service.service';
+import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedStatus';
+import {TopicService} from '../../../topic/services/topic.service';
+import {TopicListComponent} from '../../../topic/components/topic-list/topic-list.component';
 
 @Component({
   selector: 'app-profil',
   imports: [
     UserFormComponent,
+    TopicListComponent,
   ],
   templateUrl: './profil.component.html',
   styleUrl: './profil.component.scss'
@@ -22,20 +26,33 @@ export class ProfilComponent {
   // Signals pour le mode édition et les données utilisateur
   isEditMode = signal<boolean>(false);
   currentUser = signal<User | null>(null);
-
   context: string = "profil";
 
   public onError = false;
   backendFieldErrors = signal<{ [key: string]: string }>({});
+  topics: TopicSubscribedStatus[] = [];
 
   constructor(private authService: AuthService, private router: Router,
               private errorHandlingService: ErrorHandlingService,
-              private sessionService: SessionService) {
+              private sessionService: SessionService,
+              private topicService: TopicService) {
     // Charger les données utilisateur pour alimenter la page
     // (pour signal ne pas faire dans ngOnInit mais dans constructor)
     this.authService.me().subscribe((user: User) => {
       this.currentUser.set(user);
     });
+
+    // Souscrire à l'Observable des Topics pour avoir les mises à jour
+    this.topicService.topicsWithSubscriptionStatus$.subscribe(topics => {
+      this.topics = topics;
+    });
+
+    // Chargement initial des des topics
+    this.loadTopics();
+  }
+
+  loadTopics(): void {
+    this.topicService.getTopicsWithSubscriptionStatus().subscribe();
   }
 
   handleFormSubmit(userUpdate: UserUpdate): void {
