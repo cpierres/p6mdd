@@ -4,6 +4,7 @@ import {RegisterComponent} from './features/auth/pages/register/register.compone
 import {PostListComponent} from './features/post/pages/post-list/post-list.component';
 import {ProfilComponent} from './features/auth/pages/profil/profil.component';
 import {LoginPageComponent} from './features/auth/pages/login/login.component';
+import {TopicListAllComponent} from './features/topic/pages/topic-list-all/topic-list-all.component';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers homes
@@ -12,6 +13,7 @@ export const routes: Routes = [
   {path: 'auth/register', component: RegisterComponent},
   {path: 'post/list', component: PostListComponent},
   {path: 'auth/profil', component: ProfilComponent},
+  {path: 'topics', component: TopicListAllComponent},
   {path: '**', redirectTo: ''} // Redirection par défaut en cas d'URL non valide
 
 ];

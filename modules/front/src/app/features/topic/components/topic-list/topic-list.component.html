@@ -1,0 +1,23 @@
+<div class="topic-list-container">
+  <div class="topic-grid" [style.display]="'grid'"
+       [style.grid-template-columns]="'repeat(' + (cols$ | async) + ', 1fr)'" [style.gap]="'16px'">
+    @for (topic of filteredTopics; track topic.id) {
+      <mat-card class="topic-card">
+        <mat-card-header>
+          <mat-card-title>{{ topic.title }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="description">{{ truncateDescription(topic.description) }}</p>
+        </mat-card-content>
+        <mat-card-actions class="center-actions">
+          @if (!topic.subscribed && showSubscribeButton) {
+            <button mat-raised-button color="primary" (click)="subscribeTopic(topic.id, $event)">S'abonner</button>
+          }
+          @if (topic.subscribed && showUnsubscribeButton) {
+            <button mat-raised-button color="primary" (click)="unsubscribeTopic(topic.id, $event)">Se désabonner</button>
+          }
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+</div>
