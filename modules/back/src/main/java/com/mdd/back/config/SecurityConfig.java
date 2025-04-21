@@ -24,6 +24,7 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Slf4j
 @Configuration
@@ -55,7 +56,8 @@ public class SecurityConfig {
                                 "/api/topics",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/topics/stats/stream"
                         ).permitAll() // Autoriser les accès publics
                         .anyExchange().authenticated() // Authentification pour toutes les autres routes
                 )
@@ -103,7 +105,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList(this.frontendUrl));
+        corsConfig.setAllowedOrigins(Collections.singletonList(this.frontendUrl));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         corsConfig.setAllowCredentials(true); // Si vous utilisez des cookies ou des sessions partagées

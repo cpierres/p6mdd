@@ -6,6 +6,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {NgForOf} from '@angular/common';
 import {PostService} from '../../services/post.service';
 import {TopicStatsDto} from '../../interface/TopicStatsDto';
+import {TopicStatsService} from '../../../topic/services/topic-stats.service';
 
 @Component({
   selector: 'app-post-list-page',
@@ -23,11 +24,17 @@ export class PostListPageComponent implements OnInit {
   topics: TopicStatsDto[] = [];
 
   constructor(private router: Router,
-              private postService: PostService) {
+              private postService: PostService,
+              private topicStatsService: TopicStatsService) {
   }
 
   ngOnInit(): void {
     this.loadTopics();
+
+    // Utiliser le service SSE pour mettre à jour les statistiques des topics
+    this.topicStatsService.getTopicStats().subscribe(topics => {
+      this.topics = topics;
+    });
   }
 
   openCreatePost() {
