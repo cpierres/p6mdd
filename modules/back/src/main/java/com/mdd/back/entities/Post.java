@@ -1,6 +1,8 @@
 package com.mdd.back.entities;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -9,9 +11,7 @@ import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@SuperBuilder
 @Table(value = "post", schema = "mddsocial")
 public class Post extends BaseEntity {
     @Id
@@ -23,7 +23,4 @@ public class Post extends BaseEntity {
     private String title;
 
     private String content;
-
-    @Column("created_by")
-    private UUID createdBy;
 }
