@@ -3,6 +3,27 @@
     <button mat-raised-button color="primary" (click)="openCreatePost()">
       Créer un article
     </button>
+    <div class="filter-sort-controls">
+      <mat-form-field appearance="outline">
+        <mat-label>Filtrer par thème</mat-label>
+        <mat-select>
+          <mat-option [value]="null">Tous les thèmes</mat-option>
+          <mat-option *ngFor="let topic of topics" [value]="topic.id">
+            {{ topic.title }} ({{ topic.countPosts }} articles)
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Trier par</mat-label>
+        <mat-select>
+          <mat-option value="date">Date (plus récent d'abord)</mat-option>
+          <mat-option value="topic">Thème</mat-option>
+          <mat-option value="author">Auteur</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
 
   </div>
 </div>

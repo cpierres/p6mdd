@@ -1,0 +1,27 @@
+.post-list-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.post-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+}
+
+.filter-sort-controls {
+  display: flex;
+  gap: 16px;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+  }
+}
