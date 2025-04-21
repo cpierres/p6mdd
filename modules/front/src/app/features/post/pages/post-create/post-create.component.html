@@ -1,0 +1,49 @@
+<div class="post-create-container">
+  <div class="post-create-header">
+    <app-back></app-back>
+    <h1 class="title">Créer un article</h1>
+  </div>
+
+  <form [formGroup]="postForm" (ngSubmit)="createPost()" class="post-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Sélectionner un thème</mat-label>
+      <mat-select formControlName="topicId">
+        <mat-option *ngFor="let topic of topics" [value]="topic.id">
+          {{ topic.title }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="postForm.get('topicId')?.hasError('required')">
+        Le thème est obligatoire
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Titre de l'article</mat-label>
+      <input matInput formControlName="title">
+      <mat-error *ngIf="postForm.get('title')?.hasError('required')">
+        Le titre est obligatoire
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contenu de l'article</mat-label>
+      <textarea
+        matInput
+        formControlName="content"
+        rows="6">
+      </textarea>
+      <mat-error *ngIf="postForm.get('content')?.hasError('required')">
+        Le contenu est obligatoire
+      </mat-error>
+    </mat-form-field>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="postForm.invalid"
+      class="create-button">
+      Créer
+    </button>
+  </form>
+</div>
