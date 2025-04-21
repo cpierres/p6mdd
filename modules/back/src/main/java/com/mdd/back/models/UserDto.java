@@ -16,15 +16,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserDto {
 
-    @Schema(description = "Identifiant unique de l'utilisateur.", example = "1")
+    @Schema(description = "Identifiant unique de l'utilisateur.", example = "d1a27f64-403d-4c27-9fb7-1b54168a546d")
     private UUID id;
 
-    @Schema(description = "Nom complet de l'utilisateur.",
-            example = "Christophe Pierrès")
+    @Schema(description = "Nom de l'utilisateur. Doit être unique car connexion possible via le nom.",
+            example = "u1")
     private String username;
 
     @Schema(description = "Adresse email associée à l'utilisateur. Doit être unique",
-            example = "jean.dupont@example.com")
+            example = "u1@test.com")
     @Email(message = "L'adresse e-mail doit être valide")
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
     private String email;

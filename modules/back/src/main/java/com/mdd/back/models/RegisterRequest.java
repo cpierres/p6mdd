@@ -14,12 +14,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class RegisterRequest {
-    @Schema(description = "L'adresse e-mail doit être unique dans le système", example = "cpi@gmail.com")
+    @Schema(description = "L'adresse e-mail doit être unique dans le système", example = "u1@test.com")
     @Email(message = "L'adresse e-mail doit être valide")
     @NotBlank(message = "L'adresse e-mail ne peut pas être vide")
     private String email;
 
-    @Schema(description = "Nom de l'utilisateur", example="cpierres")
+    @Schema(description = "Nom de l'utilisateur", example="u1")
     @NotBlank(message = "Le nom de l'utilisateur est obligatoire")
     private String username;
 

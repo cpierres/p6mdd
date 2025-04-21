@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class LoginRequest {
 
-    @Schema(description = "L'adresse e-mail et le nom d'utilisateur doivent être uniques", example = "cpierres")
+    @Schema(description = "L'adresse e-mail et le nom d'utilisateur doivent être uniques", example = "u1@test.com")
     @NotBlank(message = "L'adresse e-mail ou le nom d'utilisateur doivent être renseignés")
     private String identifier;
 
