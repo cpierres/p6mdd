@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api")
 @Tag(name = "post-controller", description = "API pour la gestion des posts (articles) et commentaires")
@@ -73,6 +75,55 @@ public class PostController {
     )
     public Flux<TopicStatsDto> getTopicStats() {
         return postService.getTopicStats();
+    }
+
+    @GetMapping("/posts")
+    @Operation(
+            summary = "Récupérer tous les posts",
+            description = "Récupère tous les posts avec un tri personnalisable et optionnel par topic ou auteur. "
+                    + "Par défaut, les résultats sont triés par date décroissante.",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Liste des posts récupérée avec succès.",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = PostDto.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Requête invalide, par exemple, si le paramètre UUID est mal formé.",
+                            content = @Content(mediaType = "application/json")
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur interne du serveur.",
+                            content = @Content(mediaType = "application/json")
+                    )
+            }
+    )
+    public Flux<PostDto> getAllPosts(
+            @RequestParam(required = false)
+            @Schema(description = "Tri des résultats : `topic` pour trier par topic, `author` pour trier par auteur, null pour un tri par défaut (date).",
+                    example = "topic")
+            String sortBy,
+            @RequestParam(required = false)
+            @Schema(description = "Filtrage par l'identifiant d'un topic (UUID). Si spécifié, seuls les posts appartenant à ce topic sont retournés.",
+                    example = "d1a27f64-403d-4c27-9fb7-1b54168a546d")
+            UUID topicId) {
+        if (topicId != null) {
+            return postService.getPostsByTopic(topicId);
+        }
+
+        if ("topic".equals(sortBy)) {
+            return postService.getAllPostsSortedByTopic();
+        } else if ("author".equals(sortBy)) {
+            return postService.getAllPostsSortedByAuthor();
+        } else {
+            return postService.getAllPosts();
+        }
     }
 
 }

@@ -11,14 +11,17 @@ import com.mdd.back.repositories.PostCommentRepository;
 import com.mdd.back.repositories.PostRepository;
 import com.mdd.back.repositories.TopicRepository;
 import com.mdd.back.repositories.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
+import java.util.UUID;
 
 @Service
+@Slf4j
 public class PostService {
     private final AuthService authService;
     private final PostRepository postRepository;
@@ -128,7 +131,7 @@ public class PostService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Topic lié à ce post non trouvés")));
 
         Mono<User> userMono = userRepository.findById(post.getCreatedBy())
-                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur non trouvé")));
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur à ce post non trouvé")));
 
         //déterminer si l'utilisateur connecté à la capacité de modifier (surtout utile pour update)
         Mono<Boolean> isUpdatableMono = authService.getAuthenticatedUserId()
@@ -154,8 +157,9 @@ public class PostService {
      * <li>liste de référence lors de la création d'un post (l'affichage de la popularité est sympa pour le user)</li>
      * <li>affichage en temps réél de la popularité des thèmes (avec un SSE)</li>
      * </ul>
+     *
      * @return Flux<TopicStatsDto> contenant la liste des statistiques des topics, triés par ordre décroissant
-     *         de popularité (nombre de publications et commentaires).
+     * de popularité (nombre de publications et commentaires).
      */
     public Flux<TopicStatsDto> getTopicStats() {
         return topicRepository.findAll()
@@ -177,4 +181,48 @@ public class PostService {
                         .reversed());
     }
 
+    /**
+     * Récupère tous les posts triés par date de mise à jour décroissante.
+     * (tri en base)
+     *
+     * @return un flux contenant les objets PostDto enrichis.
+     */
+    public Flux<PostDto> getAllPosts() {
+        return postRepository.findAllByOrderByUpdatedAtDesc()
+                //.doOnNext(post -> log.info("Post du repository: {}", post))
+                .flatMap(this::enrichPostDto);
+    }
+
+    /**
+     * Récupère les posts triés par thème, puis par date de mise à jour en ordre décroissant.
+     * (tri en mémoire comme peu d'enregistrements)
+     *
+     * @return un Flux<PostDto> contenant les posts enrichis, triés par thème (titre) en ordre croissant
+     * puis par date de mise à jour en ordre décroissant.
+     */
+    public Flux<PostDto> getAllPostsSortedByTopic() {
+        return postRepository.findAll()
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getTopicTitle)
+                        .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+    }
+
+    /**
+     * Récupère les posts triés par auteur.
+     * Les posts sont d'abord triés par le nom d'utilisateur de l'auteur (ordre croissant),
+     * puis par la date de mise à jour (ordre décroissant).
+     *
+     * @return un flux de PostDto contenant les posts triés par auteur.
+     */
+    public Flux<PostDto> getAllPostsSortedByAuthor() {
+        return postRepository.findAll()
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getCreatedByUsername)
+                        .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+    }
+
+    public Flux<PostDto> getPostsByTopic(UUID topicId) {
+        return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
+                .flatMap(this::enrichPostDto);
+    }
 }
