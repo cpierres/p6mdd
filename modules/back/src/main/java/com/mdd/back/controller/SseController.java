@@ -32,7 +32,7 @@ public class SseController {
 
     @Operation(
             summary = "Obtenir un flux en temps réel des statistiques des topics",
-            description = "Ce point de terminaison expose une connexion Server-Sent Events (SSE) qui permet de recevoir les mises à jour des statistiques des topics en temps réel.",
+            description = "Ce endpoint expose une connexion Server-Sent Events (SSE) permettant de recevoir les mises à jour des statistiques des topics en temps réel.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -46,6 +46,7 @@ public class SseController {
     @GetMapping(value = "/topics/stats/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SecurityRequirement(name = "Bearer Authentication")
     public Flux<ServerSentEvent<List<TopicStatsDto>>> streamTopicStats() {
+        //transforme le flux des statistiques en flux de ServerSentEvent<List<TopicStatsDto>>
         return topicStatsEmitter.getTopicStatsStream()
                 .map(stats -> ServerSentEvent.<List<TopicStatsDto>>builder()
                         .data(stats)

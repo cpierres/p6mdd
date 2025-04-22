@@ -1,0 +1,127 @@
+@startuml
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 250
+
+title Création d'un post et mise à jour des statistiques en temps réel
+
+actor "Utilisateur" as User
+participant "PostCreateComponent\n(Frontend)" as PostCreateComp
+participant "PostService\n(Frontend)" as PostServiceFront
+participant "PostController\n(Backend)" as PostController
+participant "PostService\n(Backend)" as PostService
+participant "AuthService\n(Backend)" as AuthService
+participant "TopicRepository\n(Backend)" as TopicRepo
+participant "PostRepository\n(Backend)" as PostRepo
+participant "TopicStatsEmitter\n(Backend)" as TopicStatsEmitter
+participant "SseController\n(Backend)" as SseController
+participant "Base de données\n(PostgreSQL/R2DBC)" as DB
+participant "TopicStatsService\n(Frontend)" as TopicStatsService
+actor "Autres Utilisateurs" as OtherUsers
+
+== Initialisation de la connexion SSE ==
+
+User -> TopicStatsService: Chargement de l'application
+activate TopicStatsService
+TopicStatsService -> SseController: Connexion au flux SSE\n(GET /api/topics/stats/stream)
+activate SseController
+SseController -> TopicStatsEmitter: getTopicStatsStream()
+activate TopicStatsEmitter
+TopicStatsEmitter --> SseController: Flux<ServerSentEvent>
+SseController --> TopicStatsService: Connexion SSE établie
+note right of TopicStatsService: La connexion SSE reste ouverte\npour recevoir les mises à jour
+
+== Création d'un nouveau post ==
+
+User -> PostCreateComp: Remplit le formulaire et clique sur "Créer"
+activate PostCreateComp
+PostCreateComp -> PostCreateComp: Validation du formulaire
+PostCreateComp -> PostServiceFront: createPost(newPost: PostDto)
+activate PostServiceFront
+PostServiceFront -> PostController: HTTP POST /api/posts
+activate PostController
+PostController -> PostService: createPost(postDto)
+activate PostService
+
+PostService -> AuthService: getAuthenticatedUserId()
+activate AuthService
+AuthService --> PostService: userId
+deactivate AuthService
+
+PostService -> PostService: postMapper.postDtoToPost(postDto)
+PostService -> TopicRepo: findById(postDto.getTopicId())
+activate TopicRepo
+TopicRepo -> DB: Requête R2DBC (non-bloquante)
+activate DB
+DB --> TopicRepo: Topic
+deactivate DB
+TopicRepo --> PostService: Mono<Topic>
+deactivate TopicRepo
+
+PostService -> PostRepo: save(post)
+activate PostRepo
+PostRepo -> DB: Requête SQL INSERT (non-bloquante)
+activate DB
+note right of DB: Opération asynchrone\nLe thread n'est pas bloqué
+DB --> PostRepo: Résultat
+deactivate DB
+PostRepo --> PostService: Mono<Post>
+deactivate PostRepo
+
+PostService -> PostService: enrichPostDto(post)
+note right of PostService: Ajoute des informations\nsupplémentaires au DTO
+
+== Calcul et diffusion des statistiques ==
+
+PostService -> PostService: getTopicStats()
+activate PostService #DarkSalmon
+PostService -> TopicRepo: findAll()
+activate TopicRepo
+TopicRepo -> DB: Requête R2DBC (non-bloquante)
+activate DB
+DB --> TopicRepo: Liste des topics
+deactivate DB
+TopicRepo --> PostService: Flux<Topic>
+deactivate TopicRepo
+
+loop Pour chaque topic
+    PostService -> PostRepo: countByTopicId(topic.getId())
+    activate PostRepo
+    PostRepo -> DB: Requête COUNT (non-bloquante)
+    activate DB
+    DB --> PostRepo: Nombre de posts
+    deactivate DB
+    PostRepo --> PostService: Mono<Long>
+    deactivate PostRepo
+
+    PostService -> PostService: Calcul des statistiques
+end
+PostService -> PostService: Tri des topics par popularité
+PostService -> PostService: collectList()
+PostService -> TopicStatsEmitter: updateTopicStats(topicStats)
+deactivate PostService #DarkSalmon
+
+activate TopicStatsEmitter
+TopicStatsEmitter -> TopicStatsEmitter: topicStatsSink.tryEmitNext(topicStats)
+note right of TopicStatsEmitter: Émet les nouvelles statistiques\ndans le Sink réactif
+TopicStatsEmitter --> SseController: Notification de nouvelles données
+SseController -> SseController: Création d'un ServerSentEvent
+SseController --> TopicStatsService: Envoi de l'événement "topic-stats-update"
+TopicStatsService -> TopicStatsService: topicStatsSubject.next(stats)
+deactivate TopicStatsEmitter
+
+TopicStatsService --> User: Mise à jour de l'interface utilisateur
+TopicStatsService --> OtherUsers: Mise à jour de l'interface pour tous les utilisateurs connectés
+
+PostService --> PostController: PostDto enrichi
+deactivate PostService
+PostController --> PostServiceFront: Réponse HTTP 201 Created
+deactivate PostController
+PostServiceFront --> PostCreateComp: PostDto
+deactivate PostServiceFront
+PostCreateComp -> PostCreateComp: router.navigate(['/posts'])
+PostCreateComp --> User: Redirection vers la liste des posts
+deactivate PostCreateComp
+
+@enduml
