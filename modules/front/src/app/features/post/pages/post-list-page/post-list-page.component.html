@@ -6,7 +6,7 @@
     <div class="filter-sort-controls">
       <mat-form-field appearance="outline">
         <mat-label>Filtrer par thème</mat-label>
-        <mat-select>
+        <mat-select [(ngModel)]="selectedTopicId" (selectionChange)="onTopicFilterChange()">
           <mat-option [value]="null">Tous les thèmes</mat-option>
           <mat-option *ngFor="let topic of topics" [value]="topic.id">
             {{ topic.title }} ({{ topic.countPosts }} articles)
@@ -16,14 +16,23 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Trier par</mat-label>
-        <mat-select>
+        <mat-select [(ngModel)]="sortCriteria" (selectionChange)="onSortChange()">
           <mat-option value="date">Date (récent d'abord)</mat-option>
           <mat-option value="topic">Thème</mat-option>
           <mat-option value="author">Auteur</mat-option>
         </mat-select>
       </mat-form-field>
-
     </div>
-
   </div>
+  <mat-grid-list [cols]="cols" [gutterSize]="'16px'"
+                 rowHeight="4:3" >
+    <mat-grid-tile *ngFor="let post of posts">
+      <app-post-list
+        [post]="post"
+        [overflowPoints]="true"
+        (onSelect)="onSelectPost($event)">
+      </app-post-list>
+    </mat-grid-tile>
+  </mat-grid-list>
+
 </div>

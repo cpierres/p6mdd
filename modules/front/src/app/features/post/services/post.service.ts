@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {environment} from '../../../../environments/environment';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {PostDto} from '../interface/PostDto';
 import {Observable} from 'rxjs';
 import {TopicStatsDto} from '../interface/TopicStatsDto';
@@ -22,4 +22,19 @@ export class PostService {
   getTopicStats(): Observable<TopicStatsDto[]> {
     return this.http.get<TopicStatsDto[]>(`${this.topicsApiUrl}/stats`);
   }
+
+  getPosts(sortBy?: string, topicId?: string | null): Observable<PostDto[]> {
+    let params = new HttpParams();
+
+    if (sortBy) {
+      params = params.set('sortBy', sortBy);
+    }
+
+    if (topicId) {
+      params = params.set('topicId', topicId);
+    }
+
+    return this.http.get<PostDto[]>(this.apiUrl, {params});
+  }
+
 }
