@@ -1,5 +1,6 @@
 package com.mdd.back.controller;
 
+import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
 import com.mdd.back.models.TopicStatsDto;
 import com.mdd.back.services.PostService;
@@ -124,6 +125,19 @@ public class PostController {
         } else {
             return postService.getAllPosts();
         }
+    }
+
+    @GetMapping("/posts/{id}")
+    @Operation(summary = "Récupérer un post par son ID", description = "Récupère un post spécifique avec ses commentaires")
+    public Mono<PostDto> getPostById(@PathVariable UUID id) {
+        return postService.getPostWithComments(id);
+    }
+
+    @PostMapping("/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Créer un commentaire", description = "Ajoute un commentaire à un post existant")
+    public Mono<PostCommentDto> createComment(@Valid @RequestBody PostCommentDto commentDto) {
+        return postService.createComment(commentDto);
     }
 
 }

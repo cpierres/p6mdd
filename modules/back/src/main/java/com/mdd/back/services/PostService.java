@@ -1,10 +1,13 @@
 package com.mdd.back.services;
 
 import com.mdd.back.entities.Post;
+import com.mdd.back.entities.PostComment;
 import com.mdd.back.entities.Topic;
 import com.mdd.back.entities.User;
 import com.mdd.back.exception.ResourceNotFoundException;
+import com.mdd.back.mappers.PostCommentMapper;
 import com.mdd.back.mappers.PostMapper;
+import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
 import com.mdd.back.models.TopicStatsDto;
 import com.mdd.back.repositories.PostCommentRepository;
@@ -30,7 +33,8 @@ public class PostService {
     private final UserRepository userRepository;
     private final PostCommentRepository commentRepository;
     //private final TopicStatsEmitter topicStatsEmitter;
-    private final TopicStatsNotifier topicStatsNotifier;
+    private final TopicStatsNotifier topicStatsNotifier;//interface plutôt que classe concrète
+    private final PostCommentMapper commentMapper;
 
     @Autowired
     public PostService(AuthService authService,
@@ -39,8 +43,8 @@ public class PostService {
                        PostMapper postMapper,
                        UserRepository userRepository,
                        PostCommentRepository commentRepository,
-                       //TopicStatsEmitter topicStatsEmitter
-                       TopicStatsNotifier topicStatsNotifier
+                       TopicStatsNotifier topicStatsNotifier,
+                       PostCommentMapper commentMapper
     ) {
         this.authService = authService;
         this.postRepository = postRepository;
@@ -50,6 +54,7 @@ public class PostService {
         this.commentRepository = commentRepository;
         //this.topicStatsEmitter = topicStatsEmitter;
         this.topicStatsNotifier = topicStatsNotifier;
+        this.commentMapper = commentMapper;
     }
 
     /**
@@ -225,4 +230,51 @@ public class PostService {
         return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
                 .flatMap(this::enrichPostDto);
     }
+
+    // Créer un commentaire pour un post
+    public Mono<PostCommentDto> createComment(PostCommentDto commentDto) {
+        return authService.getAuthenticatedUserId()
+                .flatMap(userId -> {
+                    PostComment comment = commentMapper.commentDtoToComment(commentDto);
+                    comment.setCreatedBy(userId);
+
+                    return postRepository.findById(commentDto.getPostId())
+                            .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
+                            .flatMap(post -> commentRepository.save(comment))
+                            .flatMap(this::enrichCommentDto);
+                });
+    }
+
+    // Récupérer un post par son ID avec ses commentaires
+    public Mono<PostDto> getPostWithComments(UUID postId) {
+        return postRepository.findById(postId)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
+                .flatMap(post -> {
+                    Mono<PostDto> enrichedPostDto = enrichPostDto(post);
+
+                    Flux<PostCommentDto> comments = commentRepository.findAllByPostIdOrderByUpdatedAtDesc(post.getId())
+                            .flatMap(this::enrichCommentDto);
+
+                    return enrichedPostDto.flatMap(postDto ->
+                            comments.collectList()
+                                    .map(commentList -> {
+                                        postDto.setComments(commentList);
+                                        return postDto;
+                                    })
+                    );
+                });
+    }
+
+    // Méthode utilitaire pour enrichir un CommentDto avec des informations supplémentaires
+    private Mono<PostCommentDto> enrichCommentDto(PostComment comment) {
+        PostCommentDto dto = commentMapper.commentToCommentDto(comment);
+
+        return userRepository.findById(comment.getCreatedBy())
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur du commentaire non trouvé")))
+                .map(user -> {
+                    dto.setCreatedByUsername(user.getUsername());
+                    return dto;
+                });
+    }
+
 }

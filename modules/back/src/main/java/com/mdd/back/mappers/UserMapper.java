@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", source = "encodedPassword")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     User registerRequestToUser(RegisterRequest request, String encodedPassword);
 
     // pour mises à jour partielles avec encodage du mot de passe (encoder récupéré du contexte par injection)
