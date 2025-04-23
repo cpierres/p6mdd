@@ -6,6 +6,7 @@ import {LoginPageComponent} from './features/auth/pages/login/login.component';
 import {TopicListAllComponent} from './features/topic/pages/topic-list-all/topic-list-all.component';
 import {PostCreateComponent} from './features/post/pages/post-create/post-create.component';
 import {PostListPageComponent} from './features/post/pages/post-list-page/post-list-page.component';
+import {PostCommentComponent} from './features/post/pages/post-comment/post-comment.component';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers homes
@@ -16,6 +17,7 @@ export const routes: Routes = [
   {path: 'post/create', component: PostCreateComponent},
   {path: 'post/list', component: PostListPageComponent},
   {path: 'topics', component: TopicListAllComponent},
+  {path: 'posts/:id', component: PostCommentComponent},
   {path: '**', redirectTo: ''} // Redirection par défaut en cas d'URL non valide
 
 ];

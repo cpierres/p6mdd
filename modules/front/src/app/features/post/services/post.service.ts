@@ -4,6 +4,7 @@ import {HttpClient, HttpParams} from '@angular/common/http';
 import {PostDto} from '../interface/PostDto';
 import {Observable} from 'rxjs';
 import {TopicStatsDto} from '../interface/TopicStatsDto';
+import {PostCommentDto} from '../interface/PostCommentDto';
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +36,14 @@ export class PostService {
     }
 
     return this.http.get<PostDto[]>(this.apiUrl, {params});
+  }
+
+  getPostById(id: string): Observable<PostDto> {
+    return this.http.get<PostDto>(`${this.apiUrl}/${id}`);
+  }
+
+  createComment(comment: PostCommentDto): Observable<PostCommentDto> {
+    return this.http.post<PostCommentDto>(`${environment.baseUrl}comments`, comment);
   }
 
 }

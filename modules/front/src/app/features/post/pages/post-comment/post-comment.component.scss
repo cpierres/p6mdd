@@ -1,0 +1,138 @@
+.post-comment-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.post-header {
+  display: flex;
+  align-items: flex-start;
+
+  app-back {
+    margin-right: 10px;
+  }
+
+  app-post-list {
+    flex: 1;
+    max-width: 80%;
+
+    @media (max-width: 599px) {
+      max-width: 95%;
+    }
+  }
+  @media (max-width: 599px) {
+    app-back {
+      margin-left: 0;
+      margin-bottom: 10px;
+    }
+  }
+}
+
+.divider {
+  width: 80%;
+  margin: 24px 0 24px 58px;
+
+  @media (max-width: 599px) {
+    width: 95%;
+    margin-left: 0;
+    margin-bottom: 0.5rem; /* Diminue marge sur mobile */
+    margin-top: 0.5rem;
+  }
+}
+
+//commentaires
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 24px 0 24px 75px;
+}
+
+.comment-bloc-author {
+  display: flex;
+  flex-direction: column; /* Empiler par défaut */
+  gap: 8px;
+}
+
+.comment-content {
+  flex: 0 0 auto; /* Empêche l'expansion automatique */
+  width: 66%;
+  background-color: #f5f5f5; /* Fond gris clair */
+  padding: 12px;
+  border-radius: 8px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.comment-item {
+  display: flex;
+  align-items: flex-start; /* Aligner verticalement */
+  gap: 16px; /* Espacement entre `comment-bloc-author` et `comment-content` */
+  margin-bottom: 16px;
+}
+
+@media screen and (max-width: 768px) {
+  .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 0 0 0 0;
+  }
+
+  .comment-content {
+    width: 95%; /* Sur mobile, occupe toute la largeur */
+    margin-top: 1px; /* Espacing entre meta et contenu */
+  }
+
+  .comment-item {
+    flex-direction: column; /* Empile les éléments verticalement */
+    gap: 4px; /* Diminuer l'espacement spécifique sur mobile */
+  }
+
+  .comment-bloc-author {
+    flex-direction: row; /* côte à côte pour les métadonnées */
+    gap: 16px;
+  }
+
+}
+
+/* Centrer et adapter la taille de comment-form-container */
+.comment-form-container {
+  margin: 0 auto; /* Centrer horizontalement */
+  width: 70%;
+}
+
+.comment-form-container form {
+  display: flex;
+  flex-direction: row; /* Aligner textarea et bouton horizontalement */
+  gap: 1rem; /* Ajouter espace entre textarea et bouton */
+  align-items: flex-start; /* Aligner les éléments en haut */
+}
+
+.comment-input {
+  flex: 1; /* textarea occupe espace disponible */
+}
+
+button {
+  margin: 0; /* Supprime tout espace inutile autour du bouton */
+  align-self: center; /* Centre verticalement le bouton par rapport à la textarea */
+}
+
+@media (max-width: 768px) {
+  .comment-form-container {
+    width: 90%; /* Largeur réduite sur mobile */
+  }
+}
+
+/* Ajuste les titres et séparateurs pour plus d'uniformité */
+.comments-title {
+  font-size: 1.5rem;
+  margin: 24px 0 24px 58px;
+  text-align: left;
+  @media (max-width: 599px) {
+    font-size: 1.0rem;
+    margin-left: 0;
+    margin-bottom: 0.5rem; /* Diminuer marges sur mobile */
+    margin-top: 0.5rem;
+  }
+}
