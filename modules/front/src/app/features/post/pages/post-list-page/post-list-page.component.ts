@@ -33,7 +33,7 @@ export class PostListPageComponent implements OnInit {
   topics: TopicStatsDto[] = [];
   posts: PostDto[] = [];
   selectedTopicId: string = 'subscribed';
-  sortCriteria: string | null = null; // Par défaut: posts des topics auxquels l'utilisateur est abonné
+  sortCriteria: string = 'date'; // Par défaut: tri par date (récent d'abord)
   cols: number = 2; // Nb cols par défaut sur grand écran
 
   constructor(private router: Router,
