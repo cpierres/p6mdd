@@ -28,6 +28,19 @@
   }
 }
 
+:host ::ng-deep .mat-select-panel {
+  min-width: 300px; /* Élaguez pour ajuster la largeur minimum */
+  max-width: 1000px; /* Fixez une largeur maximum personnalisée */
+  width: 1000px;     /* Définissez la largeur préférée */
+}
+
+.custom-select .mat-select-panel {
+  min-width: 300px;
+  max-width: 1000px;
+  width: 1000px;
+}
+
+
 mat-grid-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes automatiques */

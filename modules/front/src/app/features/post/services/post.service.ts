@@ -24,14 +24,16 @@ export class PostService {
     return this.http.get<TopicStatsDto[]>(`${this.topicsApiUrl}/stats`);
   }
 
-  getPosts(sortBy?: string, topicId?: string | null): Observable<PostDto[]> {
+  getPosts(sortBy?: string | null, topicId?: string | null): Observable<PostDto[]> {
     let params = new HttpParams();
 
     if (sortBy) {
       params = params.set('sortBy', sortBy);
     }
 
-    if (topicId) {
+    // Si topicId est 'subscribed', on ne l'ajoute pas aux paramètres
+    // car le backend utilisera getAllPostsSubscribed() par défaut
+    if (topicId && topicId !== 'subscribed') {
       params = params.set('topicId', topicId);
     }
 

@@ -82,7 +82,7 @@ public class PostController {
     @Operation(
             summary = "Récupérer tous les posts",
             description = "Récupère tous les posts avec un tri personnalisable et optionnel par topic ou auteur. "
-                    + "Par défaut, les résultats sont triés par date décroissante.",
+                    + "Par défaut, les résultats sont filtrés pour afficher les posts des topics auxquels l'utilisateur est abonné, triés par date décroissante.",
             security = @SecurityRequirement(name = "Bearer Authentication"),
             responses = {
                     @ApiResponse(
@@ -107,7 +107,7 @@ public class PostController {
     )
     public Flux<PostDto> getAllPosts(
             @RequestParam(required = false)
-            @Schema(description = "Tri des résultats : `topic` pour trier par topic, `author` pour trier par auteur, null pour un tri par défaut (date).",
+            @Schema(description = "Tri des résultats : `topic` pour trier par topic, `author` pour trier par auteur, `all` pour tous les posts, null pour le filtre par défaut (posts des topics auxquels l'utilisateur est abonné).",
                     example = "topic")
             String sortBy,
             @RequestParam(required = false)
@@ -122,8 +122,10 @@ public class PostController {
             return postService.getAllPostsSortedByTopic();
         } else if ("author".equals(sortBy)) {
             return postService.getAllPostsSortedByAuthor();
-        } else {
+        } else if ("all".equals(sortBy)) {
             return postService.getAllPosts();
+        } else {
+            return postService.getAllPostsSubscribed();
         }
     }
 

@@ -10,10 +10,7 @@ import com.mdd.back.mappers.PostMapper;
 import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
 import com.mdd.back.models.TopicStatsDto;
-import com.mdd.back.repositories.PostCommentRepository;
-import com.mdd.back.repositories.PostRepository;
-import com.mdd.back.repositories.TopicRepository;
-import com.mdd.back.repositories.UserRepository;
+import com.mdd.back.repositories.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +32,7 @@ public class PostService {
     //private final TopicStatsEmitter topicStatsEmitter;
     private final TopicStatsNotifier topicStatsNotifier;//interface plutôt que classe concrète
     private final PostCommentMapper commentMapper;
+    private final UserTopicSubscriptionRepository userTopicSubscriptionRepository;
 
     @Autowired
     public PostService(AuthService authService,
@@ -44,7 +42,8 @@ public class PostService {
                        UserRepository userRepository,
                        PostCommentRepository commentRepository,
                        TopicStatsNotifier topicStatsNotifier,
-                       PostCommentMapper commentMapper
+                       PostCommentMapper commentMapper,
+                       UserTopicSubscriptionRepository userTopicSubscriptionRepository
     ) {
         this.authService = authService;
         this.postRepository = postRepository;
@@ -55,6 +54,7 @@ public class PostService {
         //this.topicStatsEmitter = topicStatsEmitter;
         this.topicStatsNotifier = topicStatsNotifier;
         this.commentMapper = commentMapper;
+        this.userTopicSubscriptionRepository = userTopicSubscriptionRepository;
     }
 
     /**
@@ -229,6 +229,33 @@ public class PostService {
     public Flux<PostDto> getPostsByTopic(UUID topicId) {
         return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
                 .flatMap(this::enrichPostDto);
+    }
+
+    /**
+     * Récupère les posts liés aux topics auxquels l'utilisateur connecté est abonné.
+     * Les posts sont triés par date de mise à jour en ordre décroissant.
+     *
+     * @return un Flux<PostDto> contenant les posts enrichis, filtrés par les abonnements de l'utilisateur
+     * et triés par date de mise à jour en ordre décroissant.
+     */
+    public Flux<PostDto> getAllPostsSubscribed() {
+//        return authService.getAuthenticatedUserId()
+//                .flatMapMany(userId -> userTopicSubscriptionRepository.findAllTopicIdsByUserId(userId)
+//                        .collectList()
+//                        .flatMapMany(topicIds -> {
+//                            if (topicIds.isEmpty()) {
+//                                // Si l'utilisateur n'est abonné à aucun topic, retourner un flux vide
+//                                return Flux.empty();
+//                            }
+//                            return postRepository.findAllByTopicIdInOrderByUpdatedAtDesc(topicIds)
+//                                    .flatMap(this::enrichPostDto);
+//                        })
+//                )
+//                .switchIfEmpty(Flux.empty()); // Si aucun utilisateur authentifié, retourner un flux vide
+        return authService.getAuthenticatedUserId()
+                .flatMapMany(userId -> postRepository.findAllByUserSubscriptions(userId)
+                        .flatMap(this::enrichPostDto))
+                .switchIfEmpty(Flux.empty()); // Si aucun utilisateur authentifié, retourner un flux vide
     }
 
     // Créer un commentaire pour un post
