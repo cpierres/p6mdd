@@ -19,6 +19,11 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 599px) {
+    min-height: auto; /* Permettre une hauteur adaptative sur mobile */
+    height: auto; /* S'assurer que la hauteur s'adapte au contenu */
+  }
 }
 /*
 .post-content {
@@ -71,4 +76,31 @@ mat-card-content {
   width: 100%;
   flex: 1 1 auto; /* Permet l'expansion automatique */
   overflow: hidden; /* Empêche le débordement */
+}
+
+/* Styles pour assurer que le titre s'affiche correctement sur mobile */
+::ng-deep .mat-mdc-card-title {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  width: 100%;
+
+  @media (max-width: 599px) {
+    font-size: 18px; /* Taille de police légèrement réduite sur mobile */
+    line-height: 1.3; /* Espacement des lignes réduit pour plus de compacité */
+    margin-bottom: 8px; /* Espace supplémentaire sous le titre */
+  }
+}
+
+/* Ajustement pour l'affichage mobile */
+@media (max-width: 599px) {
+  .post-content {
+    &.overflow-content {
+      -webkit-line-clamp: 3; /* Réduire le nombre de lignes sur mobile pour donner plus d'espace au titre */
+    }
+  }
+
+  mat-card-header {
+    padding-bottom: 8px; /* Ajouter de l'espace sous l'en-tête pour séparer du contenu */
+  }
 }
