@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {BehaviorSubject, Observable, tap} from 'rxjs';
+import {BehaviorSubject, Observable, map, tap} from 'rxjs';
 import {TopicSubscribedStatus} from '../interfaces/TopicSubscribedStatus';
 import {environment} from '../../../../environments/environment';
 
@@ -61,5 +61,13 @@ export class TopicService {
       );
   }
 
+  /**
+   * Obtenir uniquement les topics auxquels l'utilisateur authentifié est abonné
+   */
+  getSubscribedTopics(): Observable<TopicSubscribedStatus[]> {
+    return this.getTopicsWithSubscriptionStatus().pipe(
+      map(topics => topics.filter(topic => topic.subscribed))
+    );
+  }
 
 }

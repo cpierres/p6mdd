@@ -10,6 +10,8 @@ import {BackComponent} from '../../../../shared/components/back/back.component';
 import {PostService} from '../../services/post.service';
 import {TopicStatsDto} from '../../interface/TopicStatsDto';
 import {PostDto} from '../../interface/PostDto';
+import {TopicService} from '../../../topic/services/topic.service';
+import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedStatus';
 
 @Component({
   selector: 'app-post-create',
@@ -28,11 +30,12 @@ import {PostDto} from '../../interface/PostDto';
 })
 export class PostCreateComponent implements OnInit {
   postForm: FormGroup;
-  topics: TopicStatsDto[] = [];
+  topics: TopicSubscribedStatus[] = [];
 
   constructor(
     private fb: FormBuilder,
     private postService: PostService,
+    private topicService: TopicService,
     private router: Router
   ) {
     this.postForm = this.fb.group({
@@ -47,7 +50,7 @@ export class PostCreateComponent implements OnInit {
   }
 
   loadTopics(): void {
-    this.postService.getTopicStats().subscribe(topics => {
+    this.topicService.getSubscribedTopics().subscribe(topics => {
       this.topics = topics;
     });
   }
