@@ -31,10 +31,16 @@ export class PostService {
       params = params.set('sortBy', sortBy);
     }
 
-    // Si topicId est 'subscribed', on ne l'ajoute pas aux paramètres
-    // car le backend utilisera getAllPostsSubscribed() par défaut
-    if (topicId && topicId !== 'subscribed') {
+    // Si topicId est 'subscribed' ou 'all', on ne l'ajoute pas aux paramètres
+    // 'subscribed': le backend utilisera getAllPostsSubscribed() par défaut
+    // 'all': le backend utilisera getAllPosts() quand sortBy='all'
+    if (topicId && topicId !== 'subscribed' && topicId !== 'all') {
       params = params.set('topicId', topicId);
+    }
+
+    // Si topicId est 'all', on définit sortBy à 'all' pour obtenir tous les posts
+    if (topicId === 'all') {
+      params = params.set('sortBy', 'all');
     }
 
     return this.http.get<PostDto[]>(this.apiUrl, {params});

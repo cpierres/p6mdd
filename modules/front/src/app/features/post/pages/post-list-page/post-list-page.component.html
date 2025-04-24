@@ -8,7 +8,7 @@
         <mat-label>Filtrer par thème</mat-label>
         <mat-select [(ngModel)]="selectedTopicId" (selectionChange)="onTopicFilterChange()">
           <mat-option [value]="'subscribed'">Mes thèmes</mat-option>
-          <mat-option [value]="null">Tous les thèmes</mat-option>
+          <mat-option [value]="'all'">Tous les thèmes</mat-option>
           <mat-option *ngFor="let topic of topics" [value]="topic.id">
             {{ topic.title }} ({{ topic.countPosts }} articles - {{ topic.countComments }} commentaires)
           </mat-option>
