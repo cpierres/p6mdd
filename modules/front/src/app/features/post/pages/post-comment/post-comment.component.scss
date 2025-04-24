@@ -92,9 +92,9 @@
   }
 
   .comment-content {
-    max-width: 95%; /* Sur mobile, occupe presque toute la largeur */
-    width: auto;
-    margin-top: 1px; /* Espacing entre meta et contenu */
+    max-width: 100%; /* Sur mobile, occupe toute la largeur de l'écran */
+    width: 100%; /* Forcer la largeur à 100% */
+    margin-top: 8px; /* Augmenter l'espacement entre meta et contenu */
     overflow-wrap: break-word;
     word-break: break-word;
   }
@@ -102,11 +102,15 @@
   .comment-item {
     flex-direction: column; /* Empile les éléments verticalement */
     gap: 4px; /* Diminuer l'espacement spécifique sur mobile */
+    width: 100%; /* S'assurer que l'item prend toute la largeur */
   }
 
   .comment-bloc-author {
     flex-direction: row; /* côte à côte pour les métadonnées */
     gap: 16px;
+    justify-content: flex-end; /* Aligner à droite sur mobile */
+    width: 100%; /* S'assurer que le bloc auteur prend toute la largeur */
+    text-align: right; /* Aligner le texte à droite également */
   }
 
 }
