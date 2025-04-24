@@ -47,15 +47,14 @@
   margin-top: 0;
   white-space: pre-line;
 
-  //&.overflow-content {
+  &.overflow-content {
     display: -webkit-box;
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     //align-self: flex-start;
-
-  //}
+  }
 }
 
 mat-card-content {
