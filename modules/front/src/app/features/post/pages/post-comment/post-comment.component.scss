@@ -131,6 +131,11 @@
 button {
   margin: 0; /* Supprime tout espace inutile autour du bouton */
   align-self: center; /* Centre verticalement le bouton par rapport à la textarea */
+
+  mat-icon {
+    /* Rotation de l'icône pour l'orienter en diagonal vers le haut */
+    transform: rotate(-45deg);
+  }
 }
 
 @media (max-width: 768px) {
