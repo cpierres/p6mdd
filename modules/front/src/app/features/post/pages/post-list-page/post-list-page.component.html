@@ -6,7 +6,7 @@
     <div class="filter-sort-controls">
       <mat-form-field appearance="outline" class="custom-select">
         <mat-label>Filtrer par thème</mat-label>
-        <mat-select [(ngModel)]="selectedTopicId" (selectionChange)="onTopicFilterChange()">
+        <mat-select [(ngModel)]="selectedTopicId" (selectionChange)="onTopicFilterChange()" panelClass="theme-filter-panel">
           <mat-option [value]="'subscribed'">Mes thèmes</mat-option>
           <mat-option [value]="'all'">Tous les thèmes</mat-option>
           <mat-option *ngFor="let topic of topics" [value]="topic.id">

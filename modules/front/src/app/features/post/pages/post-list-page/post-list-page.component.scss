@@ -28,18 +28,17 @@
   }
 }
 
-:host ::ng-deep .mat-select-panel {
-  min-width: 300px; /* Élaguez pour ajuster la largeur minimum */
-  max-width: 1000px; /* Fixez une largeur maximum personnalisée */
-  width: 1000px;     /* Définissez la largeur préférée */
+/* Style pour élargir la liste déroulante "Filtrer par thème" */
+::ng-deep .theme-filter-panel {
+  min-width: 400px !important; /* Largeur minimum augmentée */
+  max-width: 900px !important; /* Largeur maximum */
+  width: auto !important;      /* Largeur automatique basée sur le contenu */
 }
 
-.custom-select .mat-select-panel {
-  min-width: 300px;
-  max-width: 1000px;
-  width: 1000px;
+/* Style pour la zone de sélection elle-même */
+.custom-select {
+  min-width: 250px; /* Largeur minimum du champ de sélection */
 }
-
 
 mat-grid-list {
   display: grid;
@@ -59,4 +58,3 @@ mat-grid-tile {
 app-post-list {
   width: 100%; /* Utilisation maximale de l'espace disponible */
 }
-
