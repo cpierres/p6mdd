@@ -17,6 +17,9 @@
             <button mat-raised-button color="primary" (click)="unsubscribeTopic(topic.id, $event)">Se désabonner</button>
           }
         </mat-card-actions>
+        <mat-card-footer class="stats-footer">
+          <p class="popularity-stats"><strong>Popularité : {{ topic.countPosts }} article(s) et {{ topic.countComments }} commentaire(s)</strong></p>
+        </mat-card-footer>
       </mat-card>
     }
   </div>

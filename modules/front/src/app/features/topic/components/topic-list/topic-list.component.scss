@@ -46,4 +46,14 @@ mat-card-actions {
   justify-content: center; /* Centre les éléments horizontalement */
 }
 
+.stats-footer {
+  padding: 8px 16px;
+  margin-top: 8px;
+
+  .popularity-stats {
+    text-align: center;
+    margin: 0;
+    font-weight: bold;
+  }
+}
 

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 /**
- * Permettra de gérer la liste déroulante pour choisir un Thème lors de la création d'un post par exemple.
+ * Permettra de gérer la liste déroulante pour choisir un Thème lors du filtre des posts par exemple.
  * On y associe aussi les statistiques du thème (topic) pour connaitre la popularité :
  * nombre de publications et de commentaires associés.
  * Ces stats ne sont pas demandées dans les spécifications.
@@ -21,7 +21,7 @@ import java.util.UUID;
  * - `id` : Identifiant unique du topic.
  * - `title` : Titre du sujet.
  * - `countPosts` : Nombre total de publications associées.
- * - `countComments` : Nombre total de commentaires associéss.
+ * - `countComments` : Nombre total de commentaires associés.
  */
 @Data
 @NoArgsConstructor
