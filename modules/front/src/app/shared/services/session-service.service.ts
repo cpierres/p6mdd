@@ -1,16 +1,45 @@
-import { Injectable } from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {User} from '../../features/user/interfaces/user.interface';
+import { Injectable, OnInit } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { User } from '../../features/user/interfaces/user.interface';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SessionService {
+export class SessionService implements OnInit {
 
   public isLogged = false;
   public user: User | undefined;
 
   private isLoggedSubject = new BehaviorSubject<boolean>(this.isLogged);
+
+  constructor(private http: HttpClient) {
+    // Appeler checkToken immédiatement dans le constructeur
+    this.checkToken();
+  }
+
+  ngOnInit(): void {
+    // Vérifier également lors de l'initialisation du service
+    this.checkToken();
+  }
+
+  //pour gérer le cas d'un refresh du browser (on perdait le menu)
+  private checkToken(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Si un token existe, récupérer les informations de l'utilisateur
+      this.http.get<User>(`${environment.baseUrl}auth/me`).subscribe({
+        next: (user: User) => {
+          this.logIn(user);
+        },
+        error: () => {
+          // En cas d'erreur (token invalide), déconnecter l'utilisateur
+          this.logOut();
+        }
+      });
+    }
+  }
 
   public $isLogged(): Observable<boolean> {
     return this.isLoggedSubject.asObservable();
@@ -20,7 +49,7 @@ export class SessionService {
     this.user = user;
     this.isLogged = true;
     console.log(
-      'SessionService.logIn - isLogged :',this.isLogged, 'user :', this.user);
+      'SessionService.logIn - isLogged :', this.isLogged, 'user :', this.user);
     this.next();
   }
 
