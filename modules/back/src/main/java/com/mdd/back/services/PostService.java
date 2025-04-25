@@ -260,6 +260,16 @@ public class PostService {
 
     // Créer un commentaire pour un post
     public Mono<PostCommentDto> createComment(PostCommentDto commentDto) {
+//        return authService.getAuthenticatedUserId()
+//                .flatMap(userId -> {
+//                    PostComment comment = commentMapper.commentDtoToComment(commentDto);
+//                    comment.setCreatedBy(userId);
+//
+//                    return postRepository.findById(commentDto.getPostId())
+//                            .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
+//                            .flatMap(post -> commentRepository.save(comment))
+//                            .flatMap(this::enrichCommentDto);
+//                });
         return authService.getAuthenticatedUserId()
                 .flatMap(userId -> {
                     PostComment comment = commentMapper.commentDtoToComment(commentDto);
@@ -267,8 +277,15 @@ public class PostService {
 
                     return postRepository.findById(commentDto.getPostId())
                             .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
-                            .flatMap(post -> commentRepository.save(comment))
-                            .flatMap(this::enrichCommentDto);
+                            .flatMap(post -> commentRepository.save(comment)
+                                    .flatMap(this::enrichCommentDto)
+                                    .flatMap(enrichedCommentDto ->
+                                            getTopicStats()
+                                                    .collectList()
+                                                    .doOnSuccess(topicStatsNotifier::updateTopicStats)//pour SSE
+                                                    .then(Mono.just(enrichedCommentDto))
+                                    )
+                            );
                 });
     }
 
