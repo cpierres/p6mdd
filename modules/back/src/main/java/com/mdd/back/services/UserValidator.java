@@ -10,6 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Classe UserValidator permettant de valider des propriétés des utilisateurs, comme l'unicité
+ * des emails et noms d'utilisateur, lors de leur création ou mise à jour.
+ * Cela permet de ne pas alourdir AuthService et permettra de partager la logique de validation avec
+ * un autre futur service tel qu'un UserService par exemple.
+ */
 @Component
 public class UserValidator {
     private final UserRepository userRepository;
@@ -65,6 +71,4 @@ public class UserValidator {
                     return Mono.empty();
                 });
     }
-
-
 }

@@ -1,18 +1,20 @@
 package com.mdd.back.entities;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.util.UUID;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @Table(value = "users", schema = "mddsocial")
-public class User extends BaseEntity {
+public class User {
     @Id
     private UUID id;
 
@@ -22,7 +24,11 @@ public class User extends BaseEntity {
 
     private String username;
 
-//    // Liste des topics UUID auxquels l'utilisateur est abonné
-//    private Set<UUID> subscribedTopics;
+    @CreatedDate
+    @Column("created_at")
+    private Instant createdAt;
 
+    @LastModifiedDate
+    @Column("updated_at")
+    private Instant updatedAt;
 }

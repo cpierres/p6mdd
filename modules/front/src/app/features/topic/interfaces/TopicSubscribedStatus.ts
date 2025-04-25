@@ -3,4 +3,6 @@ export interface TopicSubscribedStatus {
   title: string;
   description: string;
   subscribed: boolean;
+  countPosts: number;
+  countComments: number;
 }

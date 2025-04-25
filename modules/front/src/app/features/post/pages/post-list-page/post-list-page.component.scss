@@ -1,0 +1,76 @@
+.post-list-container {
+  padding: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+.post-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+
+  button {
+    height: 56px; /* Hauteur pour correspondre aux mat-form-field */
+    margin: 0; /* Éliminer les marges qui pourraient affecter l'alignement */
+    margin-top: -6px; /* Remonter le bouton de 2 pixels pour aligner avec le haut des listes */
+    margin-right: 16px; /* Ajouter un gap uniquement sur le côté droit du bouton */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 599px) {
+      margin-top: 0; /* Réinitialiser la marge négative sur les petits écrans */
+      margin-right: 0; /* Réinitialiser la marge droite sur les petits écrans car on utilise déjà gap */
+    }
+  }
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px; /* Augmenter l'espace entre le bouton et les contrôles de filtre */
+  }
+}
+
+.filter-sort-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px; /* Ajouter de l'espace au-dessus des boutons de filtre */
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Style pour élargir la liste déroulante "Filtrer par thème" */
+::ng-deep .theme-filter-panel {
+  min-width: 400px !important; /* Largeur minimum augmentée */
+  max-width: 900px !important; /* Largeur maximum */
+  width: auto !important;      /* Largeur automatique basée sur le contenu */
+}
+
+/* Style pour la zone de sélection elle-même */
+.custom-select {
+  min-width: 250px; /* Largeur minimum du champ de sélection */
+}
+
+mat-grid-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes automatiques */
+  gap: 8px; /* Espacement uniforme - réduit pour correspondre au gutterSize */
+  justify-items: center; /* Centre les éléments horizontalement */
+}
+
+mat-grid-tile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+}
+
+app-post-list {
+  width: 100%; /* Utilisation maximale de l'espace disponible */
+}

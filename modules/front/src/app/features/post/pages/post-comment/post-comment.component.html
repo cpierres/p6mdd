@@ -1,0 +1,46 @@
+<div class="post-comment-container">
+  <div class="post-header">
+    <app-back></app-back>
+    <app-post-list *ngIf="post" [post]="post" [overflowPoints]="false"></app-post-list>
+  </div>
+
+  <mat-divider class="divider"></mat-divider>
+
+  <h2 class="comments-title">Commentaires</h2>
+
+  <div class="comment-form-container">
+    <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
+      <mat-form-field appearance="outline" class="comment-input">
+        <textarea
+          matInput
+          formControlName="comment"
+          placeholder="Écrivez ici votre commentaire"
+          rows="3">
+        </textarea>
+      </mat-form-field>
+
+      <button
+        mat-icon-button
+        color="primary"
+        type="submit"
+        [disabled]="commentForm.invalid">
+        <mat-icon>send</mat-icon>
+      </button>
+    </form>
+  </div>
+
+  <div class="comments-list" *ngIf="post?.comments?.length">
+    <div class="comment-item" *ngFor="let comment of post?.comments">
+      <div class="comment-bloc-author">
+        <div class="comment-author">{{ comment.createdByUsername }}</div>
+        <div class="comment-date">{{ comment.updatedAt | date:'dd/MM/yy HH:mm'}}</div>
+      </div>
+      <div class="comment-content">{{ comment.comment }}</div>
+    </div>
+  </div>
+
+  <div class="no-comments" *ngIf="post?.comments?.length === 0">
+    Aucun commentaire pour le moment. Soyez le premier à commenter !
+  </div>
+</div>
+

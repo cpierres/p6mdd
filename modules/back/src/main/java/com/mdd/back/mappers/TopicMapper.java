@@ -14,5 +14,7 @@ public interface TopicMapper {
     Topic topicDtoToTopic(TopicDto topicDto);
 
     @Mapping(target = "subscribed", ignore = true) // flag géré dynamiquement dans TopicServices
+    @Mapping(target = "countPosts", ignore = true) // stats count gérées dynamiquement
+    @Mapping(target = "countComments", ignore = true)
     TopicSubscribedForAuthUserDto topicToTopicSubscribedForAuthUserDto(Topic topic);
 }

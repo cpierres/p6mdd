@@ -4,6 +4,8 @@ import com.mdd.back.entities.UserTopicSubscription;
 import com.mdd.back.mappers.TopicMapper;
 import com.mdd.back.models.TopicDto;
 import com.mdd.back.models.TopicSubscribedForAuthUserDto;
+import com.mdd.back.repositories.PostCommentRepository;
+import com.mdd.back.repositories.PostRepository;
 import com.mdd.back.repositories.TopicRepository;
 import com.mdd.back.repositories.UserTopicSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ public class TopicService {
     private final TopicMapper topicMapper;
     private final AuthService authService;
     private final UserTopicSubscriptionRepository userTopicSubscriptionRepository;
+    private final PostRepository postRepository;
+    private final PostCommentRepository postCommentRepository;
 
     /**
      * @return Flux<TopicDto> contenant la liste des topics
@@ -73,7 +77,7 @@ public class TopicService {
     }
 
     /**
-     * Récupère tous les sujets disponibles et indique si l'utilisateur authentifié est abonné à chacun d'eux.
+     * Récupère tous les sujets/topics disponibles et indique si l'utilisateur authentifié est abonné à chacun d'eux.
      * La méthode commence par récupérer les informations de l'utilisateur authentifié. Ensuite, pour chaque sujet,
      * elle vérifie si l'utilisateur y est abonné, puis construit un DTO (TopicSubscribedForAuthUserDto)
      * avec un indicateur représentant l'abonnement.
@@ -82,20 +86,50 @@ public class TopicService {
      *         ses informations et un indicateur précisant si l'utilisateur authentifié est abonné à ce sujet.
      */
     public Flux<TopicSubscribedForAuthUserDto> getAllTopicsWithAuthUserSubscription() {
-        // Récupère l'utilisateur authentifié
+        // Récupère l'utilisateur authentifié (v1)
+//        return authService.getAuthenticatedUser()
+//                .flatMapMany(authenticatedUser -> {
+//                    UUID userId = authenticatedUser.getId();
+//                    // Récupère tous les topics puis ajoute un flag 'subscribed'
+//                    return topicRepository.findAll()
+//                            .flatMap(topic -> userTopicSubscriptionRepository.existsByUserIdAndTopicId(userId, topic.getId())
+//                                    .map(isSubscribed -> {
+//                                        TopicSubscribedForAuthUserDto dto = topicMapper.topicToTopicSubscribedForAuthUserDto(topic);
+//                                        dto.setSubscribed(isSubscribed); // Ajout du flag
+//                                        return dto;
+//                                    })
+//                            );
+//                });
+        //v2 : ajoute les statistiques réactives + tri descendant par popularité
         return authService.getAuthenticatedUser()
                 .flatMapMany(authenticatedUser -> {
                     UUID userId = authenticatedUser.getId();
                     // Récupère tous les topics puis ajoute un flag 'subscribed'
                     return topicRepository.findAll()
-                            .flatMap(topic -> userTopicSubscriptionRepository.existsByUserIdAndTopicId(userId, topic.getId())
-                                    .map(isSubscribed -> {
-                                        TopicSubscribedForAuthUserDto dto = topicMapper.topicToTopicSubscribedForAuthUserDto(topic);
-                                        dto.setSubscribed(isSubscribed); // Ajout du flag
-                                        return dto;
-                                    })
-                            );
+                            .flatMap(topic -> {
+                                Mono<Boolean> isSubscribedMono = userTopicSubscriptionRepository
+                                        .existsByUserIdAndTopicId(userId, topic.getId());
+                                Mono<Long> postCountMono = postRepository.countByTopicId(topic.getId());
+                                Mono<Long> commentCountMono = postCommentRepository.countByTopicId(topic.getId());
+
+                                return Mono.zip(isSubscribedMono, postCountMono, commentCountMono)
+                                        .map(tuple -> {
+                                            TopicSubscribedForAuthUserDto dto = topicMapper
+                                                    .topicToTopicSubscribedForAuthUserDto(topic);
+                                            dto.setSubscribed(tuple.getT1());
+                                            dto.setCountPosts(tuple.getT2());
+                                            dto.setCountComments(tuple.getT3());
+                                            return dto;
+                                        });
+                            })
+                            // Tri par popularité (somme des posts et commentaires) en ordre décroissant
+                            .sort((t1, t2) -> {
+                                Long t1Popularity = t1.getCountPosts() + t1.getCountComments();
+                                Long t2Popularity = t2.getCountPosts() + t2.getCountComments();
+                                return t2Popularity.compareTo(t1Popularity); // Ordre décroissant
+                            });
                 });
+
     }
 
 }

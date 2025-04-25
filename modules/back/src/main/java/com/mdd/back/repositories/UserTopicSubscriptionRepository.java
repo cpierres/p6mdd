@@ -20,5 +20,8 @@ public interface UserTopicSubscriptionRepository extends ReactiveCrudRepository<
 //    @Query("INSERT INTO mddsocial.user_topic_subscription (user_id, topic_id) VALUES (:userId, :topicId)")
 //    Mono<Void> createSubscription(@Param("userId") UUID userId, @Param("topicId") UUID topicId);
 
-}
+    // Récupérer les IDs de topics auxquels un utilisateur est abonné
+//    @Query("SELECT topic_id FROM mddsocial.user_topic_subscription WHERE user_id = :userId")
+//    Flux<UUID> findAllTopicIdsByUserId(UUID userId);
 
+}
