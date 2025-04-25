@@ -18,7 +18,9 @@
           }
         </mat-card-actions>
         <mat-card-footer class="stats-footer">
-          <p class="popularity-stats"><strong>Popularité : {{ topic.countPosts }} article(s) et {{ topic.countComments }} commentaire(s)</strong></p>
+          <p class="popularity-stats">Popularité : {{ topic.countPosts }} article{{ topic.countPosts > 1 ? 's' : '' }}
+            et {{ topic.countComments }} commentaire{{ topic.countComments > 1 ? 's' : '' }}
+          </p>
         </mat-card-footer>
       </mat-card>
     }

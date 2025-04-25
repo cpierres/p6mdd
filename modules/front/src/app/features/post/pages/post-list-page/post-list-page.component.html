@@ -10,7 +10,8 @@
           <mat-option [value]="'subscribed'">Mes thèmes</mat-option>
           <mat-option [value]="'all'">Tous les thèmes</mat-option>
           <mat-option *ngFor="let topic of topics" [value]="topic.id">
-            {{ topic.title }} ({{ topic.countPosts }} articles - {{ topic.countComments }} commentaires)
+            {{ topic.title }} ({{ topic.countPosts }} article{{ topic.countPosts > 1 ? 's' : '' }}
+            - {{ topic.countComments }} commentaire{{ topic.countComments > 1 ? 's' : '' }})
           </mat-option>
         </mat-select>
       </mat-form-field>
