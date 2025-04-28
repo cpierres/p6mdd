@@ -16,6 +16,7 @@ import {User} from '../../../user/interfaces/user.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {log} from '@angular-devkit/build-angular/src/builders/ssr-dev-server';
 import {Subject, takeUntil} from 'rxjs';
+import {FieldErrors} from '../../../../shared/interfaces/FieldErrors';
 
 @Component({
   selector: 'app-user-form',
@@ -62,16 +63,25 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   /** Signal calculé : combine le mode initial global (parent) et local si bouton "Modifier" */
   readonly isEditModeValue = computed(() => this.editMode() || this.isEditMode());
 
-  @Input() backendFieldErrors!: Signal<{ [key: string]: string }>;// erreurs provenant du backend
+  @Input() backendFieldErrors!: Signal<FieldErrors>;// erreurs provenant du backend
 
-  @Input() context: 'register' | 'profil' | 'login' = 'register';
+  @Input() context: 'register' | 'profil' = 'register';
 
   readonly emailValue = signal<string>(''); // Signal pour le champ email
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
+    // // Initialisation de isEditMode avec choix @Input
+    // this.isEditMode = this.initialEditMode;
+    // Initialisation du formulaire avec tous les champs activés par défaut
+    this.form = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(8), this.passwordValidator]],
+    });
 
     effect(() => {
+      console.log("effect UserFormComponent.backendFieldErrors() triggered... ", this.backendFieldErrors(), "context:", this.context,)
       // Mise à jour du formulaire avec les données de l'utilisateur (via Signal)
       const user = this.currentUser();
       if (user) {
@@ -83,36 +93,40 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
       }
 
       const errors = this.backendFieldErrors();
-      if (errors) {
+      if (errors && Object.keys(errors).length > 0) {
+        // S'il y a des erreurs backend, on les applique et on garde le formulaire activé
         Object.keys(errors).forEach((field) => {
           const control = this.form.get(field);
           if (control) {
-            control.setErrors({backend: true});
+            control.setErrors({ backend: errors[field] });
+            // Marquer le contrôle comme touché
+            control.markAsTouched();
+            // console.log(`État du contrôle ${field}:`, {
+            //   valid: this.form.get(field)?.valid,
+            //   invalid: this.form.get(field)?.invalid,
+            //   dirty: this.form.get(field)?.dirty,
+            //   touched: this.form.get(field)?.touched,
+            //   disabled: this.form.get(field)?.disabled
+            // });
+            // console.log(`Erreurs control pour ${field} : `, control.errors);
           }
         });
-      }
 
-      if (this.isEditModeValue()) {
-        this.form.enable();
       } else {
-        this.form.disable();
+        // S'il n'y a pas d'erreurs backend, on applique la logique normale d'activation/désactivation
+        if (this.isEditModeValue()) {
+          this.form.enable();
+        } else {
+          this.form.disable();
+        }
       }
 
     });
+
   }
 
   ngOnInit(): void {
-    // // Initialisation de isEditMode avec choix @Input
-    // this.isEditMode = this.initialEditMode;
-
-    // Initialisation du formulaire
-    this.form = this.fb.group({
-      email: [{value: '', disabled: !this.isEditMode()}, [Validators.required, Validators.email]],
-      username: [{value: '', disabled: !this.isEditMode()}, [Validators.required]],
-      password: [{value: '', disabled: !this.isEditMode()}, [Validators.required]]
-    });
-
-    // Écoute des changements dans le champ email et mise à jour du Signal
+    //Écoute des changements dans le champ email et mise à jour du Signal
     this.form.get('email')?.valueChanges
       .pipe(takeUntil(this.destroy$)) // Arrête l'observable au moment du `destroy`
       .subscribe((email) => {
@@ -128,8 +142,8 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
     $event.stopPropagation(); //sinon double soumission intempestive (avec event pour 2eme)
 
     if (this.isEditModeValue()) {
-      // Mode édition : On envoie les données au composant parent quand on enregistre
-      this.exitEditMode();
+      // Mode édition : On envoie les données au composant parent sans quitter le mode édition
+      // this.exitEditMode();
       this.submit.emit(this.form.value as T);// Emettre données typées dynamiquement
     } else {
       // Bascule le mode local en édition.
@@ -199,6 +213,15 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
     }
     return this.isEditModeValue() ? (this.labelSubmit || 'Enregistrer') : 'Modifier';
   });
+
+
+  hasBackendError(field: string): boolean {
+    return !!this.backendFieldErrors()[field];
+  }
+
+  getBackendError(field: string): string {
+    return this.backendFieldErrors()[field] || '';
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();

@@ -10,6 +10,7 @@ import {SessionService} from '../../../../shared/services/session-service.servic
 import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedStatus';
 import {TopicService} from '../../../topic/services/topic.service';
 import {TopicListComponent} from '../../../topic/components/topic-list/topic-list.component';
+import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
 
 @Component({
   selector: 'app-profil',
@@ -28,12 +29,11 @@ export class ProfilComponent {
   currentUser = signal<User | null>(null);
   context: string = "profil";
 
-  public onError = false;
-  backendFieldErrors = signal<{ [key: string]: string }>({});
+  //backendFieldErrors = signal<FieldErrors>({});
   topics: TopicSubscribedStatus[] = [];
 
   constructor(private authService: AuthService, private router: Router,
-              private errorHandlingService: ErrorHandlingService,
+              public errorHandlingService: ErrorHandlingService,
               private sessionService: SessionService,
               private topicService: TopicService) {
     // Charger les données utilisateur pour alimenter la page
@@ -67,14 +67,13 @@ export class ProfilComponent {
           this.sessionService.logOut();
           this.router.navigate(['/']);
         } else {
-          // Sinon, revenir en mode lecture après la sauvegarde
-          this.isEditMode.set(false);
+          this.isEditMode.set(false);//revenir en mode lecture après la sauvegarde
         }
       },
-      error: (error) => {
-        this.onError = true;
-        this.errorHandlingService.handleValidationErrors(error);
-        this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
+      error: (validationErrorResponse:ValidationErrorResponse) => {
+        //inutile car traité via error-interceptor
+        //this.errorHandlingService.handleValidationErrors(validationErrorResponse);
+        //this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
       }
     });
   }
@@ -83,5 +82,4 @@ export class ProfilComponent {
   handleEditModeChange(isEdit: boolean): void {
     this.isEditMode.set(isEdit);
   }
-
 }

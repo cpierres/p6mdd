@@ -4,9 +4,9 @@ import com.mdd.back.models.MessageResponse;
 import com.mdd.back.models.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
@@ -16,10 +16,10 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * Permet d'afficher un message synthétique lors de la validation des DTO (via  @Valid ou @Validated)
+     * Permet d'afficher un message synthétique lors de la validation des DTO (via @Valid ou @Validated)
      */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Mono<ResponseEntity<ValidationErrorResponse>> handleValidationException(MethodArgumentNotValidException ex) {
+    @ExceptionHandler(WebExchangeBindException.class)
+    public Mono<ResponseEntity<ValidationErrorResponse>> handleValidationException(WebExchangeBindException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult()
                 .getFieldErrors()

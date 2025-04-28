@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {catchError, Observable, tap, throwError} from 'rxjs';
 import {RegisterRequest} from '../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../interfaces/authSuccess.interface';
@@ -36,18 +36,24 @@ export class AuthService {
         });
       }),
       catchError(error => {
-        if (error.status === 409 && error.error.fieldErrors) {
-          // Retourner directement ValidationErrorResponse pour gestion des erreurs backend
-          return throwError(() => error.error as ValidationErrorResponse);
-        }
-        //erreur générale (message simple sans détail par champ) affichée via message réactif en entête de page
-        this.messagesService.showMessage(
-          'Erreur lors de l\'inscription : ' + error.error.message,
-          "error" //niveau de l'erreur (c 1 type)
-        );
-        return throwError(() => error);
+        return this.handleValidationErrors(error);
       })
     );
+  }
+
+  private handleValidationErrors(error: HttpErrorResponse) {
+    if (error.status === 409 && error.error.fieldErrors) {
+      // Retourner directement ValidationErrorResponse pour gestion des erreurs backend
+      return throwError(() => error.error as ValidationErrorResponse);
+    } else if (error.status === 400 && error.error.fieldErrors) {
+      return throwError(() => error.error as ValidationErrorResponse);
+    }
+    //erreur générale (message simple sans détail par champ) affichée via message réactif en entête de page
+    this.messagesService.showMessage(
+      'Erreur lors de l\'inscription : ' + error.error.message,
+      "error" //niveau de l'erreur (c 1 type)
+    );
+    return throwError(() => error);
   }
 
   public me(): Observable<User> {
@@ -61,22 +67,14 @@ export class AuthService {
         console.log(
           'AuthService.updateMe - token :',
           localStorage.getItem('token'))
+        // ZZX TODO VERIFIER SI CA MARCHE A NOUVEAU
         // this.me().subscribe((user: User) => {
         //   this.sessionService.logIn(user);
         // });
         //this.sessionService.logOut();
       }),
       catchError(error => {
-        if (error.status === 409 && error.error.fieldErrors) {
-          // Retourner directement ValidationErrorResponse pour gestion des erreurs backend
-          return throwError(() => error.error as ValidationErrorResponse);
-        }
-        //erreur générale (message simple sans détail par champ) affichée via message réactif en entête de page
-        this.messagesService.showMessage(
-          'Erreur lors de l\'inscription : ' + error.error.message,
-          "error" //niveau de l'erreur (c 1 type)
-        );
-        return throwError(() => error);
+        return this.handleValidationErrors(error);
       })
     );
   }
@@ -95,6 +93,7 @@ export class AuthService {
       catchError(error => {
         // Gestion des erreurs
         if (error.status === 401) {
+          //erreur volontairement floue pour ne pas donner d'indication à un hacker
           this.messagesService.showMessage('Identifiant (email ou nom) ou mot de passe incorrect', 'error');
         } else {
           this.messagesService.showMessage('Une erreur est survenue lors de la connexion', 'error');

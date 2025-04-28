@@ -1,35 +1,40 @@
-import { Injectable } from '@angular/core';
+import {Injectable, signal} from '@angular/core';
 import {ValidationErrorResponse} from '../interfaces/ValidationErrorResponse';
+import {FieldErrors} from '../interfaces/FieldErrors';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ErrorHandlingService {
-  private fieldErrors: { [key: string]: string } = {};
+  // Signal pour les erreurs de champs
+  private fieldErrorsSignal = signal<FieldErrors>({});
 
-  /**
-   * Traite les erreurs de validation et met à jour les erreurs associées aux champs.
-   * @param error L'erreur retournée par l'API
-   */
-  handleValidationErrors(error: ValidationErrorResponse): { [key: string]: string } {
+  // Signal pour les messages d'erreur généraux
+  private generalErrorSignal = signal<string | null>(null);
+
+  // Signals en lecture seule exposés publiquement
+  readonly fieldErrors = this.fieldErrorsSignal.asReadonly();
+  readonly generalError = this.generalErrorSignal.asReadonly();
+
+  // Traite les erreurs de validation
+  handleValidationErrors(error: ValidationErrorResponse): void {
     if (error.fieldErrors) {
-      this.fieldErrors = error.fieldErrors;
+      this.fieldErrorsSignal.set(error.fieldErrors);
     }
-    return this.fieldErrors;
+
+    if (error.message) {
+      this.generalErrorSignal.set(error.message);
+    }
   }
 
-  /**
-   * Réinitialise les erreurs associées aux champs.
-   */
-  resetFieldErrors(): void {
-    this.fieldErrors = {};
+  // Méthode pour récupérer uniquement les erreurs liées aux champs (facultatif en fonction des besoins)
+  getFieldErrors(): FieldErrors {
+    return this.fieldErrors();
   }
 
-  /**
-   * Retourne les erreurs associées aux champs.
-   */
-  getFieldErrors(): { [key: string]: string } {
-    return this.fieldErrors;
+  // Réinitialise les erreurs
+  resetErrors(): void {
+    this.fieldErrorsSignal.set({});
+    this.generalErrorSignal.set(null);
   }
 }
-
