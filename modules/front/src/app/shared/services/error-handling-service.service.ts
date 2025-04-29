@@ -1,6 +1,7 @@
 import {Injectable, signal} from '@angular/core';
 import {ValidationErrorResponse} from '../interfaces/ValidationErrorResponse';
-import {FieldErrors} from '../interfaces/FieldErrors';
+import {FieldErrors} from '../models/FieldErrors';
+
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,7 @@ export class ErrorHandlingService {
     }
   }
 
-  // Méthode pour récupérer uniquement les erreurs liées aux champs (facultatif en fonction des besoins)
+  // Méthode pour récupérer uniquement les erreurs liées aux champs
   getFieldErrors(): FieldErrors {
     return this.fieldErrors();
   }

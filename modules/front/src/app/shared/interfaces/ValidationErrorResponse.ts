@@ -1,4 +1,4 @@
-import {FieldErrors} from './FieldErrors';
+import {FieldErrors} from '../models/FieldErrors';
 
 /**
  * Représente une réponse indiquant la présence d'erreurs de validation.

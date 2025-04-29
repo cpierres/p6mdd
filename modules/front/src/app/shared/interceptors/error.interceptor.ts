@@ -14,7 +14,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 400 || error.status === 409) {
-        // Erreurs de validation
+        // Erreurs de validation / conflit
         if (error.error && (error.error.fieldErrors || error.error.message)) {
           errorHandlingService.handleValidationErrors(error.error as ValidationErrorResponse);
         }

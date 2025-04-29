@@ -4,8 +4,7 @@ import {
   Input, OnDestroy,
   OnInit,
   Output, signal,
-  Signal,
-  ViewEncapsulation
+  Signal
 } from '@angular/core';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -14,9 +13,8 @@ import {MatButtonModule} from '@angular/material/button';
 import {NgIf} from '@angular/common';
 import {User} from '../../../user/interfaces/user.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {log} from '@angular-devkit/build-angular/src/builders/ssr-dev-server';
 import {Subject, takeUntil} from 'rxjs';
-import {FieldErrors} from '../../../../shared/interfaces/FieldErrors';
+import {FieldErrors} from '../../../../shared/models/FieldErrors';
 
 @Component({
   selector: 'app-user-form',
@@ -98,7 +96,10 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
         Object.keys(errors).forEach((field) => {
           const control = this.form.get(field);
           if (control) {
-            control.setErrors({ backend: errors[field] });
+            const errorDetail = errors.find(e => e.field === field)?.message;
+            if (errorDetail) {
+              control.setErrors({ backend: errorDetail });
+            }
             // Marquer le contrôle comme touché
             control.markAsTouched();
             // console.log(`État du contrôle ${field}:`, {

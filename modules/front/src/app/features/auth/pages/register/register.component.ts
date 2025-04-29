@@ -7,7 +7,6 @@ import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 import {User} from '../../../user/interfaces/user.interface';
 import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
-import {FieldErrors} from '../../../../shared/interfaces/FieldErrors';
 
 @Component({
   selector: 'app-register',
