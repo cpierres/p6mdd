@@ -1,17 +1,21 @@
 package com.mdd.back.exception;
 
-import com.mdd.back.models.MessageResponse;
+import com.mdd.back.models.ErrorDetails;
+import com.mdd.back.models.FieldErrorDetail;
+import com.mdd.back.models.Severity;
 import com.mdd.back.models.ValidationErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -20,24 +24,34 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ValidationErrorResponse>> handleValidationException(WebExchangeBindException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-
-        ValidationErrorResponse response = new ValidationErrorResponse(
+        List<FieldErrorDetail> fieldErrorDetails = convertFieldErrors(ex.getBindingResult().getFieldErrors());
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
                 "Les données d'entrée ne sont pas valides.",
-                errors
+                fieldErrorDetails
         );
+        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+    }
 
-        return Mono.just(ResponseEntity.badRequest().body(response));
+    private List<FieldErrorDetail> convertFieldErrors(List<FieldError> fieldErrors) {
+        return fieldErrors.stream()
+                .map(error -> new FieldErrorDetail(
+                        error.getField(),
+                        error.getDefaultMessage(),
+                        Severity.ERROR // Sévérité par défaut si non spécifiée
+                ))
+                .toList();
     }
 
     @ExceptionHandler(ResourceAlreadyExistException.class)
-    public Mono<ResponseEntity<MessageResponse>> handleResourceAlreadyExistException(ResourceAlreadyExistException ex) {
+    public Mono<ResponseEntity<ErrorDetails>> handleResourceAlreadyExistException(ResourceAlreadyExistException ex) {
+        ErrorDetails response = new ErrorDetails(
+                ex.getMessage(),
+                Severity.WARNING, // Sévérité attribuée
+                null // Pas d'erreurs sur champs spécifiques donc null
+        );
         return Mono.just(ResponseEntity
                 .status(HttpStatus.CONFLICT) // Code 409
-                .body(new MessageResponse(ex.getMessage())));
+                .body(response));
     }
 
     @ExceptionHandler(MultipleResourceAlreadyExistException.class)
@@ -48,10 +62,7 @@ public class GlobalExceptionHandler {
         String msgGeneral = resolveErrorMessage(ex.getMessage(),
                 "Un ou plusieurs conflits d'unicité existent");
 
-        ValidationErrorResponse response = new ValidationErrorResponse(
-                msgGeneral, // Message général
-                ex.getFieldErrors() // Map des erreurs associées aux champs
-        );
+        ValidationErrorResponse response = new ValidationErrorResponse(msgGeneral, ex.getFieldErrors());
 
         return Mono.just(ResponseEntity
                 .status(HttpStatus.CONFLICT) // Code 409 : Conflit
@@ -62,18 +73,38 @@ public class GlobalExceptionHandler {
      * Résout le message d'erreur en vérifiant s'il est vide ou null.
      *
      * @param originalMessage Le message original.
-     * @param defaultMessage Le message par défaut à utiliser si l'original est vide.
+     * @param defaultMessage  Le message par défaut à utiliser si l'original est vide.
      * @return Le message d'erreur final.
      */
     private String resolveErrorMessage(String originalMessage, String defaultMessage) {
         return (originalMessage == null || originalMessage.isEmpty()) ? defaultMessage : originalMessage;
     }
 
-
     @ExceptionHandler(ResourceNotFoundException.class)
-    public Mono<ResponseEntity<MessageResponse>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+    public Mono<ResponseEntity<ErrorDetails>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ErrorDetails response = new ErrorDetails(
+                ex.getMessage(),
+                Severity.INFO, // Sévérité de type "info" attribuée à cette erreur
+                null
+        );
         return Mono.just(ResponseEntity
                 .status(HttpStatus.NOT_FOUND) // Code 404
-                .body(new MessageResponse(ex.getMessage())));
+                .body(response));
     }
+
+    @ExceptionHandler(Exception.class)
+    public Mono<ResponseEntity<ErrorDetails>> handleGeneralException(Exception ex) {
+        //Par sécurité, on ne montre pas le détail de l'erreur technique à l'utilisateur
+        // on se contente ici de tracer l'erreur avec un log
+        ErrorDetails response = new ErrorDetails(
+                "Une erreur interne est survenue. Veuillez réessayer ultérieurement.",
+                Severity.ERROR,
+                null
+        );
+        log.error("Une erreur interne est survenue : ", ex);
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR) // Code 500
+                .body(response));
+    }
+
 }
