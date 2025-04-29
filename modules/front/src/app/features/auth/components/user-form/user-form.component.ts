@@ -15,6 +15,8 @@ import {User} from '../../../user/interfaces/user.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {Subject, takeUntil} from 'rxjs';
 import {FieldErrors} from '../../../../shared/models/FieldErrors';
+import {FieldErrorBackendComponent} from '../../../../shared/components/field-error-backend/field-error-backend.component';
+import {FieldErrorDetail} from '../../../../shared/interfaces/FieldErrorDetail';
 
 @Component({
   selector: 'app-user-form',
@@ -27,7 +29,8 @@ import {FieldErrors} from '../../../../shared/models/FieldErrors';
     MatButtonModule,
     MatError,
     MatLabel,
-    NgIf
+    NgIf,
+    FieldErrorBackendComponent
   ],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
@@ -215,13 +218,13 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
     return this.isEditModeValue() ? (this.labelSubmit || 'Enregistrer') : 'Modifier';
   });
 
-
-  hasBackendError(field: string): boolean {
-    return !!this.backendFieldErrors()[field];
+  // méthodes pour récupérer les erreurs de champ
+  getFieldError(fieldName: string): FieldErrorDetail | undefined {
+    return this.backendFieldErrors().find(error => error.field === fieldName);
   }
 
-  getBackendError(field: string): string {
-    return this.backendFieldErrors()[field] || '';
+  hasFieldError(fieldName: string): boolean {
+    return !!this.getFieldError(fieldName);
   }
 
   ngOnDestroy(): void {

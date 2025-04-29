@@ -1,0 +1,7 @@
+<div class="field-error" [ngClass]="error?.severity || 'error'">
+  <mat-icon [ngClass]="error?.severity || 'error'">
+    {{ getIconForSeverity(error?.severity) }}
+  </mat-icon>
+  <span>{{ error?.message }}</span>
+</div>
+

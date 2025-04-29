@@ -1,5 +1,6 @@
 package com.mdd.back.models;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,19 +31,24 @@ public class ErrorDetails {
 
     @Schema(
             description = "Niveau de sévérité de l'erreur.",
-            example = "error",
-            allowableValues = {"error", "warning", "info", "success"}
+            example = "ERROR",
+            allowableValues = {"ERROR", "WARNING", "INFO", "SUCCESS"}
     )
     private Severity severity;
 
-    @Schema(
-            description = "Liste des champs en erreur (facultatif). Chaque entrée contient des informations détaillées " +
-                    "telles que le nom du champ, un message décrivant le problème, et une sévérité (optionnelle).",
-            example = """
-                    [
-                      { "field": "email", "message": "L'adresse e-mail n'est pas valide", "severity": "warning" },
-                      { "field": "password", "message": "Le mot de passe est trop court" }
-                    ]"""
+    @ArraySchema(
+            schema = @Schema(
+                    description = "Liste des champs en erreur (facultatif). Chaque entrée contient des informations détaillées " +
+                            "telles que le nom du champ, un message décrivant le problème, et une sévérité (optionnelle).",
+                    example = """
+                            [
+                              { "field": "email", "message": "L'adresse e-mail n'est pas valide", "severity": "warning" },
+                              { "field": "password", "message": "Le mot de passe est trop court" }
+                            ]"""),
+            arraySchema = @Schema(
+                    description = "Chaque entrée contient des informations détaillées telles que le nom du champ, un message décrivant le problème, et une sévérité spécifique."
+            )
     )
+
     private List<FieldErrorDetail> fieldErrors;
 }

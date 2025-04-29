@@ -1,0 +1,36 @@
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.error {
+  color: #f44336;
+}
+
+.warning {
+  color: #ff9800;
+}
+
+.info {
+  color: #2196f3;
+}
+
+.success {
+  color: #4caf50;
+}
+
+mat-icon {
+  font-size: 16px;
+  height: 20px; 
+  width: 20px;
+  line-height: 20px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: content-box;
+  padding: 0;
+  overflow: visible;
+}

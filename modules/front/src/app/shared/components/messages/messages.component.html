@@ -1,9 +1,13 @@
 @if (message()) {
   <div class="messages-container">
     <div class="message" [ngClass]="message()?.severity">
-      {{ message()?.text }}
-      <img class="close" src="/assets/images/close.svg"
-           (click)="onClose()">
+      <mat-icon *ngIf="message()?.severity === 'error'">error</mat-icon>
+      <mat-icon *ngIf="message()?.severity === 'warning'">warning</mat-icon>
+      <mat-icon *ngIf="message()?.severity === 'info'">info</mat-icon>
+      <mat-icon *ngIf="message()?.severity === 'success'">check_circle</mat-icon>
+      <span>{{ message()?.text }}</span>
+      <img class="close" src="/assets/images/close.svg" (click)="onClose()">
     </div>
   </div>
 }
+

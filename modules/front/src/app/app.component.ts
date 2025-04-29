@@ -7,6 +7,7 @@ import {MessagesComponent} from './shared/components/messages/messages.component
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf, MessagesComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

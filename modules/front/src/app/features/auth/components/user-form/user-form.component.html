@@ -10,43 +10,38 @@
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" />
-            <mat-hint align="start" *ngIf="context === 'profil' && this.isEditModeValue()" >
-              Si email modifié, vous devrez vous reconnecter</mat-hint>
+            <input matInput formControlName="email" type="email"/>
+            <mat-hint align="start" *ngIf="context === 'profil' && this.isEditModeValue()">
+              Si email modifié, vous devrez vous reconnecter
+            </mat-hint>
             <mat-error *ngIf="form.get('email')?.hasError('required')">email requis</mat-error>
             <mat-error *ngIf="form.get('email')?.hasError('email')">adresse email invalide</mat-error>
             <!-- mat-error *ngIf="form.get('email')?.hasError('backend')">
               {{ form.get('email')?.getError('backend') }}
             </mat-error -->
-            <mat-error *ngIf="hasBackendError('email')">
-              {{ getBackendError('email') }}
-            </mat-error>
+            <app-field-error-backend *ngIf="hasFieldError('email')" [error]="getFieldError('email')"/>
           </mat-form-field>
         </div>
 
         <div>
           <mat-form-field appearance="fill">
             <mat-label>Nom d'utilisateur</mat-label>
-            <input matInput formControlName="username" />
+            <input matInput formControlName="username"/>
             <mat-error *ngIf="form.get('username')?.hasError('required')">
               nom d'utilisateur requis
             </mat-error>
-            <mat-error *ngIf="form.get('username')?.hasError('backend')">
-              {{ form.get('username')?.getError('backend') }}
-            </mat-error>
+            <app-field-error-backend *ngIf="hasFieldError('username')" [error]="getFieldError('username')"/>
           </mat-form-field>
         </div>
 
         <div class="form-field-container">
           <mat-form-field appearance="fill">
             <mat-label>Mot de passe</mat-label>
-            <input matInput formControlName="password" type="password" />
+            <input matInput formControlName="password" type="password"/>
             <!-- mat-error *ngIf="form.get('password')?.hasError('backend')">
               {{ form.get('password')?.getError('backend') }}
             </mat-error -->
-            <mat-error *ngIf="hasBackendError('password')">
-              {{ getBackendError('password') }}
-            </mat-error>
+            <app-field-error-backend *ngIf="hasFieldError('password')" [error]="getFieldError('password')"/>
             <mat-error *ngIf="form.get('password')?.hasError('required')">
               mot de passe requis
             </mat-error>
