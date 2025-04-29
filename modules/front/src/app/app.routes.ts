@@ -8,12 +8,13 @@ import {PostCreateComponent} from './features/post/pages/post-create/post-create
 import {PostListPageComponent} from './features/post/pages/post-list-page/post-list-page.component';
 import {PostCommentComponent} from './features/post/pages/post-comment/post-comment.component';
 import {authGuard} from './shared/guards/auth.guard';
+import {unauthGuard} from './shared/guards/unauth.guard';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers homes
   {path: 'home', component: HomeComponent},
-  {path: 'auth/login', component: LoginPageComponent},
-  {path: 'auth/register', component: RegisterComponent},
+  {path: 'auth/login', component: LoginPageComponent, canActivate: [unauthGuard] },
+  {path: 'auth/register', component: RegisterComponent, canActivate: [unauthGuard]},
   {path: 'auth/profil', component: ProfilComponent, canActivate: [authGuard]},
   {path: 'post/create', component: PostCreateComponent, canActivate: [authGuard]},
   {path: 'post/list', component: PostListPageComponent, canActivate: [authGuard]},
