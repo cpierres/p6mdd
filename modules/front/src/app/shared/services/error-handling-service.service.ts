@@ -49,4 +49,11 @@ export class ErrorHandlingService {
     this.generalErrorSignal.set(null);
     this.generalErrorSeveritySignal.set('error');
   }
+
+  clearFieldError(fieldName: string): void {
+    const currentErrors = this.fieldErrors();
+    const updatedErrors = currentErrors.filter(error => error.field !== fieldName);
+    this.fieldErrorsSignal.set(updatedErrors);
+  }
+
 }

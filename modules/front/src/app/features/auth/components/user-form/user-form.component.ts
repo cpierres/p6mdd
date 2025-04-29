@@ -1,6 +1,6 @@
 import {
   Component, computed, effect,
-  EventEmitter,
+  EventEmitter, inject,
   Input, OnDestroy,
   OnInit,
   Output, signal,
@@ -15,8 +15,11 @@ import {User} from '../../../user/interfaces/user.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {Subject, takeUntil} from 'rxjs';
 import {FieldErrors} from '../../../../shared/models/FieldErrors';
-import {FieldErrorBackendComponent} from '../../../../shared/components/field-error-backend/field-error-backend.component';
+import {
+  FieldErrorBackendComponent
+} from '../../../../shared/components/field-error-backend/field-error-backend.component';
 import {FieldErrorDetail} from '../../../../shared/interfaces/FieldErrorDetail';
+import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 
 @Component({
   selector: 'app-user-form',
@@ -71,7 +74,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   readonly emailValue = signal<string>(''); // Signal pour le champ email
   private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private errorHandlingService: ErrorHandlingService) {
     // // Initialisation de isEditMode avec choix @Input
     // this.isEditMode = this.initialEditMode;
     // Initialisation du formulaire avec tous les champs activés par défaut
@@ -101,7 +104,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
           if (control) {
             const errorDetail = errors.find(e => e.field === field)?.message;
             if (errorDetail) {
-              control.setErrors({ backend: errorDetail });
+              control.setErrors({backend: errorDetail});
             }
             // Marquer le contrôle comme touché
             control.markAsTouched();
@@ -138,6 +141,9 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
           this.emailValue.set(email); // Mise à jour du Signal
         }
       });
+
+    //configure les champs pour qu'en cas de changement l'erreur backend s'efface automatiquement
+    this.setupFieldErrorClearingOnChange();
 
   }
 
@@ -230,6 +236,19 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private setupFieldErrorClearingOnChange(): void {
+    // Pour chaque contrôle dans le formulaire
+    Object.keys(this.form.controls).forEach(controlName => {
+      this.form.get(controlName)?.valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (this.hasFieldError(controlName)) {
+            this.errorHandlingService.clearFieldError(controlName);
+          }
+        });
+    });
   }
 
 }
