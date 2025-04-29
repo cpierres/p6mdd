@@ -1,35 +1,59 @@
-import { Injectable } from '@angular/core';
-import {ValidationErrorResponse} from '../interfaces/ValidationErrorResponse';
+import { Injectable, signal } from '@angular/core';
+import { ErrorDetails } from '../interfaces/ErrorDetails';
+import { FieldErrorDetail } from '../interfaces/FieldErrorDetail';
+import { MessageSeverity } from '../models/MessageSeverity';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ErrorHandlingService {
-  private fieldErrors: { [key: string]: string } = {};
+  // Signal pour les erreurs de champs
+  private fieldErrorsSignal = signal<FieldErrorDetail[]>([]);
 
-  /**
-   * Traite les erreurs de validation et met à jour les erreurs associées aux champs.
-   * @param error L'erreur retournée par l'API
-   */
-  handleValidationErrors(error: ValidationErrorResponse): { [key: string]: string } {
-    if (error.fieldErrors) {
-      this.fieldErrors = error.fieldErrors;
+  // Signal pour les messages d'erreur généraux
+  private generalErrorSignal = signal<string | null>(null);
+
+  // Signal pour la sévérité du message général
+  private generalErrorSeveritySignal = signal<MessageSeverity>('error');
+
+  // Signals en lecture seule exposés publiquement
+  readonly fieldErrors = this.fieldErrorsSignal.asReadonly();
+  readonly generalError = this.generalErrorSignal.asReadonly();
+  readonly generalErrorSeverity = this.generalErrorSeveritySignal.asReadonly();
+
+  // Traite les erreurs de validation
+  handleValidationErrors(error: ErrorDetails): void {
+    if (error.fieldErrors && error.fieldErrors.length > 0) {
+      this.fieldErrorsSignal.set(error.fieldErrors);
     }
-    return this.fieldErrors;
+
+    if (error.message) {
+      this.generalErrorSignal.set(error.message);
+      this.generalErrorSeveritySignal.set(error.severity || 'error');
+    }
   }
 
-  /**
-   * Réinitialise les erreurs associées aux champs.
-   */
-  resetFieldErrors(): void {
-    this.fieldErrors = {};
+  // Méthode pour récupérer uniquement les erreurs liées aux champs
+  getFieldErrors(): FieldErrorDetail[] {
+    return this.fieldErrors();
   }
 
-  /**
-   * Retourne les erreurs associées aux champs.
-   */
-  getFieldErrors(): { [key: string]: string } {
-    return this.fieldErrors;
+  // Méthode pour récupérer l'erreur d'un champ spécifique
+  getFieldError(fieldName: string): FieldErrorDetail | undefined {
+    return this.fieldErrors().find(error => error.field === fieldName);
   }
+
+  // Réinitialise les erreurs
+  resetErrors(): void {
+    this.fieldErrorsSignal.set([]);
+    this.generalErrorSignal.set(null);
+    this.generalErrorSeveritySignal.set('error');
+  }
+
+  clearFieldError(fieldName: string): void {
+    const currentErrors = this.fieldErrors();
+    const updatedErrors = currentErrors.filter(error => error.field !== fieldName);
+    this.fieldErrorsSignal.set(updatedErrors);
+  }
+
 }
-

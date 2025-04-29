@@ -6,6 +6,7 @@ import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 import {User} from '../../../user/interfaces/user.interface';
+import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
 
 @Component({
   selector: 'app-register',
@@ -19,17 +20,16 @@ import {User} from '../../../user/interfaces/user.interface';
 export class RegisterComponent implements OnInit {
   labelSubmit: string = "S'inscrire";
   headTitle: string = "Inscription";
-  onError = false;
 
   // Signals pour le mode édition et les données utilisateur
   isEditMode = signal<boolean>(true);
   currentUser = signal<User | null>(null);
-
-  backendFieldErrors = signal<{ [key: string]: string }>({});
+  // backendFieldErrors inutile désormais puisque traité par error-interceptor
+  // backendFieldErrors = signal<FieldErrors>({});
 
   constructor(private router: Router,
               private authService: AuthService,
-              private errorHandlingService: ErrorHandlingService) {
+              public errorHandlingService: ErrorHandlingService) {
   }
 
   ngOnInit(): void {
@@ -47,13 +47,13 @@ export class RegisterComponent implements OnInit {
       next: (response: AuthSuccess) => {
         this.router.navigate(['/post/list']);
       },
-      error: (error) => {
-        this.onError = true;
-        this.errorHandlingService.handleValidationErrors(error);
-        this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
+      error: (errorResponse:ValidationErrorResponse) => {
+        // console.log('Validation Error response:', errorResponse);
+        // L'intercepteur a déjà traité les erreurs et mis à jour les Signals
+        // par conséquent le signal local backendFieldErrors devient inutile
+        //this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
+        this.isEditMode.set(true);
       }
     });
-
   }
-
 }

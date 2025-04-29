@@ -1,6 +1,6 @@
 <app-user-form   [isEditMode]="isEditMode" [headTitle]="headTitle" [labelSubmit]="labelSubmit"
                (submit)="handleFormSubmit($event)" [currentUser]="currentUser"
-               [backendFieldErrors]="backendFieldErrors" [context]="'profil'"></app-user-form>
+               [backendFieldErrors]="errorHandlingService.fieldErrors" [context]="'profil'"></app-user-form>
 <hr class="separator">
 <h1>Abonnements</h1>
 <div class="subscribed-topics-section">

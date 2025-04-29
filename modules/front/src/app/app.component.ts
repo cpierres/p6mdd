@@ -3,11 +3,11 @@ import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {MatButtonModule} from '@angular/material/button';
 import {HeaderComponent} from './shared/components/header/header.component';
 import {NgIf} from '@angular/common';
-import {MessagesComponent} from './shared/components/messages/messages.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf, MessagesComponent],
+  standalone: true,
+  imports: [RouterOutlet, MatButtonModule, HeaderComponent, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
