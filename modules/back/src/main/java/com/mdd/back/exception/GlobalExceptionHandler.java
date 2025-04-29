@@ -14,6 +14,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -64,8 +65,18 @@ public class GlobalExceptionHandler {
 
         ValidationErrorResponse response = new ValidationErrorResponse();
         response.setMessage(msgGeneral);
-        response.setFieldErrors(ex.getFieldErrors());
         response.setSeverity(Severity.WARNING); // Définir explicitement WARNING
+
+        // S'assurer que toutes les erreurs de champ ont la sévérité WARNING
+        List<FieldErrorDetail> fieldErrors = ex.getFieldErrors().stream()
+                .map(fieldError -> new FieldErrorDetail(
+                        fieldError.getField(),
+                        fieldError.getMessage(),
+                        Severity.WARNING
+                ))
+                .collect(Collectors.toList());
+
+        response.setFieldErrors(fieldErrors);
 
         return Mono.just(ResponseEntity
                 .status(HttpStatus.CONFLICT) // Code 409 : Conflit
