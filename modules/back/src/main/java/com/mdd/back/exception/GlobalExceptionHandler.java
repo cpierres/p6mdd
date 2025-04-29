@@ -62,7 +62,10 @@ public class GlobalExceptionHandler {
         String msgGeneral = resolveErrorMessage(ex.getMessage(),
                 "Un ou plusieurs conflits d'unicité existent");
 
-        ValidationErrorResponse response = new ValidationErrorResponse(msgGeneral, ex.getFieldErrors());
+        ValidationErrorResponse response = new ValidationErrorResponse();
+        response.setMessage(msgGeneral);
+        response.setFieldErrors(ex.getFieldErrors());
+        response.setSeverity(Severity.WARNING); // Définir explicitement WARNING
 
         return Mono.just(ResponseEntity
                 .status(HttpStatus.CONFLICT) // Code 409 : Conflit

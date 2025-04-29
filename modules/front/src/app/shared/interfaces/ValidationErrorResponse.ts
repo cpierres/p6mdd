@@ -1,4 +1,5 @@
 import {FieldErrors} from '../models/FieldErrors';
+import {MessageSeverity} from '../models/MessageSeverity';
 
 /**
  * Représente une réponse indiquant la présence d'erreurs de validation.
@@ -16,5 +17,6 @@ import {FieldErrors} from '../models/FieldErrors';
  */
 export interface ValidationErrorResponse {
   message: string; // Message général d'erreur
+  severity?: MessageSeverity;
   fieldErrors?: FieldErrors; // Erreurs spécifiques aux champs
 }
