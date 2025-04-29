@@ -19,7 +19,7 @@ public class MultipleResourceAlreadyExistException extends RuntimeException {
      * @param fieldErrors Liste des détails des erreurs de champs.
      */
     public MultipleResourceAlreadyExistException(List<FieldErrorDetail> fieldErrors) {
-        super("Un ou plusieurs champs sont en conflit : " + fieldErrorsToString(fieldErrors));
+        super("Conflit(s) :\n" + fieldErrorsToString(fieldErrors));
         //this.fieldErrors = fieldErrors;
         // S'assurer que toutes les erreurs sans sévérité définie reçoivent une sévérité warning par défaut
         this.fieldErrors = fieldErrors.stream()
@@ -56,6 +56,6 @@ public class MultipleResourceAlreadyExistException extends RuntimeException {
     private static String fieldErrorsToString(List<FieldErrorDetail> fieldErrors) {
         return fieldErrors.stream()
                 .map(detail -> detail.getField() + ": " + detail.getMessage())
-                .collect(Collectors.joining(" | "));
+                .collect(Collectors.joining("\n"));
     }
 }
