@@ -59,7 +59,7 @@
 mat-grid-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes automatiques */
-  gap: 8px; /* Espacement uniforme - réduit pour correspondre au gutterSize */
+  gap: 16px; /* Espacement uniforme - réduit pour correspondre au gutterSize */
   justify-items: center; /* Centre les éléments horizontalement */
 }
 
