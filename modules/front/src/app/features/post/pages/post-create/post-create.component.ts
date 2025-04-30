@@ -72,7 +72,7 @@ export class PostCreateComponent implements OnInit {
 
       this.postService.createPost(newPost).subscribe(post => {
         // Redirection vers la liste des posts après création
-        this.router.navigate(['/post/list']);
+        this.router.navigate(['/posts']);
       });
     }
   }

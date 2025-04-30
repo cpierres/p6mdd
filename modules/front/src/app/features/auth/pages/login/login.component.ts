@@ -47,7 +47,7 @@ export class LoginPageComponent implements OnInit {
       this.authService.login(loginRequest).subscribe({
         next: (response: AuthSuccess) => {
           // Redirige l'utilisateur vers une page sécurisée après connexion
-          this.router.navigate(['/post/list']);
+          this.router.navigate(['/posts']);
         },
         error: () => {
           // Gestion des erreurs déjà effectuée dans le service

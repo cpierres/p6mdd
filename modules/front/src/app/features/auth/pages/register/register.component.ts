@@ -45,7 +45,7 @@ export class RegisterComponent implements OnInit {
   handleFormSubmit(registerRequest: RegisterRequest): void {
     this.authService.register(registerRequest).subscribe({
       next: (response: AuthSuccess) => {
-        this.router.navigate(['/post/list']);
+        this.router.navigate(['/posts']);
       },
       error: (errorResponse:ValidationErrorResponse) => {
         // console.log('Validation Error response:', errorResponse);
