@@ -11,15 +11,14 @@ import {authGuard} from './shared/guards/auth.guard';
 import {unauthGuard} from './shared/guards/unauth.guard';
 
 export const routes: Routes = [
-  {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers homes
+  {path: '', redirectTo: 'home', pathMatch: 'full'}, // Route par défaut vers home
   {path: 'home', component: HomeComponent},
   {path: 'auth/login', component: LoginPageComponent, canActivate: [unauthGuard] },
   {path: 'auth/register', component: RegisterComponent, canActivate: [unauthGuard]},
   {path: 'auth/profil', component: ProfilComponent, canActivate: [authGuard]},
-  {path: 'post/create', component: PostCreateComponent, canActivate: [authGuard]},
-  {path: 'post/list', component: PostListPageComponent, canActivate: [authGuard]},
+  {path: 'posts/new', component: PostCreateComponent, canActivate: [authGuard]},
+  {path: 'posts', component: PostListPageComponent, canActivate: [authGuard]},
   {path: 'topics', component: TopicListAllComponent, canActivate: [authGuard]},
   {path: 'posts/:id', component: PostCommentComponent, canActivate: [authGuard]},
-  {path: '**', redirectTo: ''} // Redirection par défaut en cas d'URL non valide
-
+  {path: '**', redirectTo: 'home'} // Redirection par défaut en cas d'URL non valide
 ];

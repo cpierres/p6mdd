@@ -55,7 +55,7 @@ export class PostListPageComponent implements OnInit {
 
   openCreatePost() {
     // Navigue vers la page de création de post
-    this.router.navigate(['/post/create']);
+    this.router.navigate(['/posts/new']);
   }
 
   loadTopics(): void {
