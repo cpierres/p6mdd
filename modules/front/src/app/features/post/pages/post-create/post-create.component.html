@@ -6,7 +6,10 @@
 
   <form [formGroup]="postForm" (ngSubmit)="createPost()" class="post-form">
     <mat-form-field appearance="outline">
-      <mat-label>Sélectionner un thème</mat-label>
+      <mat-label>
+        Sélectionner un thème (abonné)
+      </mat-label>
+
       <mat-select formControlName="topicId">
         <mat-option *ngFor="let topic of topics" [value]="topic.id">
           {{ topic.title }}
@@ -30,7 +33,9 @@
       <textarea
         matInput
         formControlName="content"
-        rows="6">
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="6"
+        class="resizable-textarea">
       </textarea>
       <mat-error *ngIf="postForm.get('content')?.hasError('required')">
         Le contenu est obligatoire

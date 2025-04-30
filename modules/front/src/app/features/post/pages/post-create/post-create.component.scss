@@ -27,10 +27,15 @@
 
   @media (max-width: 599px) {
     width: 90%;
-  }
+   }
 }
 
 .create-button {
   margin-top: 16px;
   align-self: center;
+}
+
+::ng-deep .resizable-textarea {
+  resize: both !important;
+  overflow: auto !important;
 }

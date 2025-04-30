@@ -8,10 +8,12 @@ import {MatSelectModule} from '@angular/material/select';
 import {Router} from '@angular/router';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {PostService} from '../../services/post.service';
-import {TopicStatsDto} from '../../interface/TopicStatsDto';
 import {PostDto} from '../../interface/PostDto';
 import {TopicService} from '../../../topic/services/topic.service';
 import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedStatus';
+import {NoTopicsDialogComponent} from '../../../topic/pages/no-topics-dialog/no-topics-dialog.component';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {CdkTextareaAutosize, TextFieldModule} from '@angular/cdk/text-field';
 
 @Component({
   selector: 'app-post-create',
@@ -23,7 +25,10 @@ import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedSt
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    BackComponent
+    BackComponent,
+    MatDialogModule,
+    CdkTextareaAutosize,
+    TextFieldModule
   ],
   templateUrl: './post-create.component.html',
   styleUrls: ['./post-create.component.scss']
@@ -36,7 +41,8 @@ export class PostCreateComponent implements OnInit {
     private fb: FormBuilder,
     private postService: PostService,
     private topicService: TopicService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) {
     this.postForm = this.fb.group({
       topicId: ['', Validators.required],
@@ -52,6 +58,10 @@ export class PostCreateComponent implements OnInit {
   loadTopics(): void {
     this.topicService.getSubscribedTopics().subscribe(topics => {
       this.topics = topics;
+      if (topics.length === 0) {
+        // Afficher une boîte de dialogue ou un message
+        this.showNoTopicsDialog();
+      }
     });
   }
 
@@ -76,4 +86,17 @@ export class PostCreateComponent implements OnInit {
       });
     }
   }
+
+  showNoTopicsDialog(): void {
+    // Utiliser MatDialog pour afficher une boîte de dialogue
+    const dialogRef = this.dialog.open(NoTopicsDialogComponent);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        // Si l'utilisateur clique sur "S'abonner", rediriger vers la page des topics
+        this.router.navigate(['/topics']);
+      }
+    });
+  }
+
 }
