@@ -48,8 +48,7 @@ export class SessionService implements OnInit {
   public logIn(user: User): void {
     this.user = user;
     this.isLogged = true;
-    console.log(
-      'SessionService.logIn - isLogged :', this.isLogged, 'user :', this.user);
+    //console.log('SessionService.logIn - isLogged :', this.isLogged, 'user :', this.user);
     this.next();
   }
 

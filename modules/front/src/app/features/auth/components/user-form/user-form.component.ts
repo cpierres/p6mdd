@@ -75,8 +75,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private errorHandlingService: ErrorHandlingService) {
-    // // Initialisation de isEditMode avec choix @Input
-    // this.isEditMode = this.initialEditMode;
+
     // Initialisation du formulaire avec tous les champs activés par défaut
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -85,7 +84,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
     });
 
     effect(() => {
-      console.log("effect UserFormComponent.backendFieldErrors() triggered... ", this.backendFieldErrors(), "context:", this.context,)
+      //console.log("effect UserFormComponent.backendFieldErrors() triggered... ", this.backendFieldErrors(), "context:", this.context,)
       // Mise à jour du formulaire avec les données de l'utilisateur (via Signal)
       const user = this.currentUser();
       if (user) {
