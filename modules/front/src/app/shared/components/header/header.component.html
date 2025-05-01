@@ -1,6 +1,6 @@
 <header>
-  <mat-toolbar color="white">
-    <div class="logo mobile-order-2">
+  <mat-toolbar color="white" [ngClass]="{'authenticated': showRightMenu}">
+    <div class="logo" [ngClass]="{'mobile-order-2': !showRightMenu && isMobile}">
       <a routerLink="/">
         <img alt="Monde du Développement" src="assets/images/logo_mdd.png" height="113" width="195"/>
       </a>

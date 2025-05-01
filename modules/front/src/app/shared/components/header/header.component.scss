@@ -47,15 +47,33 @@ mat-toolbar {
 
 // Styles pour mobile
 @media (max-width: 768px) {
-  mat-toolbar {
-    height: auto; // Hauteur adaptative
+  // Styles pour les pages non authentifiées (login, register)
+  mat-toolbar:not(.authenticated) {
+    height: 60px; // Hauteur fixe plus compacte (au lieu de auto)
     flex-direction: column; // Empile les éléments verticalement
-    padding: 10px 0; // Espacement vertical
+    padding: 5px 0; // Réduire l'espacement vertical (était 10px)
     align-items: center; // Centre les éléments horizontalement
   }
 
+  // Styles pour les pages authentifiées (profil)
+  mat-toolbar.authenticated {
+    height: 60px; // Hauteur fixe plus compacte (au lieu de auto)
+    flex-direction: row; // Garde les éléments en ligne
+    padding: 5px; // Réduire l'espacement (était 10px)
+    justify-content: space-between; // Logo à gauche, menu à droite
+  }
+
+  // Ajuster la taille du logo en mobile pour qu'il soit proportionnel
+  .logo img {
+    max-height: 50px; // Limiter la hauteur du logo en mode mobile
+    width: auto; // Maintenir les proportions
+  }
+
+  // La classe mobile-order-2 n'est appliquée que lorsque non authentifié
   .mobile-order-2 {
     order: 2; // Le logo passe en dessous du back en mode mobile
+    margin-top: 5px; // Petit espacement entre le back et le logo
   }
 }
+
 

@@ -6,7 +6,7 @@ import {MatButtonModule, MatIconButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
 import {Subscription} from 'rxjs';
 import {SessionService} from '../../services/session-service.service';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import {NgClass, NgIf, NgOptimizedImage} from '@angular/common';
 import {LogoutComponent} from '../logout/logout.component';
 
 const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
@@ -25,7 +25,8 @@ const MOBILE_MAX_WIDTH = 768; // Détermine largeur max pour écrans mobiles
     MatMenuTrigger,
     NgIf,
     NgOptimizedImage,
-    LogoutComponent
+    LogoutComponent,
+    NgClass
   ],
   styleUrl: './header.component.scss'
 })
