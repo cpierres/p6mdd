@@ -1,8 +1,10 @@
 package com.mdd.back.services;
 
+import com.mdd.back.entities.User;
 import com.mdd.back.exception.MultipleResourceAlreadyExistException;
 import com.mdd.back.models.FieldErrorDetail;
 import com.mdd.back.repositories.UserRepository;
+import com.mdd.back.services.interfaces.IValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -15,10 +17,10 @@ import java.util.UUID;
  * Classe UserValidator permettant de valider des propriétés des utilisateurs, comme l'unicité
  * des emails et noms d'utilisateur, lors de leur création ou mise à jour.
  * Cela permet de ne pas alourdir AuthService et permettra de partager la logique de validation avec
- * un autre futur service tel qu'un UserService par exemple.
+ * un autre service tel qu'un UserService par exemple.
  */
 @Component
-public class UserValidator {
+public class UserValidator implements IValidator<User> {
     private final UserRepository userRepository;
 
     @Autowired
@@ -71,5 +73,16 @@ public class UserValidator {
                     }
                     return Mono.empty();
                 });
+    }
+
+    /**
+     * Valide une entité.
+     *
+     * @param user L'entité à valider
+     * @return Un Mono<Void> qui complète si la validation réussit, ou émet une erreur si la validation échoue
+     */
+    @Override
+    public Mono<Void> validate(User user) {
+        return validateUniqueEmailAndUsername(user.getId(), user.getEmail(), user.getUsername());
     }
 }
