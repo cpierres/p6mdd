@@ -85,22 +85,33 @@ export class PostListPageComponent implements OnInit {
   }
 
   private initBreakpointObserver(): void {
-    this.breakpointObserver.observe([
-      Breakpoints.Handset,      // Ecran mobile
-      Breakpoints.Tablet,       // Ecran moyen
-      Breakpoints.Web           // Ecran large
-    ]).subscribe((result) => {
-      if (result.matches) {
-        if (this.breakpointObserver.isMatched(Breakpoints.Handset)) {
-          this.cols = 1; // 1 colonne sur mobile
-        } else if (this.breakpointObserver.isMatched(Breakpoints.Tablet)) {
-          this.cols = 2; // 2 colonnes sur tablette
-        } else {
-          this.cols = 3; // 3 colonnes par défaut pour grand écran
+    const breakpointNames = {
+      [Breakpoints.XSmall]: 'XSmall (mobile)',
+      [Breakpoints.Small]: 'Small (tablette)',
+      [Breakpoints.Medium]: 'Medium (desktop)',
+      [Breakpoints.Large]: 'Large (grand écran)',
+      [Breakpoints.XLarge]: 'XLarge (grande taille d\'écran)'
+    };
+
+    this.breakpointObserver.observe(Object.keys(breakpointNames)).subscribe(result => {
+      // Log des breakpoints actifs
+      for (const query of Object.keys(breakpointNames)) {
+        if (result.breakpoints[query]) {
+          console.log(`Breakpoint actif : ${breakpointNames[query]}, largeur : ${window.innerWidth}px`);
         }
       }
+
+      // Ajustement des colonnes
+      if (result.breakpoints[Breakpoints.XSmall]) {
+        this.cols = 1; // 1 colonne pour mobile (< 600px)
+      } else if (result.breakpoints[Breakpoints.Small]) {
+        this.cols = 2; // 2 colonnes pour tablettes (600px - 959px)
+      } else if (result.breakpoints[Breakpoints.Medium]) {
+        this.cols = 3; // 3 colonnes (960px - 1279px)
+      } else {
+        this.cols = 4; // 4 colonnes pour grands écrans (≥ 1280px)
+      }
     });
-
-
   }
+
 }

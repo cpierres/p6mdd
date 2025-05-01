@@ -25,19 +25,6 @@
     height: auto; /* S'assurer que la hauteur s'adapte au contenu */
   }
 }
-/*
-.post-content {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  flex-grow: 1;
-  white-space: pre-line;
-  margin-top: 0;
-  align-self: flex-start;
-}
-*/
 
 .post-metadata {
   display: flex;
