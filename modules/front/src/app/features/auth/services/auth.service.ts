@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {catchError, Observable, tap, throwError} from 'rxjs';
+import {catchError, map, Observable, switchMap, tap, throwError} from 'rxjs';
 import {RegisterRequest} from '../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../interfaces/authSuccess.interface';
 //import {MessagesService} from '../../../shared/services/messages.service';
@@ -31,9 +31,17 @@ export class AuthService {
       tap((response: AuthSuccess) => {
         //en cas de succès, on authentifie directement le nouvel utilisateur
         localStorage.setItem('token', response.token);
-        this.me().subscribe((user: User) => {
-          this.sessionService.logIn(user);
-        });
+      }),
+      // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal
+      // afin que l'observable ne se termine pas tant que l'utilisateur n'est pas complètement connecté
+      switchMap((response: AuthSuccess) => {
+        return this.me().pipe(
+          tap((user: User) => {
+            this.sessionService.logIn(user);
+          }),
+          // Retourner la réponse originale
+          map(() => response)
+        );
       }),
       catchError(error => {
         return this.handleValidationErrors(error);
