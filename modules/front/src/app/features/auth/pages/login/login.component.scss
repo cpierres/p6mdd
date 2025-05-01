@@ -1,10 +1,11 @@
-.container{
+.container {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   margin: 20px auto;
-  width: 100%;}
+  width: 100%;
+}
 
 .content {
   display: flex;
@@ -13,13 +14,65 @@
   width: 100%;
 }
 
-.container-back-arrow {
+.header-container {
   display: flex;
   align-items: center;
   width: 100%;
   margin-bottom: 16px;
-  position: relative;
+
+  h1 {
+    flex: 1;
+    text-align: center;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .back-button {
+    width: 48px; // Largeur fixe pour équilibrer avec le spacer
+  }
+
+  // invisible ; même taille que back pour équilibrer centrage titre
+  .spacer {
+    width: 48px;
+  }
 }
+
+@media (max-width: 768px) {
+  .container {
+    margin-top: 60px; // Espace pour le bouton back fixe
+  }
+
+  // Styles pour bouton back en position fixe
+  .header-container {
+    .back-button {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000; // S'assurer qu'il est au-dessus de tout
+      margin-left: 0; // Réinitialiser la marge
+    }
+  }
+
+  .content {
+    .header-container {
+      flex-direction: column;
+      align-items: center; // Centrer les éléments
+      gap: 16px;
+
+      h1 {
+        width: 100%;
+        text-align: center;
+        margin: 0;
+        font-weight: bold;
+      }
+
+      .spacer {
+        display: none;
+      }
+    }
+  }
+}
+
 .user-form-container {
   width: 80%; /* Largeur spécifique pour le formulaire */
   padding: 16px;
@@ -32,11 +85,6 @@
 .back-arrow {
   position: absolute;
   left: 0;
-}
-
-h2 {
-  margin: 0 auto;
-  text-align: center;
 }
 
 /* Conteneur global des champs */
@@ -60,7 +108,7 @@ mat-form-field {
 }
 
 .mat-mdc-form-field-error-wrapper {
-  position: relative;//le absolute d'origine pose pb (chevauchement erreurs sur bouton)
+  position: relative; //le absolute d'origine pose pb (chevauchement erreurs sur bouton)
   overflow: visible;
   width: 100%;
 }

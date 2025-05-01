@@ -44,3 +44,18 @@ mat-toolbar {
     display: none;
   }
 }
+
+// Styles pour mobile
+@media (max-width: 768px) {
+  mat-toolbar {
+    height: auto; // Hauteur adaptative
+    flex-direction: column; // Empile les éléments verticalement
+    padding: 10px 0; // Espacement vertical
+    align-items: center; // Centre les éléments horizontalement
+  }
+
+  .mobile-order-2 {
+    order: 2; // Le logo passe en dessous du back en mode mobile
+  }
+}
+
