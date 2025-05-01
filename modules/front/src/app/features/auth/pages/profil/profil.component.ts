@@ -1,9 +1,9 @@
-import {Component, OnInit, signal} from '@angular/core';
+import {Component, signal} from '@angular/core';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {User} from '../../../user/interfaces/user.interface';
 import {AuthService} from '../../services/auth.service';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {UserUpdate} from '../../../user/interfaces/user-update.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 import {SessionService} from '../../../../shared/services/session-service.service';
@@ -17,6 +17,7 @@ import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationE
   imports: [
     UserFormComponent,
     TopicListComponent,
+    RouterLink,
   ],
   templateUrl: './profil.component.html',
   styleUrl: './profil.component.scss'
@@ -82,4 +83,10 @@ export class ProfilComponent {
   handleEditModeChange(isEdit: boolean): void {
     this.isEditMode.set(isEdit);
   }
+
+  // Getter pour vérifier s'il y a des topics auxquels l'utilisateur est abonné
+  get hasSubscribedTopics(): boolean {
+    return this.topics.some(topic => topic.subscribed);
+  }
+
 }

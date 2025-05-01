@@ -1,6 +1,6 @@
 import {
   Component, computed, effect,
-  EventEmitter, inject,
+  EventEmitter,
   Input, OnDestroy,
   OnInit,
   Output, signal,
