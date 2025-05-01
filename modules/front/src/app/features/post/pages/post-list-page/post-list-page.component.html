@@ -26,7 +26,19 @@
       </mat-form-field>
     </div>
   </div>
-  <mat-grid-list [cols]="cols" [gutterSize]="'16px'" rowHeight="16:9" >
+
+  <!-- Conteneur flex pour mobile (pour résoudre pb d'espacement) -->
+  <div class="post-grid-container" *ngIf="cols === 1">
+    <app-post-list
+      *ngFor="let post of posts"
+      [post]="post"
+      [overflowPoints]="true"
+      (onSelect)="onSelectPost($event)">
+    </app-post-list>
+  </div>
+
+  <!-- Grid list ok pour les autres tailles d'écran -->
+  <mat-grid-list [cols]="cols" [gutterSize]="gutterSize" rowHeight="16:9" *ngIf="cols > 1">
     <mat-grid-tile *ngFor="let post of posts">
       <app-post-list
         [post]="post"
@@ -35,5 +47,6 @@
       </app-post-list>
     </mat-grid-tile>
   </mat-grid-list>
+
 
 </div>

@@ -68,13 +68,6 @@
   min-width: 250px; /* Largeur minimum du champ de sélection */
 }
 
-//mat-grid-list {
-//  display: grid;
-//  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Colonnes automatiques */
-//  gap: 16px; /* Espacement uniforme - réduit pour correspondre au gutterSize */
-//  justify-items: center; /* Centre les éléments horizontalement */
-//}
-
 mat-grid-tile {
   box-sizing: border-box;
 
@@ -99,5 +92,18 @@ app-post-list {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+@media (max-width: 599px) {
+  .post-grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espacement constant de 8px */
+  }
+
+  /* Masquer mat-grid-list sur mobile */
+  mat-grid-list {
+    display: none;
+  }
 }
 

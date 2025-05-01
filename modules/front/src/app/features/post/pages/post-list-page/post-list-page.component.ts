@@ -3,7 +3,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {Router} from '@angular/router';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {MatFormFieldModule} from '@angular/material/form-field';
-import {NgForOf} from '@angular/common';
+import {NgForOf, NgIf} from '@angular/common';
 import {PostService} from '../../services/post.service';
 import {TopicStatsDto} from '../../interface/TopicStatsDto';
 import {TopicStatsService} from '../../../topic/services/topic-stats.service';
@@ -25,6 +25,7 @@ import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
     MatGridList,
     MatGridTile,
     PostListComponent,
+    NgIf,
   ],
   templateUrl: './post-list-page.component.html',
   styleUrl: './post-list-page.component.scss'
@@ -35,6 +36,7 @@ export class PostListPageComponent implements OnInit {
   selectedTopicId: string = 'subscribed';
   sortCriteria: string = 'date'; // Par défaut: tri par date (récent d'abord)
   cols: number = 2; // Nb cols par défaut sur grand écran
+  gutterSize: string = '16px'; // Espacement par défaut entre les cartes
 
   constructor(private router: Router,
               private postService: PostService,
@@ -101,15 +103,19 @@ export class PostListPageComponent implements OnInit {
         }
       }
 
-      // Ajustement des colonnes
+      // Ajustement des colonnes et de l'espacement
       if (result.breakpoints[Breakpoints.XSmall]) {
         this.cols = 1; // 1 colonne pour mobile (< 600px)
+        this.gutterSize = '8px'; // Espacement réduit et constant pour mobile
       } else if (result.breakpoints[Breakpoints.Small]) {
         this.cols = 2; // 2 colonnes pour tablettes (600px - 959px)
+        this.gutterSize = '16px'; // Espacement standard
       } else if (result.breakpoints[Breakpoints.Medium]) {
         this.cols = 3; // 3 colonnes (960px - 1279px)
+        this.gutterSize = '16px';
       } else {
         this.cols = 4; // 4 colonnes pour grands écrans (≥ 1280px)
+        this.gutterSize = '16px';
       }
     });
   }
