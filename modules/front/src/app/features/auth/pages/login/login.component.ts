@@ -9,7 +9,6 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {BackComponent} from '../../../../shared/components/back/back.component';
 import {Router} from '@angular/router';
-import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {MessagesService} from '../../../../shared/services/messages.service';
 import {SessionService} from '../../../../shared/services/session-service.service';
 import {switchMap, take} from 'rxjs';
@@ -57,10 +56,10 @@ export class LoginPageComponent implements OnInit {
     // Explication :
     // - AuthService fait une requête de login et obtient un token
     // - appelle ensuite de façon asynchrone la méthode me() pour obtenir les informations utilisateur
-    // - Pendant ce temps, le composant de login tentait immédiatement de naviguer vers '/posts'
+    // - Pendant ce temps, le composant de login tentait immédiatement de naviguer vers /posts
     // - authGuard vérifie sessionService.isLogged, mais cette valeur est encore false car l'appel asynchrone
-    // à me() n'était pas encore terminé (le bug)
-    // donc l'objectif est d'attendre que le statut soit bien à jour avant de naviguer vers '/posts'
+    // à me() n'était pas encore terminé
+    // donc l'objectif est d'attendre que le statut soit bien à jour avant de naviguer vers /posts
     this.authService.login(loginRequest).pipe(
       switchMap(() => this.sessionService.$isLogged()), // Attendre le changement d'état de connexion
       take(1) // Prendre une seule valeur et désabonner automatiquement
@@ -69,8 +68,6 @@ export class LoginPageComponent implements OnInit {
         if (isLogged) {
           // Navigation sécurisée après confirmation de l'état connecté
           this.router.navigate(['/posts']);
-        } else {
-          this.messagesService.showMessage('Connexion échouée, réessayez.', 'error');
         }
       },
       error: (error) => {
