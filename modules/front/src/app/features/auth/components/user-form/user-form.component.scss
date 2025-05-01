@@ -17,14 +17,73 @@ h1 {
   align-items: center;
   width: 100%;
 }
+// TODO CLEAN
+//.container-back-arrow {
+//  display: flex;
+//  align-items: center;
+//  width: 100%;
+//  margin-bottom: 16px;
+//  position: relative;
+//}
 
-.container-back-arrow {
+.header-container {
   display: flex;
   align-items: center;
   width: 100%;
   margin-bottom: 16px;
-  position: relative;
+
+  h1 {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+  }
+
+  .back-button {
+    width: 48px; // Largeur fixe pour équilibrer avec le spacer
+  }
+
+  // invisible ; même taille que back pour équilibrer centrage titre
+  .spacer {
+    width: 48px;
+  }
 }
+
+// Styles pour mobile uniquement dans le contexte register
+@media (max-width: 768px) {
+  .register-context {
+    margin-top: 60px; // Espace pour le bouton back fixe
+
+    // Styles pour bouton back en position fixe
+    .header-container {
+      .back-button {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000; // S'assurer qu'il est au-dessus de tout
+        margin-left: 0; // Réinitialiser la marge
+      }
+    }
+
+    .content {
+      .header-container {
+        flex-direction: column;
+        align-items: center; // Centrer les éléments
+        gap: 16px;
+
+        h1 {
+          width: 100%;
+          text-align: center;
+          margin: 0;
+        }
+
+        .spacer {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 .user-form-container {
   width: 80%; /* Largeur spécifique pour le formulaire */
   padding: 16px;

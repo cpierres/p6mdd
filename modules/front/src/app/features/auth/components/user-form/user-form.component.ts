@@ -10,7 +10,7 @@ import {BackComponent} from '../../../../shared/components/back/back.component';
 import {AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatInput, MatLabel} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
-import {NgIf} from '@angular/common';
+import {NgClass, NgIf} from '@angular/common';
 import {User} from '../../../user/interfaces/user.interface';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {Subject, takeUntil} from 'rxjs';
@@ -33,7 +33,8 @@ import {ErrorHandlingService} from '../../../../shared/services/error-handling-s
     MatError,
     MatLabel,
     NgIf,
-    FieldErrorBackendComponent
+    FieldErrorBackendComponent,
+    NgClass
   ],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'

@@ -1,11 +1,12 @@
-<div class="container">
+<div class="container" [ngClass]="{'register-context': context === 'register'}">
   <div class="content">
-    <div class="container-back-arrow">
-      <app-back></app-back>
+    <div class="header-container">
+      <app-back class="back-button"></app-back>
+      <h1>{{ headTitle }}</h1>
+      <div class="spacer"></div> <!-- Élément invisible pour équilibrer le titre -->
     </div>
 
     <div class="user-form-container">
-      <h1>{{ headTitle }}</h1>
       <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
         <div>
           <mat-form-field appearance="fill">
