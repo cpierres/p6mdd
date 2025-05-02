@@ -11,6 +11,7 @@ import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedSt
 import {TopicService} from '../../../topic/services/topic.service';
 import {TopicListComponent} from '../../../topic/components/topic-list/topic-list.component';
 import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
+import {MessagesService} from '../../../../shared/services/messages.service';
 
 @Component({
   selector: 'app-profil',
@@ -36,7 +37,8 @@ export class ProfilComponent {
   constructor(private authService: AuthService, private router: Router,
               public errorHandlingService: ErrorHandlingService,
               private sessionService: SessionService,
-              private topicService: TopicService) {
+              private topicService: TopicService,
+              private messagesService: MessagesService) {
     // Charger les données utilisateur pour alimenter la page
     // (pour signal ne pas faire dans ngOnInit mais dans constructor)
     this.authService.me().subscribe((user: User) => {
@@ -56,28 +58,52 @@ export class ProfilComponent {
     this.topicService.getTopicsWithSubscriptionStatus().subscribe();
   }
 
+  // handleFormSubmit(userUpdate: UserUpdate): void {
+  //   // Comparer l'email dans userUpdate avec celui de currentUser$
+  //   const currentEmail = this.currentUser()?.email;
+  //   const isEmailModified = currentEmail !== userUpdate.email;
+  //
+  //   this.authService.updateMe(userUpdate).subscribe({
+  //     next: (response: AuthSuccess) => {
+  //       // Si l'email a changé, rediriger vers la route de déconnexion
+  //       if (isEmailModified) {
+  //         this.sessionService.logOut();
+  //         this.router.navigate(['/']);
+  //       } else {
+  //         this.isEditMode.set(false);//revenir en mode lecture après la sauvegarde
+  //       }
+  //     },
+  //     error: (validationErrorResponse:ValidationErrorResponse) => {
+  //       //inutile car traité via error-interceptor
+  //       //this.errorHandlingService.handleValidationErrors(validationErrorResponse);
+  //       //this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
+  //     }
+  //   });
+  // }
   handleFormSubmit(userUpdate: UserUpdate): void {
-    // Comparer l'email dans userUpdate avec celui de currentUser$
     const currentEmail = this.currentUser()?.email;
     const isEmailModified = currentEmail !== userUpdate.email;
-
     this.authService.updateMe(userUpdate).subscribe({
       next: (response: AuthSuccess) => {
+        // Normalement, plus besoin de déconnecter l'utilisateur, même si l'email a changé
+        // mais pas le temps de revoir le composant user-form ...
+        // TODO : je maintiens la déconnexion si chgt email pour le moment
         // Si l'email a changé, rediriger vers la route de déconnexion
         if (isEmailModified) {
           this.sessionService.logOut();
-          this.router.navigate(['/']);
+          this.router.navigate(['/auth/login']);
         } else {
           this.isEditMode.set(false);//revenir en mode lecture après la sauvegarde
         }
+        //this.isEditMode.set(false); // Revenir en mode lecture après la sauvegarde
+        this.messagesService.showMessage('Profil mis à jour avec succès', 'success');
       },
-      error: (validationErrorResponse:ValidationErrorResponse) => {
-        //inutile car traité via error-interceptor
-        //this.errorHandlingService.handleValidationErrors(validationErrorResponse);
-        //this.backendFieldErrors.set(this.errorHandlingService.getFieldErrors());
+      error: (validationErrorResponse: ValidationErrorResponse) => {
+        // Erreur déjà traitée par l'intercepteur
       }
     });
   }
+
 
   // Méthode appelée quand le composant enfant veut changer le mode
   handleEditModeChange(isEdit: boolean): void {

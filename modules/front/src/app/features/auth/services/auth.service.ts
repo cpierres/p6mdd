@@ -68,18 +68,33 @@ export class AuthService {
     return this.http.get<User>(`${this.pathService}/me`);
   }
 
+  // public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
+  //   return this.http.put<AuthSuccess>(`${this.pathService}/me`, userUpdate).pipe(
+  //     tap((response: AuthSuccess) => {
+  //       //on se ré-authentifie au cas où l'utilisateur aurait changé son email pour actualiser le contexte de sécurité
+  //       console.log(
+  //         'AuthService.updateMe - token :',
+  //         localStorage.getItem('token'))
+  //       // ZZX TODO VERIFIER SI CA MARCHE A NOUVEAU
+  //       // this.me().subscribe((user: User) => {
+  //       //   this.sessionService.logIn(user);
+  //       // });
+  //       //this.sessionService.logOut();
+  //     }),
+  //     catchError(error => {
+  //       return this.handleValidationErrors(error);
+  //     })
+  //   );
+  // }
   public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
     return this.http.put<AuthSuccess>(`${this.pathService}/me`, userUpdate).pipe(
       tap((response: AuthSuccess) => {
-        //on se ré-authentifie au cas où l'utilisateur aurait changé son email pour actualiser le contexte de sécurité
-        console.log(
-          'AuthService.updateMe - token :',
-          localStorage.getItem('token'))
-        // ZZX TODO VERIFIER SI CA MARCHE A NOUVEAU
-        // this.me().subscribe((user: User) => {
-        //   this.sessionService.logIn(user);
-        // });
-        //this.sessionService.logOut();
+        // Stocker le nouveau token
+        localStorage.setItem('token', response.token);
+        // Rafraîchir les informations utilisateur
+        this.me().subscribe((user: User) => {
+          this.sessionService.logIn(user);
+        });
       }),
       catchError(error => {
         return this.handleValidationErrors(error);
@@ -92,11 +107,16 @@ export class AuthService {
       tap((response: AuthSuccess) => {
         // Stocker le token JWT retourné par le backend
         localStorage.setItem('token', response.token);
-
-        // Récupérer les informations utilisateur et initialiser la session
-        this.me().subscribe((user: User) => {
-          this.sessionService.logIn(user);
-        });
+      }),
+      // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal
+      switchMap((response: AuthSuccess) => {
+        return this.me().pipe(
+          tap((user: User) => {
+            this.sessionService.logIn(user);
+          }),
+          // Retourner la réponse originale
+          map(() => response)
+        );
       }),
       catchError(error => {
         // Gestion des erreurs
@@ -110,4 +130,5 @@ export class AuthService {
       })
     );
   }
+
 }

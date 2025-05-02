@@ -1,6 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { SessionService } from '../services/session-service.service';
+import {map, take} from 'rxjs';
 
 /**
  * Guard qui empêche les utilisateurs déjà connectés d'accéder à certaines pages
@@ -15,11 +16,13 @@ export const unauthGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
 
-  // Si l'utilisateur n'est PAS connecté, autoriser l'accès
-  if (!sessionService.isLogged) {
-    return true;
-  }
-
-  // Si l'utilisateur est déjà connecté, rediriger vers la page d'accueil
-  return router.parseUrl('/home');
+  return sessionService.$isLogged().pipe(
+    take(1),
+    map(isLogged => {
+      if (!isLogged) {
+        return true;
+      }
+      return router.parseUrl('/home');
+    })
+  );
 };

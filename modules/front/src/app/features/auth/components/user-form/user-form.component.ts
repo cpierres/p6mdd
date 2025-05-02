@@ -155,6 +155,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
       // Mode édition : On envoie les données au composant parent sans quitter le mode édition
       // this.exitEditMode();
       this.submit.emit(this.form.value as T);// Emettre données typées dynamiquement
+      this.editMode.set(false);
     } else {
       // Bascule le mode local en édition.
       this.editMode.set(true); // Active le mode édition en interne.

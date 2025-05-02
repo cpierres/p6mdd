@@ -145,12 +145,20 @@ public class AuthController {
     })
     @SecurityRequirement(name = "Bearer Authentication")
     @PutMapping("/me")
-    public Mono<ResponseEntity<UserDto>> updateAuthenticatedUser(
+    public Mono<ResponseEntity<AuthSuccess>> updateAuthenticatedUser(
             @Validated @RequestBody UpdateAuthenticatedUserRequest updateAuthenticatedUserRequest
     ) {
         return authService.updateAuthenticatedUser(updateAuthenticatedUserRequest)
-                .map(ResponseEntity::ok)
+                .flatMap(userDto -> {
+                    // Générer un nouveau token avec les informations mises à jour
+                    String newToken = jwtService.generateToken(
+                            userDto.getId(),
+                            userDto.getEmail()
+                    );
+                    return Mono.just(ResponseEntity.ok(new AuthSuccess(newToken)));
+                })
                 .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
+
 
 }

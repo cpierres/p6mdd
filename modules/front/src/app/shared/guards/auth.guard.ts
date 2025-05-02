@@ -1,6 +1,7 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { SessionService } from '../services/session-service.service';
+import {map, take} from 'rxjs';
 
 /**
  * Guard d'authentification qui vérifie si l'utilisateur est connecté
@@ -14,11 +15,13 @@ export const authGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
 
-  // Vérifier si l'utilisateur est connecté
-  if (sessionService.isLogged) {
-    return true;
-  }
-
-  // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion
-  return router.parseUrl('/auth/login');
+  return sessionService.$isLogged().pipe(
+    take(1),
+    map(isLogged => {
+      if (isLogged) {
+        return true;
+      }
+      return router.parseUrl('/auth/login');
+    })
+  );
 };
