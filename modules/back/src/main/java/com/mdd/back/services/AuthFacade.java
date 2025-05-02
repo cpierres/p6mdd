@@ -19,15 +19,15 @@ import java.util.UUID;
  * Cette classe est maintenue pour assurer la compatibilité avec le code existant.
  */
 @Service
-public class AuthService {
+public class AuthFacade {
     private final IAuthenticationService authenticationService;
     private final IUserRegistrationService userRegistrationService;
     private final IUserProfileService userProfileService;
 
     @Autowired
-    public AuthService(IAuthenticationService authenticationService,
-                       IUserRegistrationService userRegistrationService,
-                       IUserProfileService userProfileService) {
+    public AuthFacade(IAuthenticationService authenticationService,
+                      IUserRegistrationService userRegistrationService,
+                      IUserProfileService userProfileService) {
         this.authenticationService = authenticationService;
         this.userRegistrationService = userRegistrationService;
         this.userProfileService = userProfileService;

@@ -27,7 +27,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class PostService implements IPostService {
-    private final AuthService authService;
+    private final AuthFacade authFacade;
     private final PostRepository postRepository;
     private final TopicRepository topicRepository;
     private final UserRepository userRepository;
@@ -36,14 +36,14 @@ public class PostService implements IPostService {
     private final IPostStatisticsService postStatisticsService;
 
     @Autowired
-    public PostService(AuthService authService,
+    public PostService(AuthFacade authFacade,
                        PostRepository postRepository,
                        TopicRepository topicRepository,
                        UserRepository userRepository,
                        PostMapper postMapper,
                        IPostCommentService postCommentService,
                        IPostStatisticsService postStatisticsService) {
-        this.authService = authService;
+        this.authFacade = authFacade;
         this.postRepository = postRepository;
         this.topicRepository = topicRepository;
         this.userRepository = userRepository;
@@ -54,7 +54,7 @@ public class PostService implements IPostService {
 
     @Override
     public Mono<PostDto> createPost(PostDto postDto) {
-        return authService.getAuthenticatedUserId()
+        return authFacade.getAuthenticatedUserId()
                 .flatMap(userId -> {
                     Post post = postMapper.postDtoToPost(postDto);
                     post.setCreatedBy(userId);
@@ -101,7 +101,7 @@ public class PostService implements IPostService {
 
     @Override
     public Flux<PostDto> getAllPostsSubscribed() {
-        return authService.getAuthenticatedUserId()
+        return authFacade.getAuthenticatedUserId()
                 .flatMapMany(userId -> postRepository.findAllByUserSubscriptions(userId)
                         .flatMap(this::enrichPostDto))
                 .switchIfEmpty(Flux.empty());
@@ -142,7 +142,7 @@ public class PostService implements IPostService {
         Mono<User> userMono = userRepository.findById(post.getCreatedBy())
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Utilisateur à ce post non trouvé")));
 
-        Mono<Boolean> isUpdatableMono = authService.getAuthenticatedUserId()
+        Mono<Boolean> isUpdatableMono = authFacade.getAuthenticatedUserId()
                 .map(userId -> userId.equals(post.getCreatedBy()))
                 .defaultIfEmpty(false);
 

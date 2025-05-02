@@ -21,7 +21,7 @@ import java.util.UUID;
  */
 @Service
 public class PostCommentService implements IPostCommentService {
-    private final AuthService authService;
+    private final AuthFacade authFacade;
     private final PostCommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
@@ -29,13 +29,13 @@ public class PostCommentService implements IPostCommentService {
     private final IPostStatisticsService postStatisticsService;
 
     @Autowired
-    public PostCommentService(AuthService authService,
+    public PostCommentService(AuthFacade authFacade,
                               PostCommentRepository commentRepository,
                               PostRepository postRepository,
                               UserRepository userRepository,
                               PostCommentMapper commentMapper,
                               IPostStatisticsService postStatisticsService) {
-        this.authService = authService;
+        this.authFacade = authFacade;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
@@ -45,7 +45,7 @@ public class PostCommentService implements IPostCommentService {
 
     @Override
     public Mono<PostCommentDto> createComment(PostCommentDto commentDto) {
-        return authService.getAuthenticatedUserId()
+        return authFacade.getAuthenticatedUserId()
                 .flatMap(userId -> {
                     PostComment comment = commentMapper.commentDtoToComment(commentDto);
                     comment.setCreatedBy(userId);

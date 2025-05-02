@@ -3,7 +3,7 @@ package com.mdd.back.controller;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.*;
-import com.mdd.back.services.AuthService;
+import com.mdd.back.services.AuthFacade;
 import com.mdd.back.services.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,12 +31,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final AuthService authService;
+    private final AuthFacade authFacade;
     private final JwtService jwtService;
     private final UserMapper userMapper;
 
-    public AuthController(AuthService authService, JwtService jwtService, UserMapper userMapper) {
-        this.authService = authService;
+    public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper) {
+        this.authFacade = authFacade;
         this.jwtService = jwtService;
         this.userMapper = userMapper;
     }
@@ -58,7 +58,7 @@ public class AuthController {
     @SecurityRequirement(name = "") // Aucun schéma de sécurité
     @PostMapping("/register")
     public Mono<ResponseEntity<AuthSuccess>> registerUser(@Valid @RequestBody RegisterRequest request) {
-        return authService.registerNewUser(request)
+        return authFacade.registerNewUser(request)
                 .map(user -> {
                     //ResponseEntity.ok(user);
                     String token = jwtService.generateToken(user.getId(), user.getEmail());
@@ -88,7 +88,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public Mono<ResponseEntity<AuthSuccess>> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return authService.login(loginRequest)
+        return authFacade.login(loginRequest)
                 .flatMap(userId -> {
                     String token = jwtService.generateToken(userId, loginRequest.getIdentifier());
                     return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
@@ -107,7 +107,7 @@ public class AuthController {
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/me")
     public Mono<ResponseEntity<UserDto>> getCurrentUser() {
-        return authService.getAuthenticatedUser()
+        return authFacade.getAuthenticatedUser()
                 .map(userMapper::userToUserDto)
                 //.map(userDto -> ResponseEntity.ok(userDto)) // Retourner le DTO dans le `ResponseEntity`
                 .map(ResponseEntity::ok)
@@ -148,7 +148,7 @@ public class AuthController {
     public Mono<ResponseEntity<AuthSuccess>> updateAuthenticatedUser(
             @Validated @RequestBody UpdateAuthenticatedUserRequest updateAuthenticatedUserRequest
     ) {
-        return authService.updateAuthenticatedUser(updateAuthenticatedUserRequest)
+        return authFacade.updateAuthenticatedUser(updateAuthenticatedUserRequest)
                 .flatMap(userDto -> {
                     // Générer un nouveau token avec les informations mises à jour
                     String newToken = jwtService.generateToken(
