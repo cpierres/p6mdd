@@ -36,14 +36,14 @@ public class TopicStatsEmitter implements TopicStatsNotifier {
     // Sinks.Many indique qu'il peut émettre plusieurs éléments pour les abonnés
     private final Sinks.Many<List<TopicStatsDto>> topicStatsSink;
 
-// KO : dépendance Autowired circulaire (remplacée par dépendance d'une interface dans PostService)
+// KO : dépendance Autowired circulaire (remplacée par dépendance d'une interface dans PostFacade)
 //    private final TopicService topicService;
 //
-//    private final PostService postService;
+//    private final PostFacade postFacade;
 //
 //    @Autowired
-//    public TopicStatsEmitter(PostService postService) {
-//        this.postService = postService;
+//    public TopicStatsEmitter(PostFacade postFacade) {
+//        this.postFacade = postFacade;
 //        this.topicStatsSink = Sinks.many().replay().latest();
 //
 //        // émettre stats initiales
@@ -51,7 +51,7 @@ public class TopicStatsEmitter implements TopicStatsNotifier {
 //    }
 //
 //    public void updateTopicStats() {
-//        postService.getTopicStats()
+//        postFacade.getTopicStats()
 //                .collectList()
 //                .subscribe(topicStatsSink::tryEmitNext);
 //    }

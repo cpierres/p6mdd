@@ -3,7 +3,7 @@ package com.mdd.back.controller;
 import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
 import com.mdd.back.models.TopicStatsDto;
-import com.mdd.back.services.PostService;
+import com.mdd.back.services.PostFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,10 +22,10 @@ import java.util.UUID;
 @RequestMapping("/api")
 @Tag(name = "post-controller", description = "API pour la gestion des posts (articles) et commentaires")
 public class PostController {
-    private final PostService postService;
+    private final PostFacade postFacade;
 
-    public PostController(PostService postService) {
-        this.postService = postService;
+    public PostController(PostFacade postFacade) {
+        this.postFacade = postFacade;
     }
 
     @PostMapping("/posts")
@@ -45,7 +45,7 @@ public class PostController {
             }
     )
     public Mono<PostDto> createPost(@Valid @RequestBody PostDto postDto) {
-        return postService.createPost(postDto);
+        return postFacade.createPost(postDto);
     }
 
     @GetMapping("/topics/stats")
@@ -75,7 +75,7 @@ public class PostController {
             }
     )
     public Flux<TopicStatsDto> getTopicStats() {
-        return postService.getTopicStats();
+        return postFacade.getTopicStats();
     }
 
     @GetMapping("/posts")
@@ -115,31 +115,31 @@ public class PostController {
                     example = "d1a27f64-403d-4c27-9fb7-1b54168a546d")
             UUID topicId) {
         if (topicId != null) {
-            return postService.getPostsByTopic(topicId);
+            return postFacade.getPostsByTopic(topicId);
         }
 
         if ("topic".equals(sortBy)) {
-            return postService.getAllPostsSortedByTopic();
+            return postFacade.getAllPostsSortedByTopic();
         } else if ("author".equals(sortBy)) {
-            return postService.getAllPostsSortedByAuthor();
+            return postFacade.getAllPostsSortedByAuthor();
         } else if ("all".equals(sortBy)) {
-            return postService.getAllPosts();
+            return postFacade.getAllPosts();
         } else {
-            return postService.getAllPostsSubscribed();
+            return postFacade.getAllPostsSubscribed();
         }
     }
 
     @GetMapping("/posts/{id}")
     @Operation(summary = "Récupérer un post par son ID", description = "Récupère un post spécifique avec ses commentaires")
     public Mono<PostDto> getPostById(@PathVariable UUID id) {
-        return postService.getPostWithComments(id);
+        return postFacade.getPostWithComments(id);
     }
 
     @PostMapping("/comments")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Créer un commentaire", description = "Ajoute un commentaire à un post existant")
     public Mono<PostCommentDto> createComment(@Valid @RequestBody PostCommentDto commentDto) {
-        return postService.createComment(commentDto);
+        return postFacade.createComment(commentDto);
     }
 
 }
