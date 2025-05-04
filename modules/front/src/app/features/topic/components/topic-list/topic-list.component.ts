@@ -42,9 +42,9 @@ export class TopicListComponent {
           } else if (result.breakpoints[Breakpoints.Small]) {
             return 2; // 2 colonnes pour tablettes
           } else if (result.breakpoints[Breakpoints.Medium]) {
-            return 3; // 3 colonnes pour petits écrans
+            return 2; // finalement 2 colonnes pour petits écrans... pour conformité stricte à maquette
           }
-          return 4; // 4 colonnes pour grande taille d'écran
+          return 2; // 2 colonnes aussi pour grande taille... pour conformité stricte à maquette
         })
       );
   }
