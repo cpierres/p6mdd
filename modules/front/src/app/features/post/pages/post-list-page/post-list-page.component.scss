@@ -54,11 +54,16 @@
   gap: 16px;
   margin-top: 16px; /* Ajouter de l'espace au-dessus des boutons de filtre */
 
+  /* Ajouter ces règles pour assurer un alignement cohérent sur tous les écrans */
+  width: 100%;
+  justify-content: flex-end;
+
   @media (max-width: 599px) {
     flex-direction: column;
     gap: 8px;
     padding-right: 16px; /* Ajouter du padding à droite pour éviter que les contrôles soient collés au bord */
     width: 100%; /* Assurer que le conteneur prend toute la largeur disponible */
+    justify-content: flex-start; /* Réinitialiser pour mobile */
   }
 }
 
@@ -80,6 +85,14 @@
   min-width: 250px; /* Largeur minimum cohérente avec .custom-select */
 }
 
+/* Assurer un centrage cohérent pour mat-grid-list sur les écrans larges */
+mat-grid-list {
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  /* Pas besoin de padding supplémentaire car les tuiles sont centrées */
+}
+
 mat-grid-tile {
   box-sizing: border-box;
 
@@ -89,6 +102,9 @@ mat-grid-tile {
     padding: 0 !important;
     width: 100%;
     height: 100%;
+    /* Assurer que le contenu est centré horizontalement */
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -104,6 +120,8 @@ app-post-list {
   width: 100%;
   height: 100%;
   display: block;
+  /* Assurer que la carte est centrée */
+  margin: 0 auto;
 }
 
 @media (max-width: 599px) {
