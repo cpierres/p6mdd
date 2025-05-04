@@ -1,11 +1,11 @@
 .post-list-container {
-  padding: 8px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 
   // Ajuster les marges horizontales selon la taille d'écran
   @media (max-width: 599px) {
-    padding: 8px 16px 8px 8px; // 8px de marge sur mobile, avec 16px à droite pour éviter la troncature
+    padding: 8px; // 8px de marge uniforme sur mobile
   }
 
   @media (min-width: 600px) and (max-width: 959px) {
@@ -45,7 +45,6 @@
     flex-direction: column;
     align-items: flex-start; /* Changer de stretch à flex-start pour éviter l'étirement complet */
     gap: 16px; /* Augmenter l'espace entre le bouton et les contrôles de filtre */
-    padding-right: 16px; /* Ajouter du padding à droite pour l'ensemble du header */
   }
 }
 
@@ -54,14 +53,13 @@
   gap: 16px;
   margin-top: 16px; /* Ajouter de l'espace au-dessus des boutons de filtre */
 
-  /* Ajouter ces règles pour assurer un alignement cohérent sur tous les écrans */
+  /* Règles pour assurer un alignement cohérent sur tous les écrans */
   width: 100%;
-  justify-content: flex-end;
+  justify-content: flex-start; /* Aligner à gauche pour être cohérent avec le header */
 
   @media (max-width: 599px) {
     flex-direction: column;
     gap: 8px;
-    padding-right: 16px; /* Ajouter du padding à droite pour éviter que les contrôles soient collés au bord */
     width: 100%; /* Assurer que le conteneur prend toute la largeur disponible */
     justify-content: flex-start; /* Réinitialiser pour mobile */
   }
@@ -90,30 +88,25 @@ mat-grid-list {
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  /* Pas besoin de padding supplémentaire car les tuiles sont centrées */
+  padding: 0; /* Supprimer tout padding qui pourrait causer un décalage */
 }
 
 mat-grid-tile {
   box-sizing: border-box;
-
-  ::ng-deep .mat-grid-tile-content {
-    align-items: stretch;
-    justify-content: stretch;
-    padding: 0 !important;
-    width: 100%;
-    height: 100%;
-    /* Assurer que le contenu est centré horizontalement */
-    display: flex;
-    justify-content: center;
-  }
-}
-
-mat-grid-tile {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   padding: 0;
+
+  ::ng-deep .mat-grid-tile-content {
+    align-items: center; /* Centrer verticalement */
+    justify-content: center; /* Centrer horizontalement */
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+  }
 }
 
 app-post-list {
@@ -122,6 +115,7 @@ app-post-list {
   display: block;
   /* Assurer que la carte est centrée */
   margin: 0 auto;
+  max-width: 100%; /* Empêcher le débordement */
 }
 
 @media (max-width: 599px) {
@@ -129,7 +123,6 @@ app-post-list {
     display: flex;
     flex-direction: column;
     gap: 8px; /* Espacement constant de 8px */
-    padding-right: 16px; /* Ajouter du padding à droite pour éviter que les cartes soient collées au bord */
   }
 
   /* Masquer mat-grid-list sur mobile */
