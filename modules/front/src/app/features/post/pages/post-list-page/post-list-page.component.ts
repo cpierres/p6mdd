@@ -107,15 +107,9 @@ export class PostListPageComponent implements OnInit {
       if (result.breakpoints[Breakpoints.XSmall]) {
         this.cols = 1; // 1 colonne pour mobile (< 600px)
         this.gutterSize = '8px'; // Espacement réduit et constant pour mobile
-      } else if (result.breakpoints[Breakpoints.Small]) {
-        this.cols = 2; // 2 colonnes pour tablettes (600px - 959px)
-        this.gutterSize = '16px'; // Espacement standard
-      } else if (result.breakpoints[Breakpoints.Medium]) {
-        this.cols = 3; // 3 colonnes (960px - 1279px)
-        this.gutterSize = '16px';
       } else {
-        this.cols = 4; // 4 colonnes pour grands écrans (≥ 1280px)
-        this.gutterSize = '16px';
+        this.cols = 2; // 2 colonnes pour tous les écrans plus grands que mobile
+        this.gutterSize = '16px'; // Espacement standard
       }
     });
   }
