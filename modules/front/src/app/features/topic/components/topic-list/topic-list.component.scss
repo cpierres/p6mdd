@@ -57,3 +57,16 @@ mat-card-actions {
   }
 }
 
+.description {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  .view-more {
+    color: #3f51b5;
+    font-size: 0.9em;
+    margin-left: 5px;
+  }
+}

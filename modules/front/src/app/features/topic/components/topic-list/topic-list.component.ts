@@ -7,6 +7,8 @@ import {TopicService} from '../../services/topic.service';
 import {AsyncPipe} from '@angular/common';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import {TopicDescriptionDialogComponent} from '../topic-description-dialog/topic-description-dialog.component';
 
 @Component({
   selector: 'app-topic-list',
@@ -18,6 +20,7 @@ import {MatButtonModule} from '@angular/material/button';
     MatCardActions,
     MatCardModule,
     MatButtonModule,
+    MatDialogModule,
   ],
   templateUrl: './topic-list.component.html',
   styleUrl: './topic-list.component.scss'
@@ -31,7 +34,9 @@ export class TopicListComponent {
   // Observable pour le nbre de colonnes selon la taille écran
   cols$: Observable<number>;
 
-  constructor(private topicService: TopicService, private breakpointObserver: BreakpointObserver) {
+  constructor(private topicService: TopicService,
+              private breakpointObserver: BreakpointObserver,
+              private dialog: MatDialog) {
     // Observable BreakpointObservers pour traquer "automatiquement" la taille d'écran pour le responsive
     this.cols$ = this.breakpointObserver
       .observe([Breakpoints.XSmall, Breakpoints.Small, Breakpoints.Medium, Breakpoints.Large])
@@ -96,5 +101,20 @@ export class TopicListComponent {
     return this.topics;
   }
 
-  protected readonly async = async;
+  /**
+   * Ouvre un dialogue pour afficher la description complète du thème
+   * @param topic Le thème dont on veut afficher la description complète
+   * @param event L'événement de clic
+   */
+  showFullDescription(topic: TopicSubscribedStatus, event: Event): void {
+    event.stopPropagation(); // Empêche le bubbling
+    this.dialog.open(TopicDescriptionDialogComponent, {
+      width: '500px',
+      data: {
+        title: topic.title,
+        description: topic.description
+      }
+    });
+  }
+
 }

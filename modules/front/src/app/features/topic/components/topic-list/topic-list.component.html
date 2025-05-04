@@ -7,7 +7,7 @@
           <mat-card-title>{{ topic.title }}</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <p class="description">{{ truncateDescription(topic.description) }}</p>
+          <p class="description" (click)="showFullDescription(topic, $event)">{{ truncateDescription(topic.description) }}</p>
         </mat-card-content>
         <mat-card-actions class="center-actions">
           @if (!topic.subscribed && showSubscribeButton) {
