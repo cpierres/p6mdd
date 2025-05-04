@@ -5,7 +5,7 @@
       <div class="post-metadata">
         <span>{{ post.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
         <span>{{ post.createdByUsername }}</span>
-        <span>{{ post.topicTitle }}</span>
+        <span (click)="showTopicDescription($event)" class="topic-title" >{{ post.topicTitle }}</span>
       </div>
     </mat-card-subtitle>
   </mat-card-header>

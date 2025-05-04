@@ -107,4 +107,32 @@ public class TopicController {
                 .defaultIfEmpty(ResponseEntity.noContent().build());
     }
 
+    @Operation(
+            summary = "Obtenir un topic par son identifiant",
+            description = "Récupère les détails d'un topic spécifique en utilisant son identifiant UUID."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Topic trouvé avec succès.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TopicDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404", 
+                    description = "Topic non trouvé.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500", 
+                    description = "Erreur interne du serveur.",
+                    content = @Content
+            )
+    })
+    @GetMapping("/{id}")
+    public Mono<ResponseEntity<TopicDto>> getTopicById(@PathVariable UUID id) {
+        return topicService.getTopicById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
 }

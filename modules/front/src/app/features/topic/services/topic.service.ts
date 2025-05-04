@@ -5,6 +5,7 @@ import {TopicSubscribedStatus} from '../interfaces/TopicSubscribedStatus';
 import {environment} from '../../../../environments/environment';
 import {TopicStatsService} from './topic-stats.service';
 import {TopicStatsDto} from '../../post/interface/TopicStatsDto';
+import {TopicDto} from '../interfaces/TopicDto';
 
 @Injectable({
   providedIn: 'root'
@@ -120,6 +121,21 @@ export class TopicService implements OnDestroy {
 
     // Émettre les topics mis à jour
     this.topicsWithSubscriptionStatusSubject.next(sortedTopics);
+  }
+
+  /**
+   * Obtenir un topic spécifique par son ID
+   * @param id L'identifiant du topic
+   */
+  getTopicById(id: string): Observable<TopicDto> {
+    return this.http.get<TopicDto>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(topicDto => ({
+          id: topicDto.id,
+          title: topicDto.title,
+          description: topicDto.description,
+        }))
+      );
   }
 
   /**

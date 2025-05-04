@@ -68,4 +68,14 @@ public class TopicService {
     public Flux<TopicSubscribedForAuthUserDto> getAllTopicsWithAuthUserSubscription() {
         return subscriptionService.getAllTopicsWithAuthUserSubscription();
     }
+
+    /**
+     * Récupère un topic par son identifiant.
+     * @param id L'identifiant du topic à récupérer
+     * @return Un Mono<TopicDto> contenant les informations de base du topic, ou un Mono vide si le topic n'existe pas
+     */
+    public Mono<TopicDto> getTopicById(UUID id) {
+        return topicRepository.findById(id)
+                .map(topicMapper::topicToTopicDto);
+    }
 }

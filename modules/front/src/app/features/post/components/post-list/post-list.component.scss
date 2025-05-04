@@ -115,3 +115,12 @@ mat-card-content {
     padding-bottom: 8px; /* Ajouter de l'espace sous l'en-tête pour séparer du contenu */
   }
 }
+
+.topic-title {
+  cursor: pointer;
+  color: #3f51b5;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
