@@ -16,4 +16,5 @@ public class TopicSubscribedForAuthUserDto {
     private Boolean subscribed; // si utilisateur abonné
     private Long countPosts;    // nb posts associés au topic en temps réel (via SSE)
     private Long countComments; // temps réel (via SSE)
+    private double priorityOrder; // ordre de priorité pour le tri secondaire
 }

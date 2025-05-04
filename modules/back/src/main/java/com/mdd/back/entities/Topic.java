@@ -17,6 +17,7 @@ public class Topic {
     private UUID id;
     private String title;
     private String description;
+    private double priorityOrder;
 
 //    // Liste des utilisateurs abonnés
 //    private Set<UUID> subscribedUsers;

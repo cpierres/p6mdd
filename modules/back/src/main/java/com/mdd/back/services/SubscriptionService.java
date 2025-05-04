@@ -96,10 +96,19 @@ public class SubscriptionService implements ISubscriptionService {
                                         });
                             })
                             // Tri par popularité (somme des posts et commentaires) en ordre décroissant
+                            // avec tri secondaire sur priorityOrder si popularité égale
                             .sort((t1, t2) -> {
                                 Long t1Popularity = t1.getCountPosts() + t1.getCountComments();
                                 Long t2Popularity = t2.getCountPosts() + t2.getCountComments();
-                                return t2Popularity.compareTo(t1Popularity); // Ordre décroissant
+                                int popularityComparison = t2Popularity.compareTo(t1Popularity); // Ordre décroissant
+
+                                // Si la popularité est égale, on trie par priorityOrder
+                                if (popularityComparison == 0) {
+                                    // Ordre croissant pour priorityOrder (plus petit = plus prioritaire)
+                                    return Double.compare(t1.getPriorityOrder(), t2.getPriorityOrder());
+                                }
+
+                                return popularityComparison;
                             });
                 });
     }

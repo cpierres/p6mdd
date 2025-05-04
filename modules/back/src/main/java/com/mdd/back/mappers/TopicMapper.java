@@ -11,10 +11,12 @@ public interface TopicMapper {
 
     TopicDto topicToTopicDto(Topic topic);
 
+    @Mapping(target = "priorityOrder", ignore = true)
     Topic topicDtoToTopic(TopicDto topicDto);
 
     @Mapping(target = "subscribed", ignore = true) // flag géré dynamiquement dans TopicServices
     @Mapping(target = "countPosts", ignore = true) // stats count gérées dynamiquement
     @Mapping(target = "countComments", ignore = true)
+    @Mapping(source = "priorityOrder", target = "priorityOrder") // mapping explicite du champ priorityOrder
     TopicSubscribedForAuthUserDto topicToTopicSubscribedForAuthUserDto(Topic topic);
 }
