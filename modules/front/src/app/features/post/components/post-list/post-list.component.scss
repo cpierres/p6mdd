@@ -22,6 +22,9 @@
   @media (max-width: 599px) {
     min-height: auto; /* Permettre une hauteur adaptative sur mobile */
     height: auto; /* S'assurer que la hauteur s'adapte au contenu */
+    padding: 16px; /* Maintenir le même padding que sur desktop */
+    padding-top: 0; /* Supprimer le padding en haut car mat-card-header a son propre padding */
+    padding-right: 24px; /* Augmenter le padding à droite pour éviter la troncature */
   }
 }
 
@@ -107,6 +110,7 @@ mat-card-content {
   .post-content {
     &.overflow-content {
       -webkit-line-clamp: 3; /* Réduire le nombre de lignes sur mobile pour donner plus d'espace au titre */
+      padding-right: 16px; /* Ajouter du padding à droite pour éviter la troncature */
 
       /* Fallback for browsers that don't support -webkit-line-clamp on mobile */
       @supports not ((-webkit-line-clamp: 3) and (-webkit-box-orient: vertical)) {
@@ -117,6 +121,7 @@ mat-card-content {
 
   mat-card-header {
     padding-bottom: 8px; /* Ajouter de l'espace sous l'en-tête pour séparer du contenu */
+    padding-right: 16px; /* Ajouter du padding à droite pour éviter la troncature */
   }
 }
 
