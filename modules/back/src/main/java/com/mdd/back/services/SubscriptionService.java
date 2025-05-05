@@ -30,11 +30,11 @@ public class SubscriptionService implements ISubscriptionService {
 
     @Autowired
     public SubscriptionService(UserTopicSubscriptionRepository userTopicSubscriptionRepository,
-                              TopicRepository topicRepository,
-                              TopicMapper topicMapper,
-                              IAuthenticationService authenticationService,
-                              PostRepository postRepository,
-                              PostCommentRepository postCommentRepository) {
+                               TopicRepository topicRepository,
+                               TopicMapper topicMapper,
+                               IAuthenticationService authenticationService,
+                               PostRepository postRepository,
+                               PostCommentRepository postCommentRepository) {
         this.userTopicSubscriptionRepository = userTopicSubscriptionRepository;
         this.topicRepository = topicRepository;
         this.topicMapper = topicMapper;
@@ -45,19 +45,27 @@ public class SubscriptionService implements ISubscriptionService {
 
     @Override
     public Mono<Void> subscribeAuthenticatedUserToTopic(UUID topicId) {
-        return authenticationService.getAuthenticatedUserId()
-                .flatMap(userId -> userTopicSubscriptionRepository.existsByUserIdAndTopicId(userId, topicId)
-                        .flatMap(exists -> {
-                            if (exists) {
-                                return Mono.empty(); // utilisateur déjà abonné
-                            } else {
-                                UserTopicSubscription subscription = UserTopicSubscription.builder()
-                                        .userId(userId)
-                                        .topicId(topicId)
-                                        .build();
-                                return userTopicSubscriptionRepository.save(subscription).then();
-                            }
-                        }));
+        // Vérifier l'existence du topic dans la base
+        return topicRepository.existsById(topicId)
+                .flatMap(exists -> {
+                    if (!exists) {
+                        return Mono.error(new IllegalArgumentException("Le topic avec l'identifiant fourni n'existe pas."));
+                    }
+                    // Récupérer l'utilisateur authentifié et vérifier l'abonnement
+                    return authenticationService.getAuthenticatedUserId()
+                            .flatMap(userId -> userTopicSubscriptionRepository.existsByUserIdAndTopicId(userId, topicId)
+                                    .flatMap(isSubscribed -> {
+                                        if (isSubscribed) {
+                                            return Mono.empty(); // L'utilisateur est déjà abonné
+                                        } else {
+                                            UserTopicSubscription subscription = UserTopicSubscription.builder()
+                                                    .userId(userId)
+                                                    .topicId(topicId)
+                                                    .build();
+                                            return userTopicSubscriptionRepository.save(subscription).then(); // Sauvegarder l'abonnement
+                                        }
+                                    }));
+                });
     }
 
     @Override

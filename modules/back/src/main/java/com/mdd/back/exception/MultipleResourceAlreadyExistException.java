@@ -1,6 +1,6 @@
 package com.mdd.back.exception;
 
-import com.mdd.back.models.FieldErrorDetail;
+import com.mdd.back.models.FieldInfoDetails;
 import com.mdd.back.models.Severity;
 import lombok.Getter;
 
@@ -11,21 +11,21 @@ import java.util.stream.Collectors;
 @Getter
 public class MultipleResourceAlreadyExistException extends RuntimeException {
 
-    private final List<FieldErrorDetail> fieldErrors; // Liste détaillée des erreurs des champs
+    private final List<FieldInfoDetails> fieldErrors; // Liste détaillée des erreurs des champs
 
     /**
      * Constructeur utilisant une liste détaillée d'erreurs.
      *
      * @param fieldErrors Liste des détails des erreurs de champs.
      */
-    public MultipleResourceAlreadyExistException(List<FieldErrorDetail> fieldErrors) {
+    public MultipleResourceAlreadyExistException(List<FieldInfoDetails> fieldErrors) {
         super("Conflit(s) :\n" + fieldErrorsToString(fieldErrors));
         //this.fieldErrors = fieldErrors;
         // S'assurer que toutes les erreurs sans sévérité définie reçoivent une sévérité warning par défaut
         this.fieldErrors = fieldErrors.stream()
                 .map(fieldError -> {
                     if (fieldError.getSeverity() == null) { // Si la sévérité est absente
-                        return new FieldErrorDetail(
+                        return new FieldInfoDetails(
                                 fieldError.getField(),
                                 fieldError.getMessage(),
                                 Severity.WARNING
@@ -43,7 +43,7 @@ public class MultipleResourceAlreadyExistException extends RuntimeException {
      */
     public MultipleResourceAlreadyExistException(Map<String, String> fieldErrors) {
         this(fieldErrors.entrySet().stream()
-                .map(entry -> new FieldErrorDetail(entry.getKey(), entry.getValue(), Severity.WARNING))
+                .map(entry -> new FieldInfoDetails(entry.getKey(), entry.getValue(), Severity.WARNING))
                 .collect(Collectors.toList()));
     }
 
@@ -53,7 +53,7 @@ public class MultipleResourceAlreadyExistException extends RuntimeException {
      * @param fieldErrors Liste des détails des erreurs de champs.
      * @return Chaîne représentant les erreurs.
      */
-    private static String fieldErrorsToString(List<FieldErrorDetail> fieldErrors) {
+    private static String fieldErrorsToString(List<FieldInfoDetails> fieldErrors) {
         return fieldErrors.stream()
                 .map(detail -> detail.getField() + ": " + detail.getMessage())
                 .collect(Collectors.joining("\n"));

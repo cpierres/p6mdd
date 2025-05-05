@@ -1,5 +1,6 @@
 package com.mdd.back.controller;
 
+import com.mdd.back.models.ResponseDetails;
 import com.mdd.back.models.TopicStatsDto;
 import com.mdd.back.services.TopicStatsEmitter;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,19 @@ public class SseController {
                             content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE, array = @ArraySchema(
                                     schema = @Schema(implementation = TopicStatsDto.class)
                             ))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Utilisateur non authentifié ou non autorisé",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur interne du serveur",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class,
+                                            description = "Pour les erreurs 500, seuls les attributs 'message' et 'severity' sont utilisés, l'attribut 'fieldErrors' n'est pas inclus."))
                     )
             }
     )

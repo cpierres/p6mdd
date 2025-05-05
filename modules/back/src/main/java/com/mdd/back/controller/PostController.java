@@ -1,8 +1,9 @@
 package com.mdd.back.controller;
 
-import com.mdd.back.models.PostCommentDto;
-import com.mdd.back.models.PostDto;
-import com.mdd.back.models.TopicStatsDto;
+import com.mdd.back.config.ApiResponseExamples;
+import com.mdd.back.models.*;
+import com.mdd.back.models.ResponseDetails;
+import com.mdd.back.utils.context.RequestIdContext;
 import com.mdd.back.services.PostFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,7 +13,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,14 +41,31 @@ public class PostController {
                     @ApiResponse(responseCode = "201", description = "Post créé avec succès",
                             content = @Content(mediaType = "application/json", schema = @Schema(implementation = PostDto.class))),
                     @ApiResponse(responseCode = "400", description = "Données de requête invalides",
-                            content = @Content(mediaType = "application/json")),
-                    @ApiResponse(responseCode = "401", description = "Utilisateur non authentifié ou non autorisé."),
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))),
+                    @ApiResponse(responseCode = "401", description = "L'utilisateur n'est pas authentifié ou non autorisé.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, example = ApiResponseExamples.UNAUTHORIZED_EXAMPLE))),
                     @ApiResponse(responseCode = "500", description = "Erreur interne du serveur",
-                            content = @Content(mediaType = "application/json"))
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class,
+                                            description = "Pour les erreurs 500, seuls les attributs 'message' et 'severity' sont utilisés, l'attribut 'fieldErrors' n'est pas inclus.")))
             }
     )
-    public Mono<PostDto> createPost(@Valid @RequestBody PostDto postDto) {
-        return postFacade.createPost(postDto);
+    public Mono<ResponseEntity<ApiResult<PostDto>>> createPost(@Valid @RequestBody PostDto postDto, ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        return postFacade.createPost(postDto)
+                .map(post -> {
+                    ApiResult<PostDto> apiResult = new ApiResult<>(
+                            post,
+                            "Post créé avec succès.",
+                            HttpStatus.CREATED.value(),
+                            requestId
+                    );
+                    return ResponseEntity.status(HttpStatus.CREATED).body(apiResult);
+                });
     }
 
     @GetMapping("/topics/stats")
@@ -62,15 +82,15 @@ public class PostController {
                                     schema = @Schema(implementation = TopicStatsDto.class)
                             )
                     ),
-                    @ApiResponse(
-                            responseCode = "401",
-                            description = "L'utilisateur n'est pas authentifié ou ne possède pas les droits nécessaires",
-                            content = @Content(mediaType = "application/json")
-                    ),
+                    @ApiResponse(responseCode = "401", description = "L'utilisateur n'est pas authentifié ou non autorisé.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, example = ApiResponseExamples.UNAUTHORIZED_EXAMPLE))),
                     @ApiResponse(
                             responseCode = "500",
                             description = "Erreur interne du serveur",
-                            content = @Content(mediaType = "application/json")
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class,
+                                            description = "Pour les erreurs 500, seuls les attributs 'message' et 'severity' sont utilisés, l'attribut 'fieldErrors' n'est pas inclus."))
                     )
             }
     )
@@ -96,12 +116,15 @@ public class PostController {
                     @ApiResponse(
                             responseCode = "400",
                             description = "Requête invalide, par exemple, si le paramètre UUID est mal formé.",
-                            content = @Content(mediaType = "application/json")
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))
                     ),
                     @ApiResponse(
                             responseCode = "500",
                             description = "Erreur interne du serveur.",
-                            content = @Content(mediaType = "application/json")
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class,
+                                            description = "Pour les erreurs 500, seuls les attributs 'message' et 'severity' sont utilisés, l'attribut 'fieldErrors' n'est pas inclus."))
                     )
             }
     )
@@ -130,16 +153,104 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id}")
-    @Operation(summary = "Récupérer un post par son ID", description = "Récupère un post spécifique avec ses commentaires")
-    public Mono<PostDto> getPostById(@PathVariable UUID id) {
-        return postFacade.getPostWithComments(id);
+    @Operation(
+            summary = "Récupérer un post par son ID",
+            description = "Récupère un post spécifique avec ses commentaires",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Post récupéré avec succès",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, subTypes = PostDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Post non trouvé",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, subTypes = ResponseDetails.class, example = ApiResponseExamples.NOT_FOUND_EXAMPLE))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur interne du serveur",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, subTypes = ResponseDetails.class, example = ApiResponseExamples.INTERNAL_SERVER_ERROR_EXAMPLE))
+                    )
+            }
+    )
+    public Mono<ResponseEntity<ApiResult<PostDto>>> getPostById(@PathVariable UUID id, ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        return postFacade.getPostWithComments(id)
+                .map(post -> {
+                    ApiResult<PostDto> apiResult = new ApiResult<>(
+                            post,
+                            "Post récupéré avec succès.",
+                            HttpStatus.OK.value(),
+                            requestId
+                    );
+                    return ResponseEntity.ok(apiResult);
+                })
+                .defaultIfEmpty(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResult<>(
+                                null,
+                                "Post non trouvé.",
+                                HttpStatus.NOT_FOUND.value(),
+                                requestId
+                        ))
+                );
     }
 
     @PostMapping("/comments")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Créer un commentaire", description = "Ajoute un commentaire à un post existant")
-    public Mono<PostCommentDto> createComment(@Valid @RequestBody PostCommentDto commentDto) {
-        return postFacade.createComment(commentDto);
-    }
+    @Operation(
+            summary = "Créer un commentaire",
+            description = "Ajoute un commentaire à un post existant",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "Commentaire créé avec succès",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = PostCommentDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Données de requête invalides",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))
+                    ),
+                    @ApiResponse(responseCode = "401", description = "L'utilisateur n'est pas authentifié ou non autorisé.",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, example = ApiResponseExamples.UNAUTHORIZED_EXAMPLE))),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "Post non trouvé",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, example = ApiResponseExamples.NOT_FOUND_EXAMPLE))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur interne du serveur",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class, subTypes = ResponseDetails.class, example = ApiResponseExamples.INTERNAL_SERVER_ERROR_EXAMPLE,
+                                            description = "Pour les erreurs 500, seuls les attributs 'message' et 'severity' sont utilisés, l'attribut 'fieldErrors' n'est pas inclus."))
+                    )
+            }
+    )
+    public Mono<ResponseEntity<ApiResult<PostCommentDto>>> createComment(@Valid @RequestBody PostCommentDto commentDto, ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        return postFacade.createComment(commentDto)
+                .map(comment -> {
+                    ApiResult<PostCommentDto> apiResult = new ApiResult<>(
+                            comment,
+                            "Commentaire créé avec succès.",
+                            HttpStatus.CREATED.value(),
+                            requestId
+                    );
+                    return ResponseEntity.status(HttpStatus.CREATED).body(apiResult);
+                });
+    }
 }

@@ -39,9 +39,9 @@ public class ValidationErrorResponse {
     @Schema(description = "Liste des détails des erreurs des champs",
             example = "[ { \"field\": \"password\", \"message\": \"Le mot de passe est trop court\", \"severity\": \"error\" } ]"
     )
-    private List<FieldErrorDetail> fieldErrors; // Liste des erreurs détaillées par champ
+    private List<FieldInfoDetails> fieldErrors; // Liste des erreurs détaillées par champ
 
-    public ValidationErrorResponse(String message, List<FieldErrorDetail> fieldErrors) {
+    public ValidationErrorResponse(String message, List<FieldInfoDetails> fieldErrors) {
         this.message = message;
         this.fieldErrors = fieldErrors;
         this.severity = Severity.ERROR; // Valeur par défaut

@@ -4,18 +4,22 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 /**
- * Représente les détails d'une erreur dans l'application.
+ * Représente les détails d'une réponse dans l'application.
  * <p>
  * Cette classe est utilisée pour transmettre des informations détaillées sur les erreurs survenues
- * lors de l'exécution de l'application, notamment un message général, le niveau de sévérité et
- * les erreurs spécifiques associées aux champs.
+ * ou les informations utiles, lors de l'exécution de l'application, notamment un message général,
+ * le niveau de sévérité et les informations spécifiques associées aux champs (optionnelles).
  */
 @Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Schema(
         description = "Modèle pour représenter les informations d'une erreur survenue dans l'application. " +
                 "L'erreur peut se limiter à un message général avec une sévérité, ou bien inclure également " +
@@ -23,11 +27,11 @@ import java.util.List;
         example = """
                 {
                   "message": "Une erreur interne est survenue. Veuillez réessayer ultérieurement.",
-                  "severity": "error"
+                  "severity": "ERROR"
                 }
                 """
 )
-public class ErrorDetails {
+public class ResponseDetails {
 
     @Schema(
             description = "Message général décrivant l'erreur.",
@@ -44,7 +48,7 @@ public class ErrorDetails {
 
     @ArraySchema(
             schema = @Schema(
-                    description = "Liste des champs en erreur (facultatif). Dans le cas des erreurs 500, cette partie est toujours omise. " +
+                    description = "Liste des champs (facultatif). Dans le cas des erreurs 500, cette partie est toujours omise. " +
                             "Chaque entrée contient des informations détaillées telles que le nom du champ, un message décrivant le problème, et une sévérité (optionnelle).",
                     example = """
                             [
@@ -55,6 +59,19 @@ public class ErrorDetails {
                     description = "Chaque entrée contient des informations détaillées telles que le nom du champ, un message décrivant le problème, et une sévérité spécifique."
             )
     )
-
     private List<FieldInfoDetails> fieldErrors;
+
+    // Constructeur pratique sans fieldErrors
+    public ResponseDetails(String message, Severity severity) {
+        this.message = message;
+        this.severity = severity;
+        this.fieldErrors = null;
+    }
+    
+    // Constructeur avec valeur par défaut pour severity
+    public ResponseDetails(String message, List<FieldInfoDetails> fieldErrors) {
+        this.message = message;
+        this.fieldErrors = fieldErrors;
+        this.severity = Severity.ERROR; // Valeur par défaut
+    }
 }
