@@ -6,6 +6,7 @@ import {environment} from '../../../../environments/environment';
 import {TopicStatsService} from './topic-stats.service';
 import {TopicStatsDto} from '../../post/interface/TopicStatsDto';
 import {TopicDto} from '../interfaces/TopicDto';
+import {ApiResult} from '../../../shared/interfaces/ApiResult';
 
 @Injectable({
   providedIn: 'root'
@@ -31,8 +32,14 @@ export class TopicService implements OnDestroy {
    * Obtenir tous les topics avec le statut d'abonnement pour l'utilisateur authentifié
    */
   getTopicsWithSubscriptionStatus(): Observable<TopicSubscribedStatus[]> {
-    return this.http.get<TopicSubscribedStatus[]>(`${this.apiUrl}/with-subscription-status`)
+    return this.http.get<ApiResult<TopicSubscribedStatus[]>>(`${this.apiUrl}/with-subscription-status`)
       .pipe(
+        map(apiResult => {
+          if (!apiResult.data) {
+            return [];
+          }
+          return apiResult.data;
+        }),
         tap(topics => this.topicsWithSubscriptionStatusSubject.next(topics))
       );
   }
@@ -42,8 +49,9 @@ export class TopicService implements OnDestroy {
    * @param topicId
    */
   subscribeToTopic(topicId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${topicId}/subscribe`, {})
+    return this.http.post<ApiResult<void>>(`${this.apiUrl}/${topicId}/subscribe`, {})
       .pipe(
+        map(apiResult => {}), // Ignorer le résultat, on veut juste savoir si ça a réussi
         tap(() => {
           // mettre à jour l'état local après l'abonnement
           const currentTopics = this.topicsWithSubscriptionStatusSubject.value;
@@ -59,8 +67,9 @@ export class TopicService implements OnDestroy {
    * Désabonner l'utilisateur authentifié d'un Topic
    */
   unsubscribeFromTopic(topicId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${topicId}/unsubscribe`)
+    return this.http.delete<ApiResult<void>>(`${this.apiUrl}/${topicId}/unsubscribe`)
       .pipe(
+        map(apiResult => {}), // Ignorer le résultat, on veut juste savoir si ça a réussi
         tap(() => {
           // mettre à jour l'état local après l'abonnement
           const currentTopics = this.topicsWithSubscriptionStatusSubject.value;
@@ -128,13 +137,18 @@ export class TopicService implements OnDestroy {
    * @param id L'identifiant du topic
    */
   getTopicById(id: string): Observable<TopicDto> {
-    return this.http.get<TopicDto>(`${this.apiUrl}/${id}`)
+    return this.http.get<ApiResult<TopicDto>>(`${this.apiUrl}/${id}`)
       .pipe(
-        map(topicDto => ({
-          id: topicDto.id,
-          title: topicDto.title,
-          description: topicDto.description,
-        }))
+        map(apiResult => {
+          if (!apiResult.data) {
+            throw new Error('data Topic non trouvé dans réponse API');
+          }
+          return {
+            id: apiResult.data.id,
+            title: apiResult.data.title,
+            description: apiResult.data.description,
+          };
+        })
       );
   }
 

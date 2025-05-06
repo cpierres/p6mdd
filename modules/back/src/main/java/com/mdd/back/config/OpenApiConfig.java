@@ -5,6 +5,10 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +43,47 @@ public class OpenApiConfig {
                                         .name(securitySchemeName)
                                         .type(Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT"))); // Indique que le token est de type JWT
+                                        .bearerFormat("JWT"))// Indique que le token est de type JWT
+                        // Réponses d'erreur standard
+                        .addResponses("Unauthorized", createUnauthorizedResponse())
+                        .addResponses("NotFound", createNotFoundResponse())
+                        .addResponses("BadRequest", createBadRequestResponse())
+                        .addResponses("InternalServerError", createInternalServerErrorResponse())
+                );
 
     }
+
+    private ApiResponse createUnauthorizedResponse() {
+        return new ApiResponse()
+                .description("L'utilisateur n'est pas authentifié ou autorisé.")
+                .content(new Content()
+                        .addMediaType("application/json",
+                                new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResult"))));
+    }
+
+    private ApiResponse createNotFoundResponse() {
+        return new ApiResponse()
+                .description("Ressource non trouvée.")
+                .content(new Content()
+                        .addMediaType("application/json",
+                                new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResult"))));
+    }
+
+    private ApiResponse createBadRequestResponse() {
+        return new ApiResponse()
+                .description("Requête invalide ou données mal formatées.")
+                .content(new Content()
+                        .addMediaType("application/json",
+                                new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResult"))));
+    }
+
+    private ApiResponse createInternalServerErrorResponse() {
+        return new ApiResponse()
+                .description("Erreur interne du serveur.")
+                .content(new Content()
+                        .addMediaType("application/json",
+                                new MediaType().schema(new Schema<>().$ref("#/components/schemas/ApiResult"))));
+    }
+
 }
 

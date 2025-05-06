@@ -2,7 +2,7 @@ package com.mdd.back.services;
 
 import com.mdd.back.entities.User;
 import com.mdd.back.exception.MultipleResourceAlreadyExistException;
-import com.mdd.back.models.FieldErrorDetail;
+import com.mdd.back.models.FieldInfoDetails;
 import com.mdd.back.repositories.UserRepository;
 import com.mdd.back.services.interfaces.IValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class UserValidator implements IValidator<User> {
      * ou émet une exception MultipleResourceAlreadyExistException en cas de conflit.
      */
     public Mono<Void> validateUniqueEmailAndUsername(UUID id, String email, String username) {
-        List<FieldErrorDetail> errors = new ArrayList<>();
+        List<FieldInfoDetails> errors = new ArrayList<>();
 
         // Vérifie si un autre utilisateur existe avec le même email
         Mono<Boolean> emailExists = userRepository.findByEmail(email)
@@ -62,10 +62,10 @@ public class UserValidator implements IValidator<User> {
                     boolean usernameConflict = results.getT2();
 
                     if (emailConflict) {
-                        errors.add(new FieldErrorDetail("email", "Un utilisateur avec cet email existe déjà."));
+                        errors.add(new FieldInfoDetails("email", "Un utilisateur avec cet email existe déjà."));
                     }
                     if (usernameConflict) {
-                        errors.add(new FieldErrorDetail("username", "Un utilisateur avec ce nom existe déjà."));
+                        errors.add(new FieldInfoDetails("username", "Un utilisateur avec ce nom existe déjà."));
                     }
 
                     if (!errors.isEmpty()) {

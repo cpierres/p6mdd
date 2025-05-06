@@ -55,7 +55,7 @@ public class AuthenticationService implements IAuthenticationService {
         return Mono.deferContextual(contextView ->
                 ReactiveSecurityContextHolder.getContext() // Récupérer le SecurityContext en réactif
                         .map(SecurityContext::getAuthentication)
-                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Authentication context vide")))
+                        .switchIfEmpty(Mono.error(new ResourceNotFoundException("Contexte d'Authentification vide")))
                         .flatMap(auth -> {
                             if (auth == null || !auth.isAuthenticated()) {
                                 return Mono.error(new ResourceNotFoundException("Utilisateur non authentifié"));

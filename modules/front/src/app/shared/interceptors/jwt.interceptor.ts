@@ -8,7 +8,7 @@ export const jwtInterceptor: HttpInterceptorFn = (request, next) => {
   const publicRoutes = ['/auth/register','/auth/login'];
 
   // Vérifier si la requête correspond à l'une des routes publiques
-  if (publicRoutes.some(route => request.url.includes(route))) {
+  if (publicRoutes.some(route => request.url.endsWith(route))) {
     return next(request); // Skip l'intercepteur
   }
 

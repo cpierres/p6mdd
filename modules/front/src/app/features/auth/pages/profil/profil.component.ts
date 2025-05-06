@@ -10,8 +10,8 @@ import {SessionService} from '../../../../shared/services/session-service.servic
 import {TopicSubscribedStatus} from '../../../topic/interfaces/TopicSubscribedStatus';
 import {TopicService} from '../../../topic/services/topic.service';
 import {TopicListComponent} from '../../../topic/components/topic-list/topic-list.component';
-import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
 import {MessagesService} from '../../../../shared/services/messages.service';
+import {ResponseDetails} from '../../../../shared/interfaces/ResponseDetails';
 
 @Component({
   selector: 'app-profil',
@@ -98,7 +98,7 @@ export class ProfilComponent {
         //this.isEditMode.set(false); // Revenir en mode lecture après la sauvegarde
         this.messagesService.showMessage('Profil mis à jour avec succès', 'success');
       },
-      error: (validationErrorResponse: ValidationErrorResponse) => {
+      error: (responseDetails: ResponseDetails) => {
         // Erreur déjà traitée par l'intercepteur
       }
     });
