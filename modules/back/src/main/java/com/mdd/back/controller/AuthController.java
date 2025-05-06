@@ -206,7 +206,7 @@ public class AuthController {
                                               "status": 200,
                                               "timestamp": "2025-05-05T15:40:12.230646300Z",
                                               "requestId": "fccb86cf-3717-4a27-b9ce-5add6cf14f6f"
-                                            }                                    
+                                            }
                                             """))),
             @ApiResponse(
                     responseCode = "404",
@@ -285,7 +285,7 @@ public class AuthController {
                                       "status": 400,
                                       "timestamp": "2025-05-05T15:30:06.376661100Z",
                                       "requestId": "fbaa96a8-14b9-440e-b8ed-c5be4791595e"
-                                    }                            
+                                    }
                                     """)
                     )),
             @ApiResponse(

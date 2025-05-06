@@ -6,7 +6,7 @@ import {RegisterRequest} from '../../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../../interfaces/authSuccess.interface';
 import {ErrorHandlingService} from '../../../../shared/services/error-handling-service.service';
 import {User} from '../../../user/interfaces/user.interface';
-import {ValidationErrorResponse} from '../../../../shared/interfaces/ValidationErrorResponse';
+import {ResponseDetails} from '../../../../shared/interfaces/ResponseDetails';
 
 @Component({
   selector: 'app-register',
@@ -47,7 +47,7 @@ export class RegisterComponent implements OnInit {
       next: (response: AuthSuccess) => {
         this.router.navigate(['/posts']);
       },
-      error: (errorResponse:ValidationErrorResponse) => {
+      error: (responseDetails:ResponseDetails) => {
         // console.log('Validation Error response:', errorResponse);
         // L'intercepteur a déjà traité les erreurs et mis à jour les Signals
         // par conséquent le signal local backendFieldErrors devient inutile

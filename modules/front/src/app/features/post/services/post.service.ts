@@ -2,9 +2,10 @@ import {Injectable} from '@angular/core';
 import {environment} from '../../../../environments/environment';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {PostDto} from '../interface/PostDto';
-import {Observable} from 'rxjs';
+import {Observable, map} from 'rxjs';
 import {TopicStatsDto} from '../interface/TopicStatsDto';
 import {PostCommentDto} from '../interface/PostCommentDto';
+import {ApiResult} from '../../../shared/interfaces/ApiResult';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,15 @@ export class PostService {
   }
 
   createPost(post: PostDto): Observable<PostDto> {
-    return this.http.post<PostDto>(this.apiUrl, post);
+    return this.http.post<ApiResult<PostDto>>(this.apiUrl, post)
+      .pipe(
+        map(apiResult => {
+          if (!apiResult.data) {
+            throw new Error('data Post non trouvé dans la réponse');
+          }
+          return apiResult.data;
+        })
+      );
   }
 
   getTopicStats(): Observable<TopicStatsDto[]> {
@@ -47,11 +56,27 @@ export class PostService {
   }
 
   getPostById(id: string): Observable<PostDto> {
-    return this.http.get<PostDto>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResult<PostDto>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(apiResult => {
+          if (!apiResult.data) {
+            throw new Error('data Post non trouvé dans la réponse');
+          }
+          return apiResult.data;
+        })
+      );
   }
 
   createComment(comment: PostCommentDto): Observable<PostCommentDto> {
-    return this.http.post<PostCommentDto>(`${environment.baseUrl}comments`, comment);
+    return this.http.post<ApiResult<PostCommentDto>>(`${environment.baseUrl}comments`, comment)
+      .pipe(
+        map(apiResult => {
+          if (!apiResult.data) {
+            throw new Error('data Comment non trouvé dans la réponse');
+          }
+          return apiResult.data;
+        })
+      );
   }
 
 }

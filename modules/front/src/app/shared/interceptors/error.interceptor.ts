@@ -3,7 +3,8 @@ import { inject } from '@angular/core';
 import { ErrorHandlingService } from '../services/error-handling-service.service';
 import { MessagesService } from '../services/messages.service';
 import { catchError, throwError } from 'rxjs';
-import { ErrorDetails } from '../interfaces/ErrorDetails';
+import { ApiResult } from '../interfaces/ApiResult';
+import { ResponseDetails } from '../interfaces/ResponseDetails';
 import { MessageSeverity } from '../models/MessageSeverity';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
@@ -19,17 +20,27 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 400 || error.status === 409) {
         // Erreurs de validation / conflit
         if (error.error) {
-          const errorDetails = error.error as ErrorDetails;
+          const apiResult = error.error as ApiResult<ResponseDetails>;
 
-          // Gestion des erreurs de validation avec la nouvelle structure
-          if (errorDetails.fieldErrors && errorDetails.fieldErrors.length > 0) {
-            errorHandlingService.handleValidationErrors(errorDetails);
-          }
+          // Si nous avons un ApiResult avec des données
+          if (apiResult.data) {
+            const responseDetails = apiResult.data;
 
-          // Affichage du message général avec la sévérité appropriée
-          if (errorDetails.message) {
-            const severity = errorDetails.severity || 'error';
-            messagesService.showMessage(errorDetails.message, severity as MessageSeverity);
+            // Gestion des erreurs de validation avec la nouvelle structure
+            if (responseDetails.fieldErrors && responseDetails.fieldErrors.length > 0) {
+              errorHandlingService.handleValidationErrors(responseDetails);
+            }
+
+            // Affichage du message général avec la sévérité appropriée
+            if (responseDetails.message) {
+              const severity = responseDetails.severity || 'error';
+              messagesService.showMessage(responseDetails.message, severity as MessageSeverity);
+            }
+          } else {
+            // Si nous avons un ApiResult sans données, utiliser le message général
+            if (apiResult.message) {
+              messagesService.showMessage(apiResult.message, 'error');
+            }
           }
         }
       } else if (error.status === 401) {
@@ -41,11 +52,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         messagesService.showMessage('Vous n\'avez pas les droits nécessaires pour accéder à cette ressource', 'warning');
       } else {
         // Autres erreurs (500, etc.)
-        const errorDetails = error.error as ErrorDetails;
-        const errorMessage = errorDetails?.message || 'Une erreur est survenue';
-        const severity = errorDetails?.severity || 'error';
+        if (error.error && typeof error.error === 'object') {
+          const apiResult = error.error as ApiResult<ResponseDetails>;
 
-        messagesService.showMessage(errorMessage, severity as MessageSeverity);
+          if (apiResult.data) {
+            const responseDetails = apiResult.data;
+            const errorMessage = responseDetails.message || 'Une erreur est survenue';
+            const severity = responseDetails.severity || 'error';
+
+            messagesService.showMessage(errorMessage, severity as MessageSeverity);
+          } else {
+            // Si nous avons un ApiResult sans données, utiliser le message général
+            messagesService.showMessage(apiResult.message || 'Une erreur est survenue', 'error');
+          }
+        } else {
+          // Fallback pour les erreurs non structurées
+          messagesService.showMessage('Une erreur est survenue', 'error');
+        }
       }
 
       // Retransmettre l'erreur pour que les composants puissent la traiter si nécessaire

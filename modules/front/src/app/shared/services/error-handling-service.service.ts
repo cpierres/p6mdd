@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { ErrorDetails } from '../interfaces/ErrorDetails';
+import { ResponseDetails } from '../interfaces/ResponseDetails';
 import { FieldErrorDetail } from '../interfaces/FieldErrorDetail';
 import { MessageSeverity } from '../models/MessageSeverity';
 
@@ -22,7 +22,7 @@ export class ErrorHandlingService {
   readonly generalErrorSeverity = this.generalErrorSeveritySignal.asReadonly();
 
   // Traite les erreurs de validation
-  handleValidationErrors(error: ErrorDetails): void {
+  handleValidationErrors(error: ResponseDetails): void {
     if (error.fieldErrors && error.fieldErrors.length > 0) {
       this.fieldErrorsSignal.set(error.fieldErrors);
     }

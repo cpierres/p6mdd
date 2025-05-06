@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { User } from '../../features/user/interfaces/user.interface';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ApiResult } from '../interfaces/ApiResult';
 
 @Injectable({
   providedIn: 'root'
@@ -29,9 +30,15 @@ export class SessionService implements OnInit {
     const token = localStorage.getItem('token');
     if (token) {
       // Si un token existe, récupérer les informations de l'utilisateur
-      this.http.get<User>(`${environment.baseUrl}auth/me`).subscribe({
-        next: (user: User) => {
-          this.logIn(user);
+      // Avec la nouvelle structure ApiResult, nous devons extraire l'utilisateur du champ data
+      this.http.get<ApiResult<User>>(`${environment.baseUrl}auth/me`).subscribe({
+        next: (apiResult: ApiResult<User>) => {
+          if (apiResult.data) {
+            this.logIn(apiResult.data);
+          } else {
+            // Si data est null, déconnecter l'utilisateur
+            this.logOut();
+          }
         },
         error: () => {
           // En cas d'erreur (token invalide), déconnecter l'utilisateur
