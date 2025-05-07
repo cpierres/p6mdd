@@ -1,0 +1,87 @@
+services:
+  postgres-r2dbc:
+    image: postgres:17
+    restart: always
+    container_name: postgres-r2dbc-mdd
+    environment:
+      POSTGRES_USER: ${P6_DB_USER}
+      POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
+      POSTGRES_DB: dbmdd
+      # Additional PostgreSQL configuration
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Connection settings
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mdduser", "-d", "dbmdd"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mdd-network
+#    command:
+#      - "postgres"
+#      - "-c"
+#      - "max_connections=100"
+#      - "-c"
+#      - "shared_buffers=256MB"
+#      - "-c"
+#      - "work_mem=16MB"
+#      - "-c"
+#      - "maintenance_work_mem=64MB"
+#      - "-c"
+#      - "max_prepared_transactions=0"
+#      - "-c"
+#      - "log_statement=all"
+
+  backend:
+    image: cpierres/ocr-p6-mdd-backend:1
+    container_name: mdd-backend
+    restart: on-failure:5
+    depends_on:
+      postgres-r2dbc:
+        condition: service_healthy
+    environment:
+      P6_DB_USER: ${P6_DB_USER}
+      P6_DB_PASSWORD: ${P6_DB_PASSWORD}
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
+      SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_FLYWAY_CONNECT_RETRIES: 5
+      SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 15
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
+    ports:
+      - "8066:8080"
+    networks:
+      - mdd-network
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+
+  frontend:
+    image: cpierres/ocr-p6-mdd-frontend:1
+    container_name: mdd-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "66:80"
+    networks:
+      - mdd-network
+
+volumes:
+  postgres_data:
+
+networks:
+  mdd-network:
+    driver: bridge

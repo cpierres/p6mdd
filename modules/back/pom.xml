@@ -27,7 +27,8 @@
         <url/>
     </scm>
     <properties>
-        <java.version>22</java.version>
+        <docker.image.tag>1</docker.image.tag>
+        <java.version>21</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
@@ -188,7 +189,7 @@
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
-                        <compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
+                        <!-- compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg -->
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -196,6 +197,28 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <image>
+                        <name>cpierres/ocr-p6-mdd-backend:${docker.image.tag}</name>
+                        <env>
+                            <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
+                            <!-- Install curl for healthcheck -->
+                            <BP_APT_PACKAGES>curl postgresql-client</BP_APT_PACKAGES>
+                            <!-- Configure container to wait for database -->
+                            <SPRING_FLYWAY_CONNECT_RETRIES>3</SPRING_FLYWAY_CONNECT_RETRIES>
+                            <SPRING_FLYWAY_CONNECT_RETRY_INTERVAL>5</SPRING_FLYWAY_CONNECT_RETRY_INTERVAL>
+                            <SPRING_FLYWAY_BASELINE_ON_MIGRATE>true</SPRING_FLYWAY_BASELINE_ON_MIGRATE>
+                            <SPRING_FLYWAY_BASELINE_VERSION>0</SPRING_FLYWAY_BASELINE_VERSION>
+                        </env>
+                        <!-- buildpacks>
+                            <buildpack>gcr.io/paketo-buildpacks/ca-certificates</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/bellsoft-liberica</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/syft</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/executable-jar</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/dist-zip</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/spring-boot</buildpack>
+                            <buildpack>gcr.io/paketo-buildpacks/apt</buildpack>
+                        </buildpacks -->
+                    </image>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
