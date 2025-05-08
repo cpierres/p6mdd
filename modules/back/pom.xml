@@ -160,6 +160,30 @@
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>prodlocal</id>
+            <properties>
+                <spring.profiles.active>prodlocal</spring.profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <id>prodnas</id>
+            <properties>
+                <spring.profiles.active>prodnas</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -197,6 +221,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <profiles>
+                        <profile>${spring.profiles.active}</profile>
+                    </profiles>
                     <image>
                         <name>cpierres/ocr-p6-mdd-backend:${docker.image.tag}</name>
                         <env>
@@ -208,6 +235,7 @@
                             <SPRING_FLYWAY_CONNECT_RETRY_INTERVAL>5</SPRING_FLYWAY_CONNECT_RETRY_INTERVAL>
                             <SPRING_FLYWAY_BASELINE_ON_MIGRATE>true</SPRING_FLYWAY_BASELINE_ON_MIGRATE>
                             <SPRING_FLYWAY_BASELINE_VERSION>0</SPRING_FLYWAY_BASELINE_VERSION>
+                            <SPRING_PROFILES_ACTIVE>${spring.profiles.active}</SPRING_PROFILES_ACTIVE>
                         </env>
                         <!-- buildpacks>
                             <buildpack>gcr.io/paketo-buildpacks/ca-certificates</buildpack>

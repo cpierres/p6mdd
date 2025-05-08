@@ -12,7 +12,7 @@ import {ApiResult} from '../../../shared/interfaces/ApiResult';
   providedIn: 'root'
 })
 export class TopicService implements OnDestroy {
-  private apiUrl = environment.baseUrl + 'topics';
+  private apiUrl = environment.backendUrl + 'topics';
   // BehaviorSubject pour suivre les modifications dans les abonnements aux topic
   private topicsWithSubscriptionStatusSubject = new BehaviorSubject<TopicSubscribedStatus[]>([]);
   public topicsWithSubscriptionStatus$ = this.topicsWithSubscriptionStatusSubject.asObservable();

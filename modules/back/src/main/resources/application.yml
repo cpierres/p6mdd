@@ -1,17 +1,19 @@
 spring:
   application:
     name: mddback
+  profiles:
+    active: ${spring.profiles.active:prodnas}
   flyway:
     enabled: true
-    url: jdbc:${P6_DB_URL:postgresql://localhost:5432/dbmdd}
+    url: jdbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
     user: ${P6_DB_USER:mdduser}
     driver-class-name: org.postgresql.Driver
     password: ${P6_DB_PASSWORD:mddpw}
+    create-schemas: true
     default-schema: mddsocial
     schemas: mddsocial
-    #   locations: classpath:db/migration
   r2dbc:
-    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432/dbmdd}
+    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
     username: ${P6_DB_USER:mdduser}
     password: ${P6_DB_PASSWORD:mddpw}
     properties:
@@ -43,4 +45,3 @@ springdoc:
     path: /swagger-ui.html
 frontend:
   url: ${P6_FRONTEND_URL:http://localhost:4200}
-

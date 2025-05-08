@@ -47,13 +47,14 @@ services:
       postgres-r2dbc:
         condition: service_healthy
     environment:
+      P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
       P6_DB_USER: ${P6_DB_USER}
       P6_DB_PASSWORD: ${P6_DB_PASSWORD}
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_FLYWAY_CONNECT_RETRIES: 5
-      SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 15
+      SPRING_PROFILES_ACTIVE: prodnas
+      SPRING_FLYWAY_CONNECT_RETRIES: 3
+      SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_VERSION: "0"
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
@@ -61,15 +62,20 @@ services:
       - "8066:8080"
     networks:
       - mdd-network
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 3
-#      start_period: 40s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
-    image: cpierres/ocr-p6-mdd-frontend:1
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#      args:
+#        ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
+    image: cpierres/ocr-p6-mdd-front-img:1
     container_name: mdd-frontend
     restart: always
     depends_on:

@@ -11,8 +11,8 @@ import {ApiResult} from '../../../shared/interfaces/ApiResult';
   providedIn: 'root'
 })
 export class PostService {
-  private apiUrl = environment.baseUrl + 'posts';
-  private topicsApiUrl = environment.baseUrl + 'topics';
+  private apiUrl = environment.backendUrl + 'posts';
+  private topicsApiUrl = environment.backendUrl + 'topics';
 
   constructor(private http: HttpClient) {
   }
@@ -68,7 +68,7 @@ export class PostService {
   }
 
   createComment(comment: PostCommentDto): Observable<PostCommentDto> {
-    return this.http.post<ApiResult<PostCommentDto>>(`${environment.baseUrl}comments`, comment)
+    return this.http.post<ApiResult<PostCommentDto>>(`${environment.backendUrl}comments`, comment)
       .pipe(
         map(apiResult => {
           if (!apiResult.data) {

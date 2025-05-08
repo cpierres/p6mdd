@@ -1,18 +1,18 @@
 spring:
   flyway:
     enabled: true
-    url: jdbc:postgresql://postgres-r2dbc:5432/dbmdd?connectTimeout=30&socketTimeout=30
+    url: jdbc:postgresql://postgres-r2dbc:5432/dbmdd?connectTimeout=30
     user: ${P6_DB_USER:mdduser}
     driver-class-name: org.postgresql.Driver
     password: ${P6_DB_PASSWORD:mddpw}
+    create-schemas: true
     default-schema: mddsocial
     schemas: mddsocial
-    connect-retries: 20
-    connect-retry-interval: 15
-    validate-migration-naming: false
-    baseline-on-migrate: true
-    baseline-version: "0"
-    create-schemas: true
+    connect-retries: 5
+    connect-retry-interval: 10
+#    validate-migration-naming: false
+#    baseline-on-migrate: true
+#    baseline-version: "0"
     locations: classpath:db/migration
   r2dbc:
     url: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
@@ -46,11 +46,10 @@ logging:
     org.springframework.data.r2dbc: DEBUG
     # JDBC connection debugging
     org.postgresql: DEBUG
-    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari: INFO
     # Spring Boot startup and configuration
     org.springframework.boot.web.embedded: INFO
     org.springframework.boot.autoconfigure: INFO
 
 frontend:
-  url: http://nascpi8:66
-  #url: http://localhost:66
+  url: ${P6_FRONTEND_URL:http://localhost:66}

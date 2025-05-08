@@ -15,7 +15,7 @@ export class TopicStatsService implements OnDestroy {
   }
 
   private connectToSSE(): void {
-    this.eventSource = new EventSource(environment.baseUrl+'topics/stats/stream');
+    this.eventSource = new EventSource(environment.backendUrl+'topics/stats/stream');
 
     this.eventSource.addEventListener('topic-stats-update', (event: MessageEvent) => {
       const stats: TopicStatsDto[] = JSON.parse(event.data);
