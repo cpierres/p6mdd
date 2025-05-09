@@ -1,5 +1,5 @@
 export const environment = {
-  backendUrl: 'http://backend:8080/api/',
+  backendUrl: '/api/',
   frontendUrl: 'http://nascpi8:66/',
   production: true
 };

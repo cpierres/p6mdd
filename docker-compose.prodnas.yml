@@ -2,7 +2,7 @@ services:
   postgres-r2dbc:
     image: postgres:17
     restart: always
-    container_name: postgres-r2dbc-mdd
+    container_name: ocr-p6-postgres-r2dbc-mdd
     environment:
       POSTGRES_USER: ${P6_DB_USER}
       POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
@@ -50,6 +50,7 @@ services:
       P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
       P6_DB_USER: ${P6_DB_USER}
       P6_DB_PASSWORD: ${P6_DB_PASSWORD}
+      P6_JWT_SECRET_KEY: vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_PROFILES_ACTIVE: prodnas

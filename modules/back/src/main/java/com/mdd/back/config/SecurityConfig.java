@@ -49,6 +49,7 @@ public class SecurityConfig {
         log.debug("*** securityFilterChain ***");
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/api/auth/login",
