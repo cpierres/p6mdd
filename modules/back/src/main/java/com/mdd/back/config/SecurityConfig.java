@@ -24,15 +24,17 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    // Modifier le type pour accepter une liste d'URLs
+    @Value("#{'${frontend.url}'.split(',')}")
+    private List<String> frontendUrls;
+
 
     /**
      * Configure la chaîne de filtrage de sécurité pour l'application, en définissant des politiques de sécurité telles
@@ -106,7 +108,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Collections.singletonList(this.frontendUrl));
+        corsConfig.setAllowedOrigins(frontendUrls);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         corsConfig.setAllowCredentials(true); // Si vous utilisez des cookies ou des sessions partagées

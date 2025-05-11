@@ -58,15 +58,15 @@ services:
       SPRING_PROFILES_ACTIVE: prodlocal
       SPRING_FLYWAY_CONNECT_RETRIES: 3
       SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+#      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+#      SPRING_FLYWAY_BASELINE_VERSION: "0"
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
     ports:
       - "8066:8080"
     networks:
       - mdd-network
 #    healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+#      test: ["CMD", "curl", "-f", "http://backend:8080/actuator/health"]
 #      interval: 30s
 #      timeout: 10s
 #      retries: 3
@@ -78,6 +78,7 @@ services:
       dockerfile: Dockerfile
       args:
         ENV_NAME: prodlocal # Définit env pour Angular et nginx
+    image: cpierres/ocr-p6-mdd-front:1 #Nom et tag de l'image souhaité
     container_name: ocr-p6-mdd-frontend-prodlocal
     restart: always
     depends_on:

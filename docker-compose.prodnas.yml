@@ -1,4 +1,8 @@
 services:
+#  cette image n'a plus d'intérêt car j'ai réussi à rendre l'image agnostique de son environnement
+#  d'exécution grâce à l'utilisation du dns interne à docker.
+#  Je la conserve par rapport à la démarche de mise en place à titre pédagogique même si elle n'est
+#  plus utile dans ce projet.
   postgres-r2dbc:
     image: postgres:17
     restart: always
@@ -56,15 +60,15 @@ services:
       SPRING_PROFILES_ACTIVE: prodnas
       SPRING_FLYWAY_CONNECT_RETRIES: 3
       SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
+#      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+#      SPRING_FLYWAY_BASELINE_VERSION: "0"
+#      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
     ports:
       - "8066:8080"
     networks:
       - mdd-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://backend:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
