@@ -52,4 +52,4 @@ logging:
     org.springframework.boot.autoconfigure: INFO
 
 frontend:
-  url: ${P6_FRONTEND_URL:http://localhost:66}
+  url: ${P6_FRONTEND_URL:http://localhost:67}

@@ -2,18 +2,16 @@ services:
   postgres-r2dbc:
     image: postgres:17
     restart: always
-    container_name: ocr-p6-postgres-r2dbc-mdd
+    container_name: ocr-p6-postgres-r2dbc-mdd-prodlocal
     environment:
       POSTGRES_DB: dbmdd
       POSTGRES_USER: ${P6_DB_USER:-mdduser}
       POSTGRES_PASSWORD: ${P6_DB_PASSWORD:-mddpw}
-      # Additional PostgreSQL configuration
       POSTGRES_INITDB_ARGS: "--encoding=UTF8"
       PGDATA: /var/lib/postgresql/data/pgdata
-      # Connection settings
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5436:5432"
+      - "5437:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -40,18 +38,17 @@ services:
 #      - "log_statement=all"
 
   backend:
-    image: cpierres/ocr-p6-mdd-backend:1
-    container_name: ocr-p6-mdd-backend
+    image: cpierres/ocr-p6-mdd-backend-prodlocal:1
+    container_name: ocr-p6-mdd-backend-prodlocal
     restart: on-failure:5
     depends_on:
       postgres-r2dbc:
         condition: service_healthy
     environment:
-#      P6_FRONTEND_URL: ${P6_FRONTEND_URL:-http://localhost:66} #pour CORS
-      P6_FRONTEND_URL: http://localhost:66
+      P6_FRONTEND_URL: http://localhost:67 #pour CORS
       P6_DB_URL: postgresql://postgres-r2dbc:5432
-      P6_DB_USER: ${P6_DB_USER:-mdduser}
-      P6_DB_PASSWORD: ${P6_DB_PASSWORD:-mddpw}
+      P6_DB_USER: mdduser
+      P6_DB_PASSWORD: mddpw
       P6_JWT_SECRET_KEY: vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
@@ -62,7 +59,7 @@ services:
 #      SPRING_FLYWAY_BASELINE_VERSION: "0"
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
     ports:
-      - "8066:8080"
+      - "8067:8080"
     networks:
       - mdd-network
 #    healthcheck:
@@ -78,13 +75,13 @@ services:
       dockerfile: Dockerfile
       args:
         ENV_NAME: prodlocal # Définit env pour Angular et nginx
-    image: cpierres/ocr-p6-mdd-front:1 #Nom et tag de l'image souhaité
+    image: cpierres/ocr-p6-mdd-front-prodlocal:1 #Nom et tag de l'image souhaité
     container_name: ocr-p6-mdd-frontend-prodlocal
     restart: always
     depends_on:
       - backend
     ports:
-      - "66:80"
+      - "67:80"
     networks:
       - mdd-network
 

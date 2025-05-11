@@ -49,6 +49,9 @@ logging:
     org.springframework.boot.web.embedded: INFO
     org.springframework.boot.autoconfigure: INFO
 
+jwt:
+  secret-key: ${P6_JWT_SECRET_KEY:vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=}
+  expiration-time: ${P6_JWT_EXPIRATION_TIME:3600}
 springdoc:
   api-docs:
     enabled: true

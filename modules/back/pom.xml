@@ -225,7 +225,7 @@
                         <profile>${spring.profiles.active}</profile>
                     </profiles>
                     <image>
-                        <name>cpierres/ocr-p6-mdd-backend:${docker.image.tag}</name>
+                        <name>cpierres/ocr-p6-mdd-backend-${spring.profiles.active}:${docker.image.tag}</name>
                         <env>
                             <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
                             <!-- Install curl for healthcheck -->

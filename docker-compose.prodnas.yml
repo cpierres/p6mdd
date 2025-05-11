@@ -6,7 +6,7 @@ services:
   postgres-r2dbc:
     image: postgres:17
     restart: always
-    container_name: ocr-p6-postgres-r2dbc-mdd
+    container_name: ocr-p6-postgres-r2dbc-mdd-prodnas
     environment:
       POSTGRES_USER: ${P6_DB_USER}
       POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
@@ -44,8 +44,8 @@ services:
 #      - "log_statement=all"
 
   backend:
-    image: cpierres/ocr-p6-mdd-backend:1
-    container_name: mdd-backend
+    image: cpierres/ocr-p6-mdd-backend-prodnas:1
+    container_name: ocr-p6-mdd-backend-prodnas
     restart: on-failure:5
     depends_on:
       postgres-r2dbc:
@@ -60,28 +60,28 @@ services:
       SPRING_PROFILES_ACTIVE: prodnas
       SPRING_FLYWAY_CONNECT_RETRIES: 3
       SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
-#      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-#      SPRING_FLYWAY_BASELINE_VERSION: "0"
-#      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
     ports:
       - "8066:8080"
     networks:
       - mdd-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://backend:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://backend:8080/actuator/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
 
   frontend:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#      args:
-#        ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
-    image: cpierres/ocr-p6-mdd-front-img:1
-    container_name: mdd-frontend
+    build:
+      context: ./modules/front
+      dockerfile: Dockerfile
+      args:
+        ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
+    image: cpierres/ocr-p6-mdd-front-prodnas:1 #Nom et tag de l'image souhaité
+    container_name: ocr-p6-mdd-frontend-prodnas
     restart: always
     depends_on:
       - backend
