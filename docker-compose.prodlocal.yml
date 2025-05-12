@@ -49,7 +49,8 @@ services:
       P6_DB_URL: postgresql://postgres-r2dbc:5432
       P6_DB_USER: mdduser
       P6_DB_PASSWORD: mddpw
-      P6_JWT_SECRET_KEY: vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=
+      P6_JWT_SECRET_KEY: ${P6_JWT_SECRET_KEY}
+      P6_JWT_EXPIRATION_TIME: ${P6_JWT_EXPIRATION_TIME}
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_PROFILES_ACTIVE: prodlocal
@@ -87,6 +88,11 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: D:\DockerVolumes\p6mdd-prodlocal\postgres_data
 
 networks:
   mdd-network:

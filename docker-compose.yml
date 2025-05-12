@@ -18,3 +18,8 @@ services:
       retries: 2
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: D:\DockerVolumes\p6mdd-dev\postgres_data

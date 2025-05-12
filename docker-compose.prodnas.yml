@@ -11,10 +11,8 @@ services:
       POSTGRES_USER: ${P6_DB_USER}
       POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
       POSTGRES_DB: dbmdd
-      # Additional PostgreSQL configuration
       POSTGRES_INITDB_ARGS: "--encoding=UTF8"
       PGDATA: /var/lib/postgresql/data/pgdata
-      # Connection settings
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5436:5432"
@@ -54,14 +52,15 @@ services:
       P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
       P6_DB_USER: ${P6_DB_USER}
       P6_DB_PASSWORD: ${P6_DB_PASSWORD}
-      P6_JWT_SECRET_KEY: vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=
+      P6_JWT_SECRET_KEY: ${P6_JWT_SECRET_KEY}
+      P6_JWT_EXPIRATION_TIME: ${P6_JWT_EXPIRATION_TIME}
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
       SPRING_PROFILES_ACTIVE: prodnas
       SPRING_FLYWAY_CONNECT_RETRIES: 3
       SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+#      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+#      SPRING_FLYWAY_BASELINE_VERSION: "0"
       JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
     ports:
       - "8066:8080"
@@ -92,6 +91,11 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume1/docker-volumes/p6mdd-prodnas/postgres_data
 
 networks:
   mdd-network:
