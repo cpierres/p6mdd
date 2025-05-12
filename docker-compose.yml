@@ -12,9 +12,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "mdduser"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "pg_isready", "-U", "mdduser", "-d", "dbmdd"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: D:\DockerVolumes\p6mdd-dev\postgres_data

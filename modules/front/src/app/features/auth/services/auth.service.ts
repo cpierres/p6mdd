@@ -17,7 +17,7 @@ import {LoginRequest} from '../interfaces/loginRequest.interface';
   providedIn: 'root',
 })
 export class AuthService {
-  private pathService = environment.baseUrl + 'auth';
+  private pathService = environment.backendUrl + 'auth';
 
   constructor(private http: HttpClient,
               private sessionService: SessionService,

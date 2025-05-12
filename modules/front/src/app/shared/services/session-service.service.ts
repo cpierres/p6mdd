@@ -31,7 +31,7 @@ export class SessionService implements OnInit {
     if (token) {
       // Si un token existe, récupérer les informations de l'utilisateur
       // Avec la nouvelle structure ApiResult, nous devons extraire l'utilisateur du champ data
-      this.http.get<ApiResult<User>>(`${environment.baseUrl}auth/me`).subscribe({
+      this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`).subscribe({
         next: (apiResult: ApiResult<User>) => {
           if (apiResult.data) {
             this.logIn(apiResult.data);

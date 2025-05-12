@@ -1,0 +1,31 @@
+FROM eclipse-temurin:22-jdk as build
+WORKDIR /app
+
+# Copier les fichiers Maven
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+
+# Rendre le script mvnw exécutable
+RUN chmod +x ./mvnw
+
+# Construire l'application
+RUN ./mvnw clean package -DskipTests
+
+# Image finale
+FROM eclipse-temurin:22-jre
+WORKDIR /app
+
+# Copier le JAR depuis l'étape de build
+COPY --from=build /app/target/*.jar app.jar
+
+# Variables d'environnement pour la base de données
+ENV P6_DB_USER=mdduser
+ENV P6_DB_PASSWORD=mddpw
+
+# Port exposé
+EXPOSE 8080
+
+# Commande de démarrage
+ENTRYPOINT ["java", "-jar", "app.jar"]

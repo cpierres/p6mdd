@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MavenCompilerTasksManager">
+    <option name="beforeCompileTasks">
+      <set>
+        <MavenCompilerTask>
+          <option name="goal" value="org.springframework.boot:spring-boot-maven-plugin:3.4.4:build-image" />
+          <option name="projectPath" value="$PROJECT_DIR$/modules/back/pom.xml" />
+        </MavenCompilerTask>
+      </set>
+    </option>
+  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>

@@ -1,0 +1,102 @@
+services:
+#  cette image n'a plus d'intérêt car j'ai réussi à rendre l'image agnostique de son environnement
+#  d'exécution grâce à l'utilisation du dns interne à docker.
+#  Je la conserve par rapport à la démarche de mise en place à titre pédagogique même si elle n'est
+#  plus utile dans ce projet.
+  postgres-r2dbc:
+    image: postgres:17
+    restart: always
+    container_name: ocr-p6-postgres-r2dbc-mdd-prodnas
+    environment:
+      POSTGRES_USER: ${P6_DB_USER}
+      POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
+      POSTGRES_DB: dbmdd
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mdduser", "-d", "dbmdd"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mdd-network
+#    command:
+#      - "postgres"
+#      - "-c"
+#      - "max_connections=100"
+#      - "-c"
+#      - "shared_buffers=256MB"
+#      - "-c"
+#      - "work_mem=16MB"
+#      - "-c"
+#      - "maintenance_work_mem=64MB"
+#      - "-c"
+#      - "max_prepared_transactions=0"
+#      - "-c"
+#      - "log_statement=all"
+
+  backend:
+    image: cpierres/ocr-p6-mdd-backend-prodnas:1
+    container_name: ocr-p6-mdd-backend-prodnas
+    restart: on-failure:5
+    depends_on:
+      postgres-r2dbc:
+        condition: service_healthy
+    environment:
+      P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
+      P6_DB_USER: ${P6_DB_USER}
+      P6_DB_PASSWORD: ${P6_DB_PASSWORD}
+      P6_JWT_SECRET_KEY: ${P6_JWT_SECRET_KEY}
+      P6_JWT_EXPIRATION_TIME: ${P6_JWT_EXPIRATION_TIME}
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
+      SPRING_FLYWAY_URL: jdbc:postgresql://postgres-r2dbc:5432/dbmdd
+      SPRING_PROFILES_ACTIVE: prodnas
+      SPRING_FLYWAY_CONNECT_RETRIES: 3
+      SPRING_FLYWAY_CONNECT_RETRY_INTERVAL: 10
+#      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+#      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m -Dspring.flyway.driver-class-name=org.postgresql.Driver"
+    ports:
+      - "8066:8080"
+    networks:
+      - mdd-network
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://backend:8080/actuator/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+
+  frontend:
+    build:
+      context: ./modules/front
+      dockerfile: Dockerfile
+      args:
+        ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
+    image: cpierres/ocr-p6-mdd-front-prodnas:1 #Nom et tag de l'image souhaité
+    container_name: ocr-p6-mdd-frontend-prodnas
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "66:80"
+    networks:
+      - mdd-network
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /volume1/docker-volumes/p6mdd-prodnas/postgres_data
+
+networks:
+  mdd-network:
+    driver: bridge
