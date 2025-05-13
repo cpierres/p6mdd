@@ -1,8 +1,10 @@
 package com.mdd.back.controller;
 
+import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
 import com.mdd.back.models.ResponseDetails;
 import com.mdd.back.models.TopicStatsDto;
+import com.mdd.back.services.CommentEmitter;
 import com.mdd.back.services.PostEmitter;
 import com.mdd.back.services.TopicStatsEmitter;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,15 +26,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@Tag(name = "sse-controller", description = "Gestion et consultation des statistiques et posts en temps réels (SSE : Server Side Events).")
+@Tag(name = "sse-controller", description = "Gestion et consultation des statistiques, posts et commentaires en temps réels (SSE : Server Side Events).")
 public class SseController {
     private final TopicStatsEmitter topicStatsEmitter;
     private final PostEmitter postEmitter;
+    private final CommentEmitter commentEmitter;
 
     @Autowired
-    public SseController(TopicStatsEmitter topicStatsEmitter, PostEmitter postEmitter) {
+    public SseController(TopicStatsEmitter topicStatsEmitter, 
+                         PostEmitter postEmitter,
+                         CommentEmitter commentEmitter) {
         this.topicStatsEmitter = topicStatsEmitter;
         this.postEmitter = postEmitter;
+        this.commentEmitter = commentEmitter;
     }
 
     @Operation(
@@ -103,6 +109,40 @@ public class SseController {
                 .map(post -> ServerSentEvent.<PostDto>builder()
                         .data(post)
                         .event("post-created")
+                        .build());
+    }
+
+    @Operation(
+            summary = "Obtenir un flux en temps réel des nouveaux commentaires",
+            description = "Ce endpoint expose une connexion Server-Sent Events (SSE) permettant de recevoir les nouveaux commentaires en temps réel.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Flux en temps réel des nouveaux commentaires",
+                            content = @Content(mediaType = MediaType.TEXT_EVENT_STREAM_VALUE,
+                                    schema = @Schema(implementation = PostCommentDto.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Utilisateur non authentifié ou non autorisé",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur interne du serveur",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDetails.class))
+                    )
+            }
+    )
+    @GetMapping(value = "/comments/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @SecurityRequirement(name = "Bearer Authentication")
+    public Flux<ServerSentEvent<PostCommentDto>> streamComments() {
+        return commentEmitter.getCommentStream()
+                .map(comment -> ServerSentEvent.<PostCommentDto>builder()
+                        .data(comment)
+                        .event("comment-created")
                         .build());
     }
 }
