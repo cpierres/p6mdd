@@ -12,6 +12,7 @@ import com.mdd.back.repositories.UserRepository;
 import com.mdd.back.services.interfaces.IPostCommentService;
 import com.mdd.back.services.interfaces.IPostService;
 import com.mdd.back.services.interfaces.IPostStatisticsService;
+import com.mdd.back.services.interfaces.IPostNotifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class PostService implements IPostService {
     private final PostMapper postMapper;
     private final IPostCommentService postCommentService;
     private final IPostStatisticsService postStatisticsService;
+    private final IPostNotifier postNotifier;
 
     @Autowired
     public PostService(AuthFacade authFacade,
@@ -42,7 +44,8 @@ public class PostService implements IPostService {
                        UserRepository userRepository,
                        PostMapper postMapper,
                        IPostCommentService postCommentService,
-                       IPostStatisticsService postStatisticsService) {
+                       IPostStatisticsService postStatisticsService,
+                       IPostNotifier postNotifier) {
         this.authFacade = authFacade;
         this.postRepository = postRepository;
         this.topicRepository = topicRepository;
@@ -50,6 +53,7 @@ public class PostService implements IPostService {
         this.postMapper = postMapper;
         this.postCommentService = postCommentService;
         this.postStatisticsService = postStatisticsService;
+        this.postNotifier = postNotifier;
     }
 
     @Override
@@ -63,11 +67,15 @@ public class PostService implements IPostService {
                             .switchIfEmpty(Mono.error(new ResourceNotFoundException("Topic non trouvé")))
                             .flatMap(topic -> postRepository.save(post))
                             .flatMap(this::enrichPostDto)
-                            .flatMap(enrichedPostDto ->
-                                    postStatisticsService.updateAndNotifyTopicStats()
-                                            .collectList()
-                                            .then(Mono.just(enrichedPostDto))
-                            );
+                            .flatMap(enrichedPostDto -> {
+                                // Notifier les clients du nouveau post
+                                postNotifier.notifyNewPost(enrichedPostDto);
+
+                                // Mettre à jour les statistiques des topics
+                                return postStatisticsService.updateAndNotifyTopicStats()
+                                        .collectList()
+                                        .then(Mono.just(enrichedPostDto));
+                            });
                 });
     }
 

@@ -5,6 +5,7 @@ import com.mdd.back.repositories.PostCommentRepository;
 import com.mdd.back.repositories.PostRepository;
 import com.mdd.back.repositories.TopicRepository;
 import com.mdd.back.services.interfaces.IPostStatisticsService;
+import com.mdd.back.services.interfaces.ITopicStatsNotifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -20,13 +21,13 @@ public class PostStatisticsService implements IPostStatisticsService {
     private final TopicRepository topicRepository;
     private final PostRepository postRepository;
     private final PostCommentRepository commentRepository;
-    private final TopicStatsNotifier topicStatsNotifier;
+    private final ITopicStatsNotifier topicStatsNotifier;
 
     @Autowired
     public PostStatisticsService(TopicRepository topicRepository,
                                  PostRepository postRepository,
                                  PostCommentRepository commentRepository,
-                                 TopicStatsNotifier topicStatsNotifier) {
+                                 ITopicStatsNotifier topicStatsNotifier) {
         this.topicRepository = topicRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;

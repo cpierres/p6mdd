@@ -1,6 +1,7 @@
 package com.mdd.back.services;
 
 import com.mdd.back.models.TopicStatsDto;
+import com.mdd.back.services.interfaces.ITopicStatsNotifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -27,10 +28,10 @@ import java.util.List;
  * pour tout nouvel abonné. Elle est particulièrement utile pour des fonctionnalités telles que
  * le SSE (Server Sent Event), permettant de diffuser les mises à jour en temps réel à plusieurs consommateurs.
  *
- * Implémente l'interface {@link TopicStatsNotifier}, permettant de notifier des mises à jour de statistiques.
+ * Implémente l'interface {@link ITopicStatsNotifier}, permettant de notifier des mises à jour de statistiques.
  */
 @Service
-public class TopicStatsEmitter implements TopicStatsNotifier {
+public class TopicStatsEmitter implements ITopicStatsNotifier {
     // Un Sink est comparable à un BehaviorSubject (cache léger réactif)
     // Sert à émettre et stocker un flux.
     // Sinks.Many indique qu'il peut émettre plusieurs éléments pour les abonnés
