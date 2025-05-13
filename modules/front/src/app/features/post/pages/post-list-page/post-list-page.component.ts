@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {Router} from '@angular/router';
 import {MatOption, MatSelect} from '@angular/material/select';
@@ -12,6 +12,8 @@ import {FormsModule} from '@angular/forms';
 import {MatGridList, MatGridTile} from '@angular/material/grid-list';
 import {PostListComponent} from '../../components/post-list/post-list.component';
 import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
+import {PostEventService} from '../../services/post-event.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-post-list-page',
@@ -30,17 +32,19 @@ import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
   templateUrl: './post-list-page.component.html',
   styleUrl: './post-list-page.component.scss'
 })
-export class PostListPageComponent implements OnInit {
+export class PostListPageComponent implements OnInit, OnDestroy {
   topics: TopicStatsDto[] = [];
   posts: PostDto[] = [];
   selectedTopicId: string = 'subscribed';
   sortCriteria: string = 'date'; // Par défaut: tri par date (récent d'abord)
   cols: number = 2; // Nb cols par défaut sur grand écran
   gutterSize: string = '16px'; // Espacement par défaut entre les cartes
+  private subscription: Subscription = new Subscription();
 
   constructor(private router: Router,
               private postService: PostService,
               private topicStatsService: TopicStatsService,
+              private postEventService: PostEventService,
               private breakpointObserver: BreakpointObserver) {
   }
 
@@ -50,9 +54,54 @@ export class PostListPageComponent implements OnInit {
     this.initBreakpointObserver();
 
     // Utiliser le service SSE pour mettre à jour les statistiques des topics
-    this.topicStatsService.getTopicStats().subscribe(topics => {
-      this.topics = topics;
-    });
+    this.subscription.add(
+      this.topicStatsService.getTopicStats().subscribe(topics => {
+        this.topics = topics;
+      })
+    );
+
+    // S'abonner au flux de nouveaux posts
+    this.subscription.add(
+      this.postEventService.getNewPostStream().subscribe(newPost => {
+        if (newPost) {
+          // Vérifier si le post correspond aux critères de filtrage actuels
+          if (this.shouldAddPost(newPost)) {
+            // Ajouter le nouveau post au début de la liste
+            this.posts = [newPost, ...this.posts];
+          }
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyer les abonnements
+    this.subscription.unsubscribe();
+  }
+
+  /**
+   * Détermine si un post doit être ajouté à la liste en fonction des filtres actuels
+   */
+  private shouldAddPost(post: PostDto): boolean {
+    // Si on affiche tous les posts
+    if (this.selectedTopicId === 'all') {
+      return true;
+    }
+
+    // Si on filtre par topic spécifique
+    if (this.selectedTopicId !== 'subscribed' && this.selectedTopicId !== 'all') {
+      return post.topicId === this.selectedTopicId;
+    }
+
+    // Pour 'subscribed', on ne peut pas déterminer facilement si l'utilisateur est abonné au topic
+    // On pourrait soit recharger la liste complète, soit maintenir une liste des IDs des topics auxquels l'utilisateur est abonné
+    // Pour simplifier, on recharge la liste complète quand un nouveau post arrive et qu'on est en mode 'subscribed'
+    if (this.selectedTopicId === 'subscribed') {
+      this.loadPosts();
+      return false; // On ne l'ajoute pas manuellement puisqu'on recharge la liste
+    }
+
+    return false;
   }
 
   openCreatePost() {
