@@ -2,7 +2,7 @@
   <mat-toolbar color="white" [ngClass]="{'authenticated': showRightMenu}">
     <div class="logo" [ngClass]="{'mobile-order-2': !showRightMenu && isMobile}">
       <a routerLink="/">
-        <img alt="Monde du Développement" src="assets/images/logo_mdd.png" height="113" width="195"/>
+        <img alt="Monde du Développement" src="assets/images/logo_mdd.png" height="113" width="195" />
       </a>
     </div>
 
@@ -10,16 +10,28 @@
       <app-logout (logout)="onLogout()"/>
       <button mat-menu-item routerLink="/posts">Articles</button>
       <button mat-menu-item routerLink="/topics">Thèmes</button>
-      <button mat-menu-item routerLink="/auth/profil">
-        <img ngSrc="assets/images/profil.png" alt="User" width="58" height="58"/>
-      </button>
+      <div class="profile-container">
+        <button mat-menu-item routerLink="/auth/profil">
+          <img ngSrc="assets/images/profil.png" alt="User" width="58" height="58"/>
+        </button>
+        <!-- Affichage du nom d'utilisateur en superposition sur l'image du profil (desktop uniquement) -->
+        <div *ngIf="sessionService.user" class="username-display desktop-username" routerLink="/auth/profil">
+          {{ sessionService.user.username }}
+        </div>
+      </div>
     </div>
 
     <!-- Menu burger pour mobile -->
     <div class="menu-mobile" *ngIf="showRightMenu && isMobile">
-      <button mat-icon-button [matMenuTriggerFor]="menuMobile">
-        <mat-icon>menu</mat-icon>
-      </button>
+      <div class="mobile-menu-container">
+        <!-- Affichage du nom d'utilisateur à gauche du menu hamburger (mobile uniquement) -->
+        <div *ngIf="sessionService.user" class="username-display mobile-username" routerLink="/auth/profil">
+          {{ sessionService.user.username }}
+        </div>
+        <button mat-icon-button [matMenuTriggerFor]="menuMobile">
+          <mat-icon>menu</mat-icon>
+        </button>
+      </div>
     </div>
   </mat-toolbar>
 

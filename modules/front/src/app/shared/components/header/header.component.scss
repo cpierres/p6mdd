@@ -1,6 +1,86 @@
-/* Styles spécifiques pour le header */
 .logo img {
   max-width: 150px;
+}
+
+/* Styles communs pour le nom d'utilisateur */
+.username-display {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Style pour le conteneur du profil et du nom d'utilisateur en desktop */
+.profile-container {
+  position: relative; /* Pour permettre le positionnement absolu du username */
+  display: flex;
+  align-items: center; /* Aligne le bouton du profil verticalement avec les autres éléments */
+  height: 100%; /* Assure que le profil a la hauteur complète du header */
+  margin: 0; /* Supprime les marges qui pourraient affecter la hauteur */
+  padding: 0; /* Supprime les paddings qui pourraient affecter la hauteur */
+}
+
+/* Style pour le bouton du profil */
+.profile-container button {
+  height: 100%; /* Assure que le bouton a la hauteur complète du conteneur */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal; /* Réinitialise la hauteur de ligne pour éviter les problèmes d'alignement */
+  padding: 5px 0 0 0; /* Ajoute un padding en haut pour déplacer le contenu vers le bas */
+  box-sizing: border-box; /* S'assure que le padding est inclus dans la hauteur */
+  margin: 0; /* Supprime les marges qui pourraient affecter l'alignement */
+}
+
+/* Style pour l'image à l'intérieur du bouton du profil */
+.profile-container button img {
+  display: block; /* Évite les espaces blancs sous l'image */
+  max-height: 58px; /* Limite la hauteur de l'image */
+  width: auto; /* Maintient les proportions de l'image */
+  margin-top: 5px; /* Déplace l'image légèrement vers le bas */
+}
+
+/* Style pour le carré de subrillance du bouton du profil */
+.profile-container button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: -1;
+}
+
+/* Style pour le carré de subrillance du bouton du profil au survol et au focus */
+.profile-container button:hover::before,
+.profile-container button:focus::before {
+  background-color: transparent; /* Aucune surbrillance */
+}
+
+/* Style pour le nom d'utilisateur en superposition sur l'image du profil (desktop) */
+.desktop-username {
+  position: absolute;
+  bottom: -8px; /* Positionné un peu plus haut que le bas de l'image */
+  left: 0;
+  right: 0;
+  text-align: center;
+  /* Pas de fond pour éviter le fond blanc */
+  padding: 0px 0;
+  color: black;
+}
+
+/* Style pour le conteneur du menu mobile et du nom d'utilisateur */
+.mobile-menu-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end; /* Aligne les éléments à droite */
+}
+
+/* Style pour le nom d'utilisateur à gauche du menu hamburger (mobile) */
+.mobile-username {
+  font-size: 10px;
+  margin-right: 5px; /* Marge à droite pour l'espacement avec le menu hamburger */
+  color: #666; /* Couleur grise pour le username en mobile */
 }
 
 mat-toolbar {
@@ -75,5 +155,3 @@ mat-toolbar {
     margin-top: 5px; // Petit espacement entre le back et le logo
   }
 }
-
-
