@@ -120,4 +120,13 @@ public class PostFacade {
         return postService.getPostWithComments(postId);
     }
 
+    /**
+     * Délègue la récupération des posts triés par date de création en ordre ascendant au service spécifique.
+     *
+     * @return Un Flux contenant les DTOs des posts triés par date de création
+     */
+    public Flux<PostDto> getAllPostsSortedByDateAsc() {
+        return postService.getAllPostsSortedByDateAsc();
+    }
+
 }

@@ -113,7 +113,7 @@ public class PostService implements IPostService {
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
                 .flatMap(post -> {
                     Mono<PostDto> enrichedPostDto = enrichPostDto(post);
-                    
+
                     return enrichedPostDto.flatMap(postDto ->
                             postCommentService.getCommentsByPostId(post.getId())
                                     .collectList()
@@ -123,6 +123,13 @@ public class PostService implements IPostService {
                                     })
                     );
                 });
+    }
+
+    @Override
+    public Flux<PostDto> getAllPostsSortedByDateAsc() {
+        return postRepository.findAll()
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getCreatedAt));
     }
 
     /**

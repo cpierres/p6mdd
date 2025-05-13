@@ -54,4 +54,10 @@ public interface IPostService {
      * @return Un Mono contenant le DTO du post avec ses commentaires
      */
     Mono<PostDto> getPostWithComments(UUID postId);
+
+    /**
+     * Récupère les posts triés par date de création en ordre ascendant (du plus ancien au plus récent).
+     * @return Un Flux contenant les DTOs des posts triés par date de création
+     */
+    Flux<PostDto> getAllPostsSortedByDateAsc();
 }

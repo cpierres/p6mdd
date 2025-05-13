@@ -20,6 +20,7 @@
         <mat-label>Trier par</mat-label>
         <mat-select [(ngModel)]="sortCriteria" (selectionChange)="onSortChange()">
           <mat-option value="date">Date (récent d'abord)</mat-option>
+          <mat-option value="date-asc">Date (par ordre de création)</mat-option>
           <mat-option value="topic">Thème</mat-option>
           <mat-option value="author">Auteur</mat-option>
         </mat-select>

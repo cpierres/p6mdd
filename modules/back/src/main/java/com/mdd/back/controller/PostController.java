@@ -147,6 +147,8 @@ public class PostController {
             return postFacade.getAllPostsSortedByAuthor();
         } else if ("all".equals(sortBy)) {
             return postFacade.getAllPosts();
+        } else if ("date-asc".equals(sortBy)) {
+            return postFacade.getAllPostsSortedByDateAsc();
         } else {
             return postFacade.getAllPostsSubscribed();
         }
