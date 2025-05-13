@@ -60,7 +60,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/api/topics/stats/stream"
+                                "/api/topics/stats/stream",
+                                "/api/posts/stream"
                         ).permitAll() // Autoriser les accès publics
                         .anyExchange().authenticated() // Authentification pour toutes les autres routes
                 )
