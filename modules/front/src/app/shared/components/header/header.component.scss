@@ -1,4 +1,3 @@
-/* Styles spécifiques pour le header */
 .logo img {
   max-width: 150px;
 }
@@ -54,19 +53,19 @@
 /* Style pour le carré de subrillance du bouton du profil au survol et au focus */
 .profile-container button:hover::before,
 .profile-container button:focus::before {
-  background-color: rgba(0, 0, 0, 0.04); /* Couleur de subrillance légère */
+  background-color: transparent; /* Aucune surbrillance */
 }
 
 /* Style pour le nom d'utilisateur en superposition sur l'image du profil (desktop) */
 .desktop-username {
   position: absolute;
-  bottom: -4px; /* Positionné un peu plus haut que le bas de l'image */
+  bottom: -8px; /* Positionné un peu plus haut que le bas de l'image */
   left: 0;
   right: 0;
   text-align: center;
   /* Pas de fond pour éviter le fond blanc */
   padding: 0px 0;
-  color: white; /* Couleur blanche pour le username en desktop */
+  color: black;
 }
 
 /* Style pour le conteneur du menu mobile et du nom d'utilisateur */
