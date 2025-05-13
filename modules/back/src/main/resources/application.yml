@@ -2,7 +2,10 @@ spring:
   application:
     name: mddback
   profiles:
-    active: ${spring.profiles.active:prodnas}
+    active: dev
+  docker:
+    compose:
+      file: ../../docker-compose.yml
   flyway:
     enabled: true
     url: jdbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
