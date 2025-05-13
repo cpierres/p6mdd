@@ -109,6 +109,11 @@ mat-grid-tile {
   }
 }
 
+/* Ajuster l'espacement vertical entre les tuiles dans la grille */
+::ng-deep .mat-grid-tile {
+  margin-bottom: 2px !important; /* Espacement vertical homogène réduit */
+}
+
 app-post-list {
   width: 100%;
   height: 100%;

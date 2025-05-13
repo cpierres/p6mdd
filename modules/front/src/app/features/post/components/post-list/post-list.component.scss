@@ -1,13 +1,14 @@
 .post-card {
   min-height: 210px; /* Hauteur minimale au lieu de fixe */
-  height: auto; /* Hauteur automatique basée sur le contenu */
+  height: auto;
   margin: 0; /* Suppression de la marge inférieure */
   display: flex;
   flex-direction: column;
   //justify-content: space-between; /* Gère l’espacement interne */
   align-items: normal;
-  padding: 16px; /* Ajoute un padding uniforme autour du contenu */
+  padding: 8px; /* Ajoute un padding uniforme autour du contenu */
   padding-top: 0; /* Supprime le padding en haut car mat-card-header a son propre padding */
+  padding-right: 16px; /* Augmenter le padding à droite pour éviter que le texte soit trop collé */
   background-color: #eeeeee;
   cursor: pointer;
   transition: transform 0.2s;
@@ -88,7 +89,7 @@ mat-card-content {
   width: 100%;
   flex: 1 1 auto; /* Permet l'expansion automatique */
   overflow: hidden; /* Empêche le débordement */
-  /* Pas besoin de padding-right car le padding est déjà défini dans .post-card */
+  padding-right: 8px; /* Ajouter un padding supplémentaire à droite pour éviter que le texte soit trop collé */
 }
 
 /* Styles pour assurer que le titre s'affiche correctement sur mobile */
