@@ -35,7 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private sessionSubscription: Subscription | undefined;
   isMobile: boolean = false;
 
-  constructor(private sessionService: SessionService, private router: Router) {}
+  constructor(public sessionService: SessionService, private router: Router) {}
 
   ngOnInit(): void {
     // Gestion de la souscription pour le statut de connexion
