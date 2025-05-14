@@ -1,0 +1,125 @@
+@startuml
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 250
+
+title Création d'un commentaire et mise à jour en temps réel via SSE
+
+actor "Utilisateur" as User
+participant "PostCommentComponent\n(Frontend)" as PostCommentComp
+participant "PostService\n(Frontend)" as PostServiceFront
+participant "CommentEventService\n(Frontend)" as CommentEventService
+participant "PostController\n(Backend)" as PostController
+participant "PostFacade\n(Backend)" as PostFacade
+participant "PostCommentService\n(Backend)" as PostCommentService
+participant "AuthFacade\n(Backend)" as AuthFacade
+participant "PostRepository\n(Backend)" as PostRepo
+participant "CommentRepository\n(Backend)" as CommentRepo
+participant "UserRepository\n(Backend)" as UserRepo
+participant "CommentEmitter\n(Backend)" as CommentEmitter
+participant "SseController\n(Backend)" as SseController
+participant "Base de données\n(PostgreSQL/R2DBC)" as DB
+actor "Autres Utilisateurs" as OtherUsers
+
+== Initialisation de la connexion SSE ==
+
+User -> PostCommentComp: Chargement de la page de commentaires
+activate PostCommentComp
+PostCommentComp -> CommentEventService: Initialisation
+activate CommentEventService
+CommentEventService -> SseController: Connexion au flux SSE\n(GET /api/comments/stream)
+activate SseController
+SseController -> CommentEmitter: getCommentStream()
+activate CommentEmitter
+CommentEmitter --> SseController: Flux<PostCommentDto>
+SseController --> CommentEventService: Connexion SSE établie
+note right of CommentEventService: La connexion SSE reste ouverte\npour recevoir les mises à jour
+deactivate CommentEmitter
+
+== Création d'un nouveau commentaire ==
+
+User -> PostCommentComp: Remplit le formulaire et clique sur "Commenter"
+PostCommentComp -> PostCommentComp: Validation du formulaire
+PostCommentComp -> PostServiceFront: createComment(newComment: PostCommentDto)
+activate PostServiceFront
+PostServiceFront -> PostController: HTTP POST /api/comments
+activate PostController
+PostController -> PostFacade: createComment(commentDto)
+activate PostFacade
+PostFacade -> PostCommentService: createComment(commentDto)
+activate PostCommentService
+
+PostCommentService -> AuthFacade: getAuthenticatedUserId()
+activate AuthFacade
+AuthFacade --> PostCommentService: userId
+deactivate AuthFacade
+
+PostCommentService -> PostCommentService: commentMapper.commentDtoToComment(commentDto)
+PostCommentService -> PostCommentService: comment.setCreatedBy(userId)
+
+PostCommentService -> PostRepo: findById(commentDto.getPostId())
+activate PostRepo
+PostRepo -> DB: Requête R2DBC (non-bloquante)
+activate DB
+DB --> PostRepo: Post
+deactivate DB
+PostRepo --> PostCommentService: Mono<Post>
+deactivate PostRepo
+
+PostCommentService -> CommentRepo: save(comment)
+activate CommentRepo
+CommentRepo -> DB: Requête SQL INSERT (non-bloquante)
+activate DB
+note right of DB: Opération asynchrone\nLe thread n'est pas bloqué
+DB --> CommentRepo: Résultat
+deactivate DB
+CommentRepo --> PostCommentService: Mono<PostComment>
+deactivate CommentRepo
+
+PostCommentService -> UserRepo: findById(comment.getCreatedBy())
+activate UserRepo
+UserRepo -> DB: Requête R2DBC (non-bloquante)
+activate DB
+DB --> UserRepo: User
+deactivate DB
+UserRepo --> PostCommentService: Mono<User>
+deactivate UserRepo
+
+PostCommentService -> PostCommentService: enrichCommentDto(comment)
+note right of PostCommentService: Ajoute des informations\nsupplémentaires au DTO\ncomme le nom d'utilisateur
+
+== Diffusion du commentaire via SSE ==
+
+PostCommentService -> CommentEmitter: notifyNewComment(enrichedCommentDto)
+activate CommentEmitter
+CommentEmitter -> CommentEmitter: commentSink.tryEmitNext(comment)
+note right of CommentEmitter: Émet le nouveau commentaire\ndans le Sink réactif
+CommentEmitter --> SseController: Notification de nouvelles données
+SseController -> SseController: Création d'un ServerSentEvent
+SseController --> CommentEventService: Envoi de l'événement "comment-created"
+CommentEventService -> CommentEventService: newCommentSubject.next(comment)
+deactivate CommentEmitter
+
+PostCommentService -> PostCommentService: postStatisticsService.updateAndNotifyTopicStats()
+note right of PostCommentService: Mise à jour des statistiques\ndes topics (nombre de commentaires)
+
+PostCommentService --> PostFacade: PostCommentDto enrichi
+deactivate PostCommentService
+PostFacade --> PostController: PostCommentDto
+deactivate PostFacade
+PostController --> PostServiceFront: Réponse HTTP 201 Created
+deactivate PostController
+PostServiceFront --> PostCommentComp: PostCommentDto
+deactivate PostServiceFront
+
+PostCommentComp -> PostCommentComp: Ajout du commentaire à la liste locale
+PostCommentComp -> PostCommentComp: Réinitialisation du formulaire
+PostCommentComp --> User: Affichage du commentaire ajouté
+
+== Réception du commentaire par les autres utilisateurs ==
+
+CommentEventService --> OtherUsers: Mise à jour de l'interface pour tous les utilisateurs connectés
+note right of CommentEventService: Les autres utilisateurs voient\nle nouveau commentaire en temps réel
+
+@enduml
