@@ -7,6 +7,7 @@ import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.repositories.PostCommentRepository;
 import com.mdd.back.repositories.PostRepository;
 import com.mdd.back.repositories.UserRepository;
+import com.mdd.back.services.interfaces.ICommentNotifier;
 import com.mdd.back.services.interfaces.IPostCommentService;
 import com.mdd.back.services.interfaces.IPostStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ public class PostCommentService implements IPostCommentService {
     private final UserRepository userRepository;
     private final PostCommentMapper commentMapper;
     private final IPostStatisticsService postStatisticsService;
+    private final ICommentNotifier commentNotifier;
 
     @Autowired
     public PostCommentService(AuthFacade authFacade,
@@ -34,13 +36,15 @@ public class PostCommentService implements IPostCommentService {
                               PostRepository postRepository,
                               UserRepository userRepository,
                               PostCommentMapper commentMapper,
-                              IPostStatisticsService postStatisticsService) {
+                              IPostStatisticsService postStatisticsService,
+                              ICommentNotifier commentNotifier) {
         this.authFacade = authFacade;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.commentMapper = commentMapper;
         this.postStatisticsService = postStatisticsService;
+        this.commentNotifier = commentNotifier;
     }
 
     @Override
@@ -54,11 +58,15 @@ public class PostCommentService implements IPostCommentService {
                             .switchIfEmpty(Mono.error(new ResourceNotFoundException("Article/Post non trouvé")))
                             .flatMap(post -> commentRepository.save(comment)
                                     .flatMap(this::enrichCommentDto)
-                                    .flatMap(enrichedCommentDto ->
-                                            postStatisticsService.updateAndNotifyTopicStats()
-                                                    .collectList()
-                                                    .then(Mono.just(enrichedCommentDto))
-                                    )
+                                    .flatMap(enrichedCommentDto -> {
+                                        // Notifier les clients du nouveau commentaire
+                                        commentNotifier.notifyNewComment(enrichedCommentDto);
+
+                                        // Mettre à jour les statistiques des topics
+                                        return postStatisticsService.updateAndNotifyTopicStats()
+                                                .collectList()
+                                                .then(Mono.just(enrichedCommentDto));
+                                    })
                             );
                 });
     }

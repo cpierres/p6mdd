@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
@@ -12,6 +12,8 @@ import {PostDto} from '../../interface/PostDto';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PostService} from '../../services/post.service';
 import {PostCommentDto} from '../../interface/PostCommentDto';
+import {CommentEventService} from '../../services/comment-event.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-post-comment',
@@ -30,14 +32,16 @@ import {PostCommentDto} from '../../interface/PostCommentDto';
   templateUrl: './post-comment.component.html',
   styleUrls: ['./post-comment.component.scss']
 })
-export class PostCommentComponent implements OnInit {
+export class PostCommentComponent implements OnInit, OnDestroy {
   post: PostDto | null = null;
   commentForm: FormGroup;
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private postService: PostService,
+    private commentEventService: CommentEventService,
     private fb: FormBuilder
   ) {
     this.commentForm = this.fb.group({
@@ -49,9 +53,33 @@ export class PostCommentComponent implements OnInit {
     const postId = this.route.snapshot.paramMap.get('id');
     if (postId) {
       this.loadPost(postId);
+
+      // S'abonner au flux de nouveaux commentaires
+      this.subscription.add(
+        this.commentEventService.getNewCommentStream().subscribe(newComment => {
+          if (newComment && this.post && newComment.postId === this.post.id) {
+            // Ajouter le nouveau commentaire au début de la liste si le post est chargé
+            // et que le commentaire appartient à ce post
+            if (!this.post.comments) {
+              this.post.comments = [];
+            }
+
+            // Vérifier si le commentaire existe déjà pour éviter les doublons
+            const commentExists = this.post.comments.some(c => c.id === newComment.id);
+            if (!commentExists) {
+              this.post.comments.unshift(newComment);
+            }
+          }
+        })
+      );
     } else {
       this.router.navigate(['/posts']);
     }
+  }
+
+  ngOnDestroy(): void {
+    // Nettoyer les abonnements
+    this.subscription.unsubscribe();
   }
 
   loadPost(postId: string): void {
@@ -84,4 +112,3 @@ export class PostCommentComponent implements OnInit {
     }
   }
 }
-
