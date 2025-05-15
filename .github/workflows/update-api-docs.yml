@@ -1,0 +1,45 @@
+name: Update API Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'modules/back/**'  # Déclencher uniquement si le backend est modifié
+  schedule:
+    - cron: '0 0 * * 1'  # Exécuter tous les lundis à minuit
+  workflow_dispatch:  # Permet de déclencher manuellement le workflow
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'  # Utiliser Java 21 comme dans le projet
+        
+    - name: Build and start backend
+      run: |
+        cd modules/back
+        ./mvnw spring-boot:run &
+        # Attendre que le serveur démarre
+        sleep 30
+        
+    - name: Export OpenAPI specification
+      run: |
+        mkdir -p docs/api-docs
+        curl -o docs/api-docs/openapi.json http://localhost:8080/v3/api-docs
+        
+    - name: Commit and push if changed
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add docs/api-docs/openapi.json
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update API documentation"
+        git push
