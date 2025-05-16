@@ -1,5 +1,6 @@
 package com.mdd.back.entities;
 
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,6 +23,7 @@ public class User {
 
     private String password;
 
+    @Size(min = 2)
     private String username;
 
     @CreatedDate

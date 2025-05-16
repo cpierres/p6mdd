@@ -80,7 +80,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
     // Initialisation du formulaire avec tous les champs activés par défaut
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      username: ['', [Validators.required]],
+      username: ['', [Validators.required, Validators.minLength(2)]],
       password: ['', [Validators.required, Validators.minLength(8), this.passwordValidator]],
     });
 

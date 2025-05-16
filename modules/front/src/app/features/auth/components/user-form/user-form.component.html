@@ -31,6 +31,9 @@
             <mat-error *ngIf="form.get('username')?.hasError('required')">
               nom d'utilisateur requis
             </mat-error>
+            <mat-error *ngIf="form.get('username')?.hasError('minlength')">
+              au moins 2 caractères
+            </mat-error>
             <app-field-error-backend *ngIf="hasFieldError('username')" [error]="getFieldError('username')"/>
           </mat-form-field>
         </div>

@@ -21,6 +21,7 @@ public class RegisterRequest {
 
     @Schema(description = "Nom de l'utilisateur", example="u1")
     @NotBlank(message = "Le nom de l'utilisateur est obligatoire")
+    @Size(min = 2, message = "Le nom d'utilisateur doit contenir au moins 2 caractères")
     private String username;
 
     @Schema(description = "Mot de passe", example = "Test!1234")
