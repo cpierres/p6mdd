@@ -47,8 +47,8 @@ export class PostService {
       params = params.set('topicId', topicId);
     }
 
-    // Si topicId est 'all', on définit sortBy à 'all' pour obtenir tous les posts
-    if (topicId === 'all') {
+    // Si topicId est 'all' et qu'aucun sortBy n'est défini, on utilise 'all' comme valeur par défaut
+    if (topicId === 'all' && !sortBy) {
       params = params.set('sortBy', 'all');
     }
 
