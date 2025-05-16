@@ -60,4 +60,25 @@ public interface IPostService {
      * @return Un Flux contenant les DTOs des posts triés par date de création
      */
     Flux<PostDto> getAllPostsSortedByDateAsc();
+
+    /**
+     * Récupère les posts d'un topic spécifique triés par thème.
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par thème
+     */
+    Flux<PostDto> getPostsByTopicSortedByTopic(UUID topicId);
+
+    /**
+     * Récupère les posts d'un topic spécifique triés par auteur.
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par auteur
+     */
+    Flux<PostDto> getPostsByTopicSortedByAuthor(UUID topicId);
+
+    /**
+     * Récupère les posts d'un topic spécifique triés par date de création en ordre ascendant.
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par date de création
+     */
+    Flux<PostDto> getPostsByTopicSortedByDateAsc(UUID topicId);
 }

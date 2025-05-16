@@ -137,10 +137,21 @@ public class PostController {
             @Schema(description = "Filtrage par l'identifiant d'un topic (UUID). Si spécifié, seuls les posts appartenant à ce topic sont retournés.",
                     example = "d1a27f64-403d-4c27-9fb7-1b54168a546d")
             UUID topicId) {
+        // Si un topicId est spécifié, on filtre par ce topic avec le tri spécifié
         if (topicId != null) {
-            return postFacade.getPostsByTopic(topicId);
+            if ("topic".equals(sortBy)) {
+                return postFacade.getPostsByTopicSortedByTopic(topicId);
+            } else if ("author".equals(sortBy)) {
+                return postFacade.getPostsByTopicSortedByAuthor(topicId);
+            } else if ("date-asc".equals(sortBy)) {
+                return postFacade.getPostsByTopicSortedByDateAsc(topicId);
+            } else {
+                // Par défaut, on trie par date de mise à jour décroissante
+                return postFacade.getPostsByTopic(topicId);
+            }
         }
 
+        // Si aucun topicId n'est spécifié, on utilise le comportement existant
         if ("topic".equals(sortBy)) {
             return postFacade.getAllPostsSortedByTopic();
         } else if ("author".equals(sortBy)) {

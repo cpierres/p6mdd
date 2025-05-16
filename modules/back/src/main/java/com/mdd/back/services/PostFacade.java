@@ -129,4 +129,33 @@ public class PostFacade {
         return postService.getAllPostsSortedByDateAsc();
     }
 
+    /**
+     * Délègue la récupération des posts d'un topic spécifique triés par thème au service spécifique.
+     *
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par thème
+     */
+    public Flux<PostDto> getPostsByTopicSortedByTopic(UUID topicId) {
+        return postService.getPostsByTopicSortedByTopic(topicId);
+    }
+
+    /**
+     * Délègue la récupération des posts d'un topic spécifique triés par auteur au service spécifique.
+     *
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par auteur
+     */
+    public Flux<PostDto> getPostsByTopicSortedByAuthor(UUID topicId) {
+        return postService.getPostsByTopicSortedByAuthor(topicId);
+    }
+
+    /**
+     * Délègue la récupération des posts d'un topic spécifique triés par date de création en ordre ascendant au service spécifique.
+     *
+     * @param topicId L'identifiant du topic
+     * @return Un Flux contenant les DTOs des posts du topic triés par date de création
+     */
+    public Flux<PostDto> getPostsByTopicSortedByDateAsc(UUID topicId) {
+        return postService.getPostsByTopicSortedByDateAsc(topicId);
+    }
 }

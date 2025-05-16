@@ -140,6 +140,29 @@ public class PostService implements IPostService {
                 .sort(Comparator.comparing(PostDto::getCreatedAt));
     }
 
+    @Override
+    public Flux<PostDto> getPostsByTopicSortedByTopic(UUID topicId) {
+        return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getTopicTitle)
+                        .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+    }
+
+    @Override
+    public Flux<PostDto> getPostsByTopicSortedByAuthor(UUID topicId) {
+        return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getCreatedByUsername)
+                        .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+    }
+
+    @Override
+    public Flux<PostDto> getPostsByTopicSortedByDateAsc(UUID topicId) {
+        return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topicId)
+                .flatMap(this::enrichPostDto)
+                .sort(Comparator.comparing(PostDto::getCreatedAt));
+    }
+
     /**
      * Enrichit un objet PostDto en ajoutant les informations supplémentaires issues des entités associées
      * comme le titre du topic, le nom de l'utilisateur qui a créé le post, et une indication si le post
