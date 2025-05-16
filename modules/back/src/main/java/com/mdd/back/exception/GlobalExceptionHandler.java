@@ -24,12 +24,34 @@ public class GlobalExceptionHandler {
 
     /**
      * Permet d'afficher un message synthétique lors de la validation des DTO (via @Valid ou @Validated)
+     * Pour les requêtes de connexion (LoginRequest), affiche un message générique "Authentification incorrecte"
+     * sans détails sur les champs en erreur pour des raisons de sécurité.
      */
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<ApiResult<ResponseDetails>>> handleValidationException(WebExchangeBindException ex, ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Vérifier si l'exception concerne une requête de connexion (LoginRequest)
+        if ("loginRequest".equals(ex.getBindingResult().getObjectName())) {
+            // Pour les requêtes de connexion, retourner un message générique sans détails
+            ResponseDetails responseDetails = new ResponseDetails(
+                    "Authentification incorrecte",
+                    Severity.ERROR,
+                    null // Pas de détails sur les champs en erreur
+            );
+
+            ApiResult<ResponseDetails> apiResult = new ApiResult<>(
+                    responseDetails,
+                    "Authentification incorrecte",
+                    HttpStatus.UNAUTHORIZED.value(), // 401 Unauthorized
+                    requestId
+            );
+
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiResult));
+        }
+
+        // Pour les autres types de requêtes, conserver le comportement actuel
         List<FieldInfoDetails> fieldErrorDetails = convertFieldErrors(ex.getBindingResult().getFieldErrors());
         ResponseDetails responseDetails = new ResponseDetails(
                 "Les données d'entrée ne sont pas valides.",
