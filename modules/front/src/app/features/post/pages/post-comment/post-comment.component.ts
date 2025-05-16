@@ -14,6 +14,7 @@ import {PostService} from '../../services/post.service';
 import {PostCommentDto} from '../../interface/PostCommentDto';
 import {CommentEventService} from '../../services/comment-event.service';
 import {Subscription} from 'rxjs';
+import {SessionService} from '../../../../shared/services/session-service.service';
 
 @Component({
   selector: 'app-post-comment',
@@ -42,7 +43,8 @@ export class PostCommentComponent implements OnInit, OnDestroy {
     private router: Router,
     private postService: PostService,
     private commentEventService: CommentEventService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private sessionService: SessionService
   ) {
     this.commentForm = this.fb.group({
       comment: ['', Validators.required]
@@ -58,6 +60,13 @@ export class PostCommentComponent implements OnInit, OnDestroy {
       this.subscription.add(
         this.commentEventService.getNewCommentStream().subscribe(newComment => {
           if (newComment && this.post && newComment.postId === this.post.id) {
+            // Vérifier si le commentaire a été créé par l'utilisateur actuel
+            if (this.sessionService.user && newComment.createdBy === this.sessionService.user.id) {
+              // Ignorer les commentaires créés par l'utilisateur actuel
+              // car ils ont déjà été ajoutés dans submitComment()
+              return;
+            }
+
             // Ajouter le nouveau commentaire au début de la liste si le post est chargé
             // et que le commentaire appartient à ce post
             if (!this.post.comments) {
