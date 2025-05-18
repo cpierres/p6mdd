@@ -2,6 +2,10 @@
 FROM node:20 AS build
 WORKDIR /app
 
+# Récupérer la version du projet
+ARG VERSION=1.0.0-SNAPSHOT
+ENV VERSION=${VERSION}
+
 # Copier les fichiers de configuration
 COPY package*.json ./
 RUN npm install
@@ -19,8 +23,13 @@ RUN npm run build -- --configuration=${ENV_NAME}
 # Etape 2 : Configuration du serveur Nginx pour le déploiement
 FROM nginx:alpine
 
-# Re-déclarer la variable ARG dans cette étape pour qu'elle soit disponible
+# Re-déclarer les variables ARG dans cette étape pour qu'elles soient disponibles
+ARG VERSION=1.0.0-SNAPSHOT
 ARG ENV_NAME=prodlocal
+
+# Ajouter des labels pour la traçabilité
+LABEL version="${VERSION}"
+LABEL environment="${ENV_NAME}"
 
 # Copier les fichiers Angular générés
 COPY --from=build /app/dist/front/browser /usr/share/nginx/html
