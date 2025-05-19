@@ -202,6 +202,7 @@
             <activation>
                 <property>
                     <name>docker.image.build</name>
+                    <value>true</value>
                 </property>
             </activation>
             <build>
@@ -287,10 +288,18 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
-                    <image>
+                    <!-- image>
                         <name>cpierres/ocr-p6-mdd-backend-${spring.profiles.active}:${project.version}</name>
-                    </image>
+                    </image -->
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
