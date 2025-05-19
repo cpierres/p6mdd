@@ -96,7 +96,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /volume1/docker-volumes/p6mdd-prodnas/postgres_data
+      device: ${P6_DOCKER_PATH_VOLUME}
 
 networks:
   mdd-network:

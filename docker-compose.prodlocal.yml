@@ -93,7 +93,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: D:\DockerVolumes\p6mdd-prodlocal\postgres_data
+      device: ${P6_DOCKER_PATH_VOLUME}
 
 networks:
   mdd-network:
