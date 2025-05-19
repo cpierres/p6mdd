@@ -1,4 +1,4 @@
-FROM eclipse-temurin:22-jdk as build
+FROM eclipse-temurin:21-jdk as build
 WORKDIR /app
 
 # Copier les fichiers Maven
@@ -14,7 +14,7 @@ RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Image finale
-FROM eclipse-temurin:22-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copier le JAR depuis l'étape de build

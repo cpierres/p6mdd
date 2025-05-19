@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="back [spring-boot:build-image]-prodlocal" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="back [spring-boot:build-image]-prodnas" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings">
         <MavenGeneralSettings>
@@ -52,7 +52,7 @@
           <option name="pomFileName" value="pom.xml" />
           <option name="profilesMap">
             <map>
-              <entry key="prodlocal" value="true" />
+              <entry key="prodnas" value="true" />
             </map>
           </option>
           <option name="projectsCmdOptionValues">

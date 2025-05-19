@@ -3,16 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>com.mdd</groupId>
+        <artifactId>p6mdd-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
-    <groupId>com.mdd</groupId>
+    <!-- groupId>com.mdd</groupId -->
     <artifactId>back</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>back</name>
-    <description>back</description>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>P6MDD Backend</name>
+    <description>Module backend de l'application P6MDD</description>
     <url/>
     <licenses>
         <license/>
@@ -26,8 +26,19 @@
         <tag/>
         <url/>
     </scm>
+    <dependencyManagement>
+        <!-- on remplace le parent BOM qui existait avant par un import BOM -->
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <properties>
-        <docker.image.tag>1</docker.image.tag>
         <java.version>21</java.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.version>1.18.36</lombok.version>
@@ -168,6 +179,7 @@
             </activation>
             <properties>
                 <spring.profiles.active>dev</spring.profiles.active>
+                <docker.image.build>false</docker.image.build>
             </properties>
         </profile>
         <profile>
@@ -190,6 +202,7 @@
             <activation>
                 <property>
                     <name>docker.image.build</name>
+                    <value>true</value>
                 </property>
             </activation>
             <build>
@@ -197,15 +210,17 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
                         <executions>
                             <execution>
                                 <id>build-image</id>
+                                <phase>install</phase> <!-- voir si je garde en CI/CD car peut ralentir -->
                                 <goals>
                                     <goal>build-image</goal>
                                 </goals>
                                 <configuration>
                                     <image>
-                                        <name>cpierres/ocr-p6-mdd-backend-${spring.profiles.active}:${docker.image.tag}</name>
+                                        <name>cpierres/ocr-p6-mdd-backend-${spring.profiles.active}:${project.version}</name>
                                         <env>
                                             <BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
                                             <!-- Installer curl pour healthcheck -->
@@ -230,6 +245,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -261,6 +277,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
                 <configuration>
                     <profiles>
                         <profile>${spring.profiles.active}</profile>
@@ -271,7 +288,18 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- image>
+                        <name>cpierres/ocr-p6-mdd-backend-${spring.profiles.active}:${project.version}</name>
+                    </image -->
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
