@@ -6,6 +6,7 @@ spring:
   docker:
     compose:
       file: ../../docker-compose.yml
+      enabled: false
   flyway:
     enabled: true
     url: jdbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
