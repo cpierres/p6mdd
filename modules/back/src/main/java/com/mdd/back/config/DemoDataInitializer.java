@@ -38,11 +38,14 @@ public class DemoDataInitializer {
         return args -> {
             log.info("Initialisation des données de démonstration...");
 
-            createUsers()
-                    .then(createTopicSubscriptionsForUserCpierres())
+            // Création ou récupération de l'utilisateur cpierres, puis création des abonnements
+            ensureUserExists("cpierres", "christophe.pierres@gmail.com", "Test!1234")
+                    .flatMap(this::createTopicSubscriptionsForUserCpierres)
+                    // Création de l'utilisateur u2 (sans enchaînement d'abonnements)
+                    .then(ensureUserExists("u2", "u2@test.com", "Test!1234"))
 //                    .then(createPosts())
                     .subscribe(
-                            null,
+                            user -> log.info("Utilisateur {} initialisé", user.getUsername()),
                             error -> log.error("Erreur lors de l'initialisation des données de démonstration: {}", error.getMessage()),
                             () -> log.info("Données de démonstration initialisées avec succès.")
                     );
@@ -50,50 +53,23 @@ public class DemoDataInitializer {
     }
 
     /**
-     * Crée les utilisateurs de démonstration s'ils n'existent pas déjà.
+     * Crée ou récupère un utilisateur par son nom d'utilisateur
      */
-    private Mono<Void> createUsers() {
-        // Vérifier si l'utilisateur cpierres existe déjà
-        return userRepository.findByUsername("cpierres")
-                .flatMap(existingUser -> {
-                    log.info("L'utilisateur cpierres existe déjà.");
-                    return Mono.empty();
-                })
-                .switchIfEmpty(
-                        // Créer l'utilisateur u2 s'il n'existe pas
-                        Mono.defer(() -> {
-                            User cpierres = User.builder()
-                                    .email("christophe.pierres@gmail.com")
-                                    .username("cpierres")
-                                    .password(passwordEncoder.encode("Test!1234"))
-                                    .createdAt(Instant.now())
-                                    .updatedAt(Instant.now())
-                                    .build();
-                            return userRepository.save(cpierres)
-                                    .doOnSuccess(user -> log.info("Utilisateur cpierres créé avec succès."));
-                        })
-                )
-                // Vérifier si l'utilisateur u2 existe déjà
-                .then(userRepository.findByUsername("u2"))
-                .flatMap(existingUser -> {
-                    log.info("L'utilisateur u2 existe déjà.");
-                    return Mono.empty();
-                })
-                .switchIfEmpty(
-                        // Créer l'utilisateur
-                        Mono.defer(() -> {
-                            User u2 = User.builder()
-                                    .email("u2@test.com")
-                                    .username("u2")
-                                    .password(passwordEncoder.encode("Test!1234"))
-                                    .createdAt(Instant.now())
-                                    .updatedAt(Instant.now())
-                                    .build();
-                            return userRepository.save(u2)
-                                    .doOnSuccess(user -> log.info("Utilisateur u2 créé avec succès."));
-                        })
-                )
-                .then();
+    private Mono<User> ensureUserExists(String username, String email, String password) {
+        return userRepository.findByUsername(username)
+                .doOnNext(existingUser -> log.info("L'utilisateur {} existe déjà.", username))
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.info("Création de l'utilisateur {}...", username);
+                    User user = User.builder()
+                            .email(email)
+                            .username(username)
+                            .password(passwordEncoder.encode(password))
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+                    return userRepository.save(user)
+                            .doOnSuccess(savedUser -> log.info("Utilisateur {} créé avec succès.", username));
+                }));
     }
 
     /**
@@ -105,8 +81,8 @@ public class DemoDataInitializer {
      * - Angular Nouveautés
      * - Tous les topics dont le titre commence par "Projet"
      */
-    private Mono<Void> createTopicSubscriptionsForUserCpierres() {
-        log.info("Création des abonnements aux topics pour l'utilisateur cpierres...");
+    private Mono<Void> createTopicSubscriptionsForUserCpierres(User user) {
+        log.info("Création des abonnements aux topics pour l'utilisateur {}...", user.getUsername());
 
         // Liste des titres de topics spécifiques
         List<String> specificTopicTitles = Arrays.asList(
@@ -116,41 +92,35 @@ public class DemoDataInitializer {
                 "Angular Nouveautés"
         );
 
-        // Récupérer l'utilisateur cpierres
-        return userRepository.findByUsername("cpierres")
-                .flatMap(user -> {
-                    // Récupérer tous les topics
-                    return topicRepository.findAll()
-                            .filter(topic ->
-                                    // Filtrer les topics spécifiques ou ceux commençant par "Projet"
-                                    specificTopicTitles.contains(topic.getTitle()) ||
-                                            topic.getTitle().startsWith("Projet")
-                            )
-                            .flatMap(topic -> {
-                                // Vérifier si l'abonnement existe déjà
-                                return userTopicSubscriptionRepository.existsByUserIdAndTopicId(user.getId(), topic.getId())
-                                        .flatMap(exists -> {
-                                            if (Boolean.TRUE.equals(exists)) {
-                                                log.info("L'utilisateur cpierres est déjà abonné au topic '{}'", topic.getTitle());
-                                                return Mono.empty();
-                                            } else {
-                                                // Créer l'abonnement
-                                                UserTopicSubscription subscription = UserTopicSubscription.builder()
-                                                        .userId(user.getId())
-                                                        .topicId(topic.getId())
-                                                        .build();
-                                                return userTopicSubscriptionRepository.save(subscription)
-                                                        .doOnSuccess(s -> log.info("Abonnement créé pour l'utilisateur cpierres au topic '{}'", topic.getTitle()));
-                                            }
-                                        });
-                            })
-                            .then();
+        // Récupérer tous les topics et créer les abonnements
+        return topicRepository.findAll()
+                .doOnNext(topic -> log.info("Topic disponible : {}", topic.getTitle()))
+                .filter(topic ->
+                        // Filtrer les topics spécifiques ou ceux commençant par "Projet"
+                        specificTopicTitles.contains(topic.getTitle()) ||
+                                topic.getTitle().startsWith("Projet")
+                )
+                .doOnNext(topic -> log.info("Topic sélectionné pour abonnement : {}", topic.getTitle()))
+                .flatMap(topic -> {
+                    // Vérifier si l'abonnement existe déjà
+                    return userTopicSubscriptionRepository.existsByUserIdAndTopicId(user.getId(), topic.getId())
+                            .flatMap(exists -> {
+                                if (Boolean.TRUE.equals(exists)) {
+                                    log.info("L'utilisateur {} est déjà abonné au topic '{}'", user.getUsername(), topic.getTitle());
+                                    return Mono.empty();
+                                } else {
+                                    // Créer l'abonnement
+                                    log.info("Création d'un nouvel abonnement pour l'utilisateur {} au topic '{}'", user.getUsername(), topic.getTitle());
+                                    UserTopicSubscription subscription = UserTopicSubscription.builder()
+                                            .userId(user.getId())
+                                            .topicId(topic.getId())
+                                            .build();
+                                    return userTopicSubscriptionRepository.save(subscription)
+                                            .doOnSuccess(s -> log.info("Abonnement créé pour l'utilisateur {} au topic '{}'", user.getUsername(), topic.getTitle()));
+                                }
+                            });
                 })
-                .switchIfEmpty(Mono.defer(() -> {
-                    log.warn("L'utilisateur cpierres n'a pas été trouvé, impossible de créer les abonnements aux topics.");
-                    return Mono.empty();
-                }));
+                .then();
     }
-
 }
 
