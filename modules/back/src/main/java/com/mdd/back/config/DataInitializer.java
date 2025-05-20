@@ -167,7 +167,7 @@ public class DataInitializer {
                                    100
                             WHERE NOT EXISTS (SELECT 1 FROM mddsocial.topics WHERE title = :title)
                         """)
-                .bind("title", "Projet OCLR 4 : Veille techno autour des architectures, de Spring et d'Angular")
+                .bind("title", "Projet OCLR 4 : Veille techno Architectures, Spring, Angular")
                 .fetch().rowsUpdated().subscribe();
 
         databaseClient.sql("""
@@ -190,12 +190,13 @@ public class DataInitializer {
                 .fetch().rowsUpdated().subscribe();
 
         databaseClient.sql("""
-                            INSERT INTO mddsocial.topics (title, description, priority_order)
-                        SELECT :title, 
-                               'Projet OpenClassrooms n°7 : Point d''étapes',
-                               130
-                        WHERE NOT EXISTS (SELECT 1 FROM mddsocial.topics WHERE title = :title)                        """)
-                .bind("title", "Projet OCLR 7 : Point d''étapes")
+                    INSERT INTO mddsocial.topics (title, description, priority_order)
+                    SELECT :title, 
+                           'Projet OpenClassrooms n°7 : Point d''étapes',
+                           130
+                    WHERE NOT EXISTS (SELECT 1 FROM mddsocial.topics WHERE title = :title)
+                """)
+                .bind("title", "Projet OCLR 7 : Point d'étapes")
                 .fetch().rowsUpdated().subscribe();
 
         databaseClient.sql("""
