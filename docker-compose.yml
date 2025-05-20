@@ -18,8 +18,8 @@ services:
       retries: 2
 volumes:
   postgres_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${P6_DOCKER_PATH_VOLUME}
+#    driver: local
+#    driver_opts:
+#      type: none
+#      o: bind
+#      device: ${P6_DOCKER_PATH_VOLUME}
