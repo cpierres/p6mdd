@@ -79,4 +79,40 @@ export class PostService {
       );
   }
 
+  /**
+   * Exporte les posts actuellement affichés vers un fichier JSON
+   * @param sortBy Critère de tri
+   * @param topicId ID du topic (optionnel)
+   * @param filename Nom du fichier (optionnel)
+   * @returns Observable contenant le chemin du fichier créé
+   */
+  exportPostsToJson(sortBy?: string | null, topicId?: string | null, filename?: string): Observable<string> {
+    let params = new HttpParams();
+
+    if (sortBy) {
+      params = params.set('sortBy', sortBy);
+    }
+
+    if (topicId && topicId !== 'subscribed' && topicId !== 'all') {
+      params = params.set('topicId', topicId);
+    }
+
+    if (topicId === 'all' && !sortBy) {
+      params = params.set('sortBy', 'all');
+    }
+
+    if (filename) {
+      params = params.set('filename', filename);
+    }
+
+    return this.http.get<ApiResult<string>>(`${this.apiUrl}/export`, {params})
+      .pipe(
+        map(apiResult => {
+          if (!apiResult.data) {
+            throw new Error('Chemin du fichier non trouvé dans la réponse');
+          }
+          return apiResult.data;
+        })
+      );
+  }
 }

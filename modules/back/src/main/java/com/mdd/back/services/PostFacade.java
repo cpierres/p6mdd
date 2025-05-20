@@ -1,7 +1,9 @@
 package com.mdd.back.services;
 
+import com.mdd.back.mappers.PostMapper;
 import com.mdd.back.models.PostCommentDto;
 import com.mdd.back.models.PostDto;
+import com.mdd.back.models.PostImportDto;
 import com.mdd.back.models.TopicStatsDto;
 import com.mdd.back.services.interfaces.IPostCommentService;
 import com.mdd.back.services.interfaces.IPostService;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,14 +27,18 @@ public class PostFacade {
     private final IPostService postService;
     private final IPostCommentService postCommentService;
     private final IPostStatisticsService postStatisticsService;
+    private final PostMapper postMapper;
+    private final FileExportService fileExportService;
 
     @Autowired
     public PostFacade(IPostService postService,
                       IPostCommentService postCommentService,
-                      IPostStatisticsService postStatisticsService) {
+                      IPostStatisticsService postStatisticsService, PostMapper postMapper, FileExportService fileExportService) {
         this.postService = postService;
         this.postCommentService = postCommentService;
         this.postStatisticsService = postStatisticsService;
+        this.postMapper = postMapper;
+        this.fileExportService = fileExportService;
     }
 
     /**
@@ -157,5 +164,58 @@ public class PostFacade {
      */
     public Flux<PostDto> getPostsByTopicSortedByDateAsc(UUID topicId) {
         return postService.getPostsByTopicSortedByDateAsc(topicId);
+    }
+
+    /**
+     * Exporte les posts vers un fichier JSON
+     *
+     * @param sortBy   Critère de tri
+     * @param topicId  ID du topic (optionnel)
+     * @param filename Nom du fichier (optionnel, par défaut "posts.json")
+     * @return Un Mono contenant le chemin du fichier créé
+     */
+    public Mono<String> exportPostsToJson(String sortBy, UUID topicId, String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            filename = "posts.json";
+        }
+
+        // Utiliser le même flux que pour l'affichage des posts
+        Flux<PostDto> postsFlux;
+
+        if (topicId != null) {
+            if ("topic".equals(sortBy)) {
+                postsFlux = getPostsByTopicSortedByTopic(topicId);
+            } else if ("author".equals(sortBy)) {
+                postsFlux = getPostsByTopicSortedByAuthor(topicId);
+            } else if ("date-asc".equals(sortBy)) {
+                postsFlux = getPostsByTopicSortedByDateAsc(topicId);
+            } else {
+                postsFlux = getPostsByTopic(topicId);
+            }
+        } else {
+            if ("topic".equals(sortBy)) {
+                postsFlux = getAllPostsSortedByTopic();
+            } else if ("author".equals(sortBy)) {
+                postsFlux = getAllPostsSortedByAuthor();
+            } else if ("all".equals(sortBy)) {
+                postsFlux = getAllPosts();
+            } else if ("date-asc".equals(sortBy)) {
+                postsFlux = getAllPostsSortedByDateAsc();
+            } else {
+                postsFlux = getAllPostsSubscribed();
+            }
+        }
+
+        String finalFilename = filename;
+        return postsFlux
+                .collectList()
+                .flatMap(postDtos -> {
+                    List<PostImportDto> postImportDtos = postMapper.postDtoListToPostImportDtoList(postDtos);
+                    return fileExportService.exportToJson(
+                            postImportDtos,
+                            finalFilename,
+                            "src/main/resources/demo-data"
+                    );
+                });
     }
 }

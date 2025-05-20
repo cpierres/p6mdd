@@ -1,8 +1,20 @@
 <div class="post-list-container">
   <div class="post-list-header">
-    <button mat-raised-button color="primary" (click)="openCreatePost()">
+    <button mat-raised-button color="primary" (click)="openCreatePost()" (contextmenu)="onRightClick($event)" [matMenuTriggerFor]="exportMenu">
       Créer un article
     </button>
+    <!-- Menu contextuel -->
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportPosts()">
+        <mat-icon>file_download</mat-icon>
+        <span>Exporter les posts (posts.json)</span>
+      </button>
+      <button mat-menu-item (click)="exportPostsWithCustomFilename()">
+        <mat-icon>edit</mat-icon>
+        <span>Exporter avec nom personnalisé</span>
+      </button>
+    </mat-menu>
+
     <div class="filter-sort-controls">
       <mat-form-field appearance="outline" class="custom-select">
         <mat-label>Filtrer par thème</mat-label>

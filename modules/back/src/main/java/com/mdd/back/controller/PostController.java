@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @Tag(name = "post-controller", description = "API pour la gestion des posts (articles) et commentaires")
@@ -264,6 +266,57 @@ public class PostController {
                             requestId
                     );
                     return ResponseEntity.status(HttpStatus.CREATED).body(apiResult);
+                });
+    }
+
+    @GetMapping("/posts/export")
+    @Operation(
+            summary = "Exporter les posts vers un fichier JSON",
+            description = "Exporte les posts actuellement affichés vers un fichier JSON dans le répertoire resources/demo-data",
+            security = @SecurityRequirement(name = "Bearer Authentication"),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Posts exportés avec succès",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Erreur lors de l'exportation",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResult.class))
+                    )
+            }
+    )
+    public Mono<ResponseEntity<ApiResult<String>>> exportPosts(
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) UUID topicId,
+            @RequestParam(required = false) String filename,
+            ServerWebExchange exchange) {
+
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        return postFacade.exportPostsToJson(sortBy, topicId, filename)
+                .map(filePath -> {
+                    ApiResult<String> apiResult = new ApiResult<>(
+                            filePath,
+                            "Posts exportés avec succès vers " + filePath,
+                            HttpStatus.OK.value(),
+                            requestId
+                    );
+                    return ResponseEntity.ok(apiResult);
+                })
+                .onErrorResume(e -> {
+                    log.error("Erreur lors de l'exportation des posts", e);
+                    ApiResult<String> apiResult = new ApiResult<>(
+                            null,
+                            "Erreur lors de l'exportation des posts: " + e.getMessage(),
+                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            requestId
+                    );
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResult));
                 });
     }
 }

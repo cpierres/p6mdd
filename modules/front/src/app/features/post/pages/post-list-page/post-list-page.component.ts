@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {Router} from '@angular/router';
 import {MatOption, MatSelect} from '@angular/material/select';
@@ -14,6 +14,11 @@ import {PostListComponent} from '../../components/post-list/post-list.component'
 import {BreakpointObserver, Breakpoints} from '@angular/cdk/layout';
 import {PostEventService} from '../../services/post-event.service';
 import {Subscription} from 'rxjs';
+import {MatMenu, MatMenuModule, MatMenuTrigger} from '@angular/material/menu';
+import {MatIcon, MatIconModule} from '@angular/material/icon';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {ExportDialogComponent} from '../export-dialog/export-dialog.component';
 
 @Component({
   selector: 'app-post-list-page',
@@ -28,6 +33,8 @@ import {Subscription} from 'rxjs';
     MatGridTile,
     PostListComponent,
     NgIf,
+    MatMenuModule,
+    MatIconModule,
   ],
   templateUrl: './post-list-page.component.html',
   styleUrl: './post-list-page.component.scss'
@@ -40,12 +47,16 @@ export class PostListPageComponent implements OnInit, OnDestroy {
   cols: number = 2; // Nb cols par défaut sur grand écran
   gutterSize: string = '16px'; // Espacement par défaut entre les cartes
   private subscription: Subscription = new Subscription();
+  @ViewChild(MatMenuTrigger) menuTrigger!: MatMenuTrigger;
 
   constructor(private router: Router,
               private postService: PostService,
               private topicStatsService: TopicStatsService,
               private postEventService: PostEventService,
-              private breakpointObserver: BreakpointObserver) {
+              private breakpointObserver: BreakpointObserver,
+              private dialog: MatDialog,
+              private snackBar: MatSnackBar
+  ) {
   }
 
   ngOnInit(): void {
@@ -159,6 +170,66 @@ export class PostListPageComponent implements OnInit, OnDestroy {
       } else {
         this.cols = 2; // 2 colonnes pour tous les écrans plus grands que mobile
         this.gutterSize = '16px'; // Espacement standard
+      }
+    });
+  }
+
+  /**
+   * Gère le clic droit sur le bouton "Créer un article"
+   */
+  onRightClick(event: MouseEvent): void {
+    event.preventDefault();
+    // Ouvrir le menu contextuel à la position du clic
+    if (this.menuTrigger) {
+      this.menuTrigger.openMenu();
+    }
+  }
+
+  /**
+   * Exporte les posts avec le nom de fichier par défaut (posts.json)
+   */
+  exportPosts(): void {
+    this.postService.exportPostsToJson(this.sortCriteria, this.selectedTopicId)
+      .subscribe({
+        next: (filePath) => {
+          this.snackBar.open(`Posts exportés avec succès vers ${filePath}`, 'Fermer', {
+            duration: 5000,
+          });
+        },
+        error: (error) => {
+          console.error('Erreur lors de l\'exportation des posts', error);
+          this.snackBar.open('Erreur lors de l\'exportation des posts', 'Fermer', {
+            duration: 5000,
+          });
+        }
+      });
+  }
+
+  /**
+   * Ouvre une boîte de dialogue pour saisir un nom de fichier personnalisé
+   */
+  exportPostsWithCustomFilename(): void {
+    const dialogRef = this.dialog.open(ExportDialogComponent, {
+      width: '400px',
+      data: { filename: 'posts.json' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.postService.exportPostsToJson(this.sortCriteria, this.selectedTopicId, result)
+          .subscribe({
+            next: (filePath) => {
+              this.snackBar.open(`Posts exportés avec succès vers ${filePath}`, 'Fermer', {
+                duration: 5000,
+              });
+            },
+            error: (error) => {
+              console.error('Erreur lors de l\'exportation des posts', error);
+              this.snackBar.open('Erreur lors de l\'exportation des posts', 'Fermer', {
+                duration: 5000,
+              });
+            }
+          });
       }
     });
   }
