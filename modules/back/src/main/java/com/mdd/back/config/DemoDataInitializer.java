@@ -1,7 +1,10 @@
 package com.mdd.back.config;
 
 import com.mdd.back.entities.User;
+import com.mdd.back.entities.UserTopicSubscription;
+import com.mdd.back.repositories.TopicRepository;
 import com.mdd.back.repositories.UserRepository;
+import com.mdd.back.repositories.UserTopicSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -11,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Classe d'initialisation des données de démonstration.
@@ -25,6 +30,8 @@ public class DemoDataInitializer {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TopicRepository topicRepository;
+    private final UserTopicSubscriptionRepository userTopicSubscriptionRepository;
 
     @Bean
     public CommandLineRunner initDemoData() {
@@ -32,7 +39,7 @@ public class DemoDataInitializer {
             log.info("Initialisation des données de démonstration...");
 
             createUsers()
-//                    .then(createTopicSubscriptions())
+                    .then(createTopicSubscriptionsForUserCpierres())
 //                    .then(createPosts())
                     .subscribe(
                             null,
@@ -88,5 +95,62 @@ public class DemoDataInitializer {
                 )
                 .then();
     }
+
+    /**
+     * Crée les abonnements aux topics pour l'utilisateur cpierres.
+     * L'utilisateur s'abonne aux topics suivants :
+     * - Spring WebFlux
+     * - Databases R2DBC
+     * - Microservices
+     * - Angular Nouveautés
+     * - Tous les topics dont le titre commence par "Projet"
+     */
+    private Mono<Void> createTopicSubscriptionsForUserCpierres() {
+        log.info("Création des abonnements aux topics pour l'utilisateur cpierres...");
+
+        // Liste des titres de topics spécifiques
+        List<String> specificTopicTitles = Arrays.asList(
+                "Spring WebFlux",
+                "Databases R2DBC",
+                "Microservices",
+                "Angular Nouveautés"
+        );
+
+        // Récupérer l'utilisateur cpierres
+        return userRepository.findByUsername("cpierres")
+                .flatMap(user -> {
+                    // Récupérer tous les topics
+                    return topicRepository.findAll()
+                            .filter(topic ->
+                                    // Filtrer les topics spécifiques ou ceux commençant par "Projet"
+                                    specificTopicTitles.contains(topic.getTitle()) ||
+                                            topic.getTitle().startsWith("Projet")
+                            )
+                            .flatMap(topic -> {
+                                // Vérifier si l'abonnement existe déjà
+                                return userTopicSubscriptionRepository.existsByUserIdAndTopicId(user.getId(), topic.getId())
+                                        .flatMap(exists -> {
+                                            if (Boolean.TRUE.equals(exists)) {
+                                                log.info("L'utilisateur cpierres est déjà abonné au topic '{}'", topic.getTitle());
+                                                return Mono.empty();
+                                            } else {
+                                                // Créer l'abonnement
+                                                UserTopicSubscription subscription = UserTopicSubscription.builder()
+                                                        .userId(user.getId())
+                                                        .topicId(topic.getId())
+                                                        .build();
+                                                return userTopicSubscriptionRepository.save(subscription)
+                                                        .doOnSuccess(s -> log.info("Abonnement créé pour l'utilisateur cpierres au topic '{}'", topic.getTitle()));
+                                            }
+                                        });
+                            })
+                            .then();
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    log.warn("L'utilisateur cpierres n'a pas été trouvé, impossible de créer les abonnements aux topics.");
+                    return Mono.empty();
+                }));
+    }
+
 }
 
