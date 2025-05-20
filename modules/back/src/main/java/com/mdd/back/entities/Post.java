@@ -1,7 +1,9 @@
 package com.mdd.back.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Data
 //@SuperBuilder
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(value = "post", schema = "mddsocial")
 //public class Post extends BaseEntity {
 public class Post {
