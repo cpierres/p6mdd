@@ -1,10 +1,13 @@
 package com.mdd.back.config;
 
+import com.mdd.back.entities.Post;
 import com.mdd.back.entities.User;
 import com.mdd.back.entities.UserTopicSubscription;
+import com.mdd.back.repositories.PostRepository;
 import com.mdd.back.repositories.TopicRepository;
 import com.mdd.back.repositories.UserRepository;
 import com.mdd.back.repositories.UserTopicSubscriptionRepository;
+import com.mdd.back.services.DataLoaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -32,6 +35,8 @@ public class DemoDataInitializer {
     private final PasswordEncoder passwordEncoder;
     private final TopicRepository topicRepository;
     private final UserTopicSubscriptionRepository userTopicSubscriptionRepository;
+    private final PostRepository postRepository;
+    private final DataLoaderService dataLoaderService;
 
     @Bean
     public CommandLineRunner initDemoData() {
@@ -40,12 +45,13 @@ public class DemoDataInitializer {
 
             // Création ou récupération de l'utilisateur cpierres, puis création des abonnements
             ensureUserExists("cpierres", "christophe.pierres@gmail.com", "Test!1234")
-                    .flatMap(this::createTopicSubscriptionsForUserCpierres)
+                    .flatMap(this::createTopicSubscriptionsForUser)
                     // Création de l'utilisateur u2 (sans enchaînement d'abonnements)
                     .then(ensureUserExists("u2", "u2@test.com", "Test!1234"))
-//                    .then(createPosts())
+                    .doOnNext(user -> log.info("Utilisateur {} initialisé", user.getUsername()))
+                    .then(createPosts())
                     .subscribe(
-                            user -> log.info("Utilisateur {} initialisé", user.getUsername()),
+                            null,  // Pas besoin de gestionnaire onNext pour Void
                             error -> log.error("Erreur lors de l'initialisation des données de démonstration: {}", error.getMessage()),
                             () -> log.info("Données de démonstration initialisées avec succès.")
                     );
@@ -81,10 +87,10 @@ public class DemoDataInitializer {
      * - Angular Nouveautés
      * - Tous les topics dont le titre commence par "Projet"
      */
-    private Mono<Void> createTopicSubscriptionsForUserCpierres(User user) {
+    private Mono<Void> createTopicSubscriptionsForUser(User user) {
         log.info("Création des abonnements aux topics pour l'utilisateur {}...", user.getUsername());
 
-        // Liste des titres de topics spécifiques
+        // Liste des titres de topics spécifiques pour l'abonnement
         List<String> specificTopicTitles = Arrays.asList(
                 "Spring WebFlux",
                 "Databases R2DBC",
@@ -122,5 +128,59 @@ public class DemoDataInitializer {
                 })
                 .then();
     }
-}
 
+
+    /**
+     * Crée les posts depuis le fichier json
+     */
+    private Mono<Void> createPosts() {
+        return dataLoaderService.loadPostsDemo()
+                .flatMap(postImportDto -> {
+                    return userRepository.findByUsername(postImportDto.getUsername())
+                            .flatMap(user -> {
+                                // Récupérer le topic
+                                return topicRepository.findAll()
+                                        .filter(topic -> postImportDto.getTopicTitle().equals(topic.getTitle()))
+                                        .next()
+                                        .flatMap(topic -> {
+                                            // Vérifier si le post existe déjà
+                                            return postRepository.findAllByTopicIdOrderByUpdatedAtDesc(topic.getId())
+                                                    .filter(existingPost -> postImportDto.getTitle().equals(existingPost.getTitle()) &&
+                                                            user.getId().equals(existingPost.getCreatedBy()))
+                                                    .hasElements()
+                                                    .flatMap(exists -> {
+                                                        if (Boolean.TRUE.equals(exists)) {
+                                                            log.info("Le post '{}' existe déjà pour l'utilisateur {} sur le topic '{}'",
+                                                                    postImportDto.getTitle(), postImportDto.getUsername(), topic.getTitle());
+                                                            return Mono.empty();
+                                                        } else {
+
+                                                            Post post = Post.builder()
+                                                                    .topicId(topic.getId())
+                                                                    .title(postImportDto.getTitle())
+                                                                    .content(postImportDto.getContent())
+                                                                    .createdBy(user.getId())
+                                                                    .build();
+
+                                                            return postRepository.save(post)
+                                                                    .doOnSuccess(savedPost -> log.info(
+                                                                            "Post '{}' créé avec succès pour l'utilisateur {} sur le topic '{}'",
+                                                                            postImportDto.getTitle(), postImportDto.getUsername(), topic.getTitle()));
+                                                        }
+                                                    });
+                                        })
+                                        .switchIfEmpty(Mono.defer(() -> {
+                                            log.warn("Le topic '{}' n'a pas été trouvé, impossible de créer le post.",
+                                                    postImportDto.getTopicTitle());
+                                            return Mono.empty();
+                                        }));
+                            })
+                            .switchIfEmpty(Mono.defer(() -> {
+                                log.warn("L'utilisateur {} n'a pas été trouvé, impossible de créer le post.",
+                                        postImportDto.getUsername());
+                                return Mono.empty();
+                            }));
+                })
+                .then();
+    }
+}
