@@ -35,6 +35,15 @@ public class JwtService {
     /**
      * Générer un token JWT en y incluant le username (classique) mais aussi son id,
      * afin de pouvoir retrouver/extraire ce dernier à partir de tout traitement.
+     * 
+     * Cette méthode fait partie de la logique du serveur d'autorisation dans l'architecture OAuth2.
+     * Elle est appelée lors de l'authentification d'un utilisateur (/api/auth/login) ou de son
+     * enregistrement (/api/auth/register) pour générer un token JWT qui sera ensuite utilisé
+     * pour authentifier les requêtes ultérieures.
+     * 
+     * Dans notre architecture de "serveur de ressources OAuth2 autonome", cette méthode
+     * représente la fonctionnalité d'émission de tokens du serveur d'autorisation.
+     * 
      * @param id identifiant unique de l'utilisateur
      * @param username son adresse email unique
      * @return token crypté en HS256
@@ -50,8 +59,19 @@ public class JwtService {
     }
 
     /**
-     * Renvoyer la clé pour la configuration côté Resource Server
-     * @return
+     * Renvoyer la clé secrète pour la configuration côté Resource Server.
+     * 
+     * Cette méthode joue un rôle crucial dans la coordination entre le serveur d'autorisation
+     * et le serveur de ressources dans notre architecture de "serveur de ressources OAuth2 autonome".
+     * 
+     * Elle permet au serveur de ressources (configuré via oauth2ResourceServer) d'accéder à la
+     * même clé secrète que celle utilisée par le serveur d'autorisation pour générer les tokens.
+     * Ainsi, le serveur de ressources peut valider l'authenticité des tokens émis par le
+     * serveur d'autorisation.
+     * 
+     * Cette méthode est utilisée par les beans ReactiveJwtDecoder et JwtEncoder dans SecurityConfig.
+     * 
+     * @return La clé secrète utilisée pour signer et valider les tokens JWT
      */
     public SecretKey getSecretKey() {
         return SECRET_KEY;

@@ -40,10 +40,22 @@ public class SecurityConfig {
      * Configure la chaîne de filtrage de sécurité pour l'application, en définissant des politiques de sécurité telles
      * que la désactivation de CSRF, la gestion des sessions sans état, l'autorisation d'accès à des points de
      * terminaison spécifiques sans authentification et l'exigence d'authentification pour tous les autres itinéraires.
-     * Il configure également le serveur de ressources OAuth2 pour utiliser l'authentification JWT.
+     * 
+     * Cette méthode configure l'application comme un serveur de ressources OAuth2 via la ligne:
+     * `.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))`
+     * 
+     * Dans l'architecture OAuth2, on distingue généralement deux rôles:
+     * 1. Le serveur d'autorisation: responsable de l'authentification des utilisateurs et de l'émission des tokens
+     * 2. Le serveur de ressources: responsable de la validation des tokens et de la protection des ressources
+     * 
+     * Notre application implémente ces deux rôles:
+     * - Serveur d'autorisation: via les endpoints /api/auth/login et /api/auth/register et le JwtService
+     * - Serveur de ressources: via la configuration oauth2ResourceServer qui valide les tokens JWT
+     * 
+     * Cette approche "tout-en-un" est appelée "serveur de ressources OAuth2 autonome".
      *
-     * @param http l'objet {@link HttpSecurity} utilisé pour configurer les paramètres de sécurité
-     * @return l'instance {@link SecurityFilterChain} construite après l'application de toutes les configurations
+     * @param http l'objet {@link ServerHttpSecurity} utilisé pour configurer les paramètres de sécurité
+     * @return l'instance {@link SecurityWebFilterChain} construite après l'application de toutes les configurations
      * @throws Exception si une erreur se produit lors de la configuration de la chaîne de filtrage de sécurité
      */
     @Bean
@@ -90,9 +102,13 @@ public class SecurityConfig {
     }
 
     /**
-     * Configurer le décodeur JWT et utiliser la clé secrète
-     * @param jwtService
-     * @return
+     * Configurer le décodeur JWT et utiliser la clé secrète.
+     * Ce décodeur est utilisé par le serveur de ressources OAuth2 pour valider les tokens JWT.
+     * Il fait partie de la configuration du serveur de ressources, qui est responsable de
+     * protéger les ressources en vérifiant que les requêtes contiennent des tokens valides.
+     * 
+     * @param jwtService Service qui fournit la clé secrète pour valider les tokens
+     * @return Un décodeur JWT réactif configuré avec la clé secrète
      */
     @Bean
     public ReactiveJwtDecoder reactiveJwtDecoder(JwtService jwtService) {
@@ -101,6 +117,16 @@ public class SecurityConfig {
                 .withSecretKey(jwtService.getSecretKey()).build();
     }
 
+    /**
+     * Configure l'encodeur JWT utilisé pour créer et signer les tokens JWT.
+     * Cet encodeur est utilisé par le serveur d'autorisation (implémenté dans notre application)
+     * pour générer des tokens JWT lors de l'authentification des utilisateurs.
+     * Il fait partie de la logique du serveur d'autorisation, qui est responsable de
+     * l'authentification des utilisateurs et de l'émission des tokens.
+     *
+     * @param jwtService Service qui fournit la clé secrète pour signer les tokens
+     * @return Un encodeur JWT configuré avec la clé secrète
+     */
     @Bean
     public JwtEncoder jwtEncoder(JwtService jwtService) {
         log.debug("*** jwtEncoder ***");
