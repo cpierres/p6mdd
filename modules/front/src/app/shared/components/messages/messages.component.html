@@ -1,4 +1,5 @@
 @if (message()) {
+  <!-- N EST PLUS UTILISE - REMPLACE PAR SNACKBAR -->
   <div class="messages-container">
     <div class="message" [ngClass]="message()?.severity">
       <mat-icon *ngIf="message()?.severity === 'error'">error</mat-icon>

@@ -1,9 +1,9 @@
 # Projet P6 - MDD Full Stack
 
 
-- En préalable à ce README, je recommande de lire le **Dossier des choix techniques et d'architecture** : 
-[https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
-- Vous pourrez également consulter mon site de veille technologique sur les Architectures, Spring et Angular :  
+- En préalable à ce README, je recommande la lecture du [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
+- Vous pourrez également accéder à mon [site de veille technologique sur les Architectures, Spring et Angular](https://veille.cpierres.dscloud.me/) ,
+depuis la page d'Accueil, cliquez sur le **Projet P6 - MDD (Client Orion)**
 
 Application accessible depuis internet : [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/)
 Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me:8068/swagger-ui/](http://apimdd.cpierres.dscloud.me:8068/swagger-ui/)
@@ -131,26 +131,6 @@ Depuis le répertoire racine :
 - Dans le cadre du projet N°6 d'OpenClassrooms, en vue d'obtenir la certification
   **Expert en développement logiciel**. Plus d'informations
   disponibles [ici](https://www.francecompetences.fr/recherche/rncp/36912/)
-
-
-
-
-### Conclusion
-La démarche d'OpenClassrooms est de réclamer une grande autonomie dans la recherche et développement pour aboutir aux différents objectifs.
-Cela m'a parfaitement convenu puisque c'est ce que j'ai toujours fait.
-Ma curiosité et ma volonté d'adopter les meilleures bonnes pratiques m'ont fait passer plus de temps sur les projets techniques par rapport aux projets non-techniques à venir qu'il me reste encore à faire.
-L'essentiel pour moi est d'avoir atteint mes objectifs techniques. Je me devais de retrouver un niveau d'expertise correspondant à mon niveau d'expérience.
-les projets non-techniques à venir n'ont pas de complexité et je pense les réaliser très rapidement pour les terminer d'ici fin août.
-
-Vous aurez noté que mes projets sont gérés avec Docker et Docker-compose.
-Le projet 6 a prévu un profil de déploiement pour la "prodlocal" et la "prodnas"
-Je les ai déployé sur un NAS Synology Linux pour rendre publiques en https via un reverse proxy.
-
-Ces projets pédagogiques m'ont permis :
-- de maitriser les bonnes pratiques et de retrouver un niveau d'expertise sur les technologies les plus récentes,
-- de mettre en ligne des projets consultables par des directions techniques afin de montrer mon savoir-faire.
-  Par le passé, j'avais une obligation de confidentialité dans mes contrats de travail, ce qui m'interdisait de diffuser mon savoir faire sur internet.
-  Donc pour moi, ces petits projets suffisants et bien pensés en termes techniques, sont satisfaisants pour montrer rapidement mon savoir-faire sur les dernières technologies.
 
 
 ## Technologies et bonnes pratiques appliquées pour le projet 6
@@ -285,17 +265,14 @@ Le projet P6MDD respecte rigoureusement les principes SOLID tant au niveau du ba
 Cette adhérence aux principes SOLID contribue à la maintenabilité, l'extensibilité et la robustesse du code, facilitant ainsi les évolutions futures et la collaboration entre développeurs.
 
 ## Scénarios destinés à mettre en valeur l'apport des technologies utilisées pour l'utilisateur
-Ces scénarios vous guident sur l'utilisation de l'application et sont faits pour illustrer et commenter les apports techniques :
+Ces scénarios vous guident sur l'utilisation de l'application afin d'illustrer et commenter les apports techniques :
 - mise à jour en temps réel de l'IHM pour tous les utilisateurs (un article ou un commentaire nouveau ainsi que les statistiques de popularité apparaissent instantanément pour tous les utilisateurs sans besoin d'actualiser le browser)
 - messages des règles de gestion
-
-L'objectif est de mettre en valeur les apports des technologies utilisées :
-- mises à jour en temps réel pour tous les utilisateurs, sur tous les browsers et téléphones mobiles (avec une capacité de montée en charge maximale)
 - ergonomie
 
 ## Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile (avec des logins différents)
 
-L'objectif sera de constater la mise à jour simultanée de tous les accès, ceci avec différents noms d'utilisateur.
+L'objectif sera de constater la mise à jour simultanée, ceci avec différents noms d'utilisateur.
 
 - Affichez l'application depuis [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/) sur un browser
   Chrome
@@ -306,56 +283,73 @@ L'objectif sera de constater la mise à jour simultanée de tous les accès, cec
 
 ## Scénarios d'inscription et de connexions
 
-### Inscription via le browser chrome (utilisateur u1)
-Enregistrez-vous via le bouton `S'inscrire` :
-- Dans un premier temps, saisissez volontairement un utilisateur qui existe déjà : email `u2@test.com` ainsi que le username : `u2`
-  - Notez les contrôles de surface telles que :
-    - la présence d'un `@` dans l'email par exemple,
-    - le fait que les informations soient obligatoires,
-    - la longueur du username qui doit être d'au moins 2 caractères etc...
-- Pour le mot de passe, saisissez une valeur ne correspondant pas aux contraintes de mot de passe, par exemple : `Test`
-- Cliquez sur le bouton `S'inscrire` (qui s'active uniquement lorsque les contrôles de surface sont valides)
-  Les contrôles de surface côté frontend se déclenchent, empêchant l'envoi au serveur :
-![register-ctrl-surface.jpg](modules/front/docs/assets/screens/register-ctrl-surface.jpg)
-- Corrigez le mot de passe avec une stucture valide, par exemple : `Test!1234`
-  - vous aurez noté qu'au fur et à mesure de votre saisie, des guidages instantanés apparaissent
+### Inscription via le browser Chrome
 
-- Maintenant que les contrôles de surface ont été validés, ce sont les contrôles backend d'unicité qui apparaissent :
+#### Scénario d'inscription avec erreurs de contrôle de surface et de backend (utilisateur u2 existe déjà)
+- Cliquez sur le bouton `S'inscrire` :
+- Dans un premier temps, saisissez volontairement un utilisateur qui existe déjà : email `u2@test.com` ainsi que le username : `u2`
+  - Mettez à l'épreuve les contrôles de surface :
+    - omettez la présence d'un `@` dans l'email par exemple,
+    - le fait que les informations soient obligatoires,
+    - la longueur du username doit être d'au moins 2 caractères etc ...
+    - Pour le mot de passe, saisissez dans un premier temps une valeur ne correspondant pas aux contraintes, par exemple : `Test`
+  - Puis corrigez vos saisies
+  - Pour que le mot de passe soit valide, saisissez par exemple `Test!1234`
+![register-ctrl-surface.jpg](modules/front/docs/assets/screens/register-ctrl-surface.jpg)
+
+> **Note**
+> Lorsque les contrôles de surface seront corrects, le bouton `S'inscrire` s'activera
+
+- Cliquez sur le bouton `S'inscrire` 
+- Maintenant que les contrôles de surface ont été validés, ce sont les contrôles `backend d'unicité` qui apparaissent :
 ![register-unicity.jpg](modules/front/docs/assets/screens/register-unicity.jpg)
   - Notez que les deux contrôles d'unicité apparaissent en une seule passe (gérée sur le backend via `MultipleResourceAlreadyExistException` de type 409).
   - La bulle d'avertissement générale en haut d'écran s'effacera automatiquement après un laps de temps
     - La sévérité des messages est qualifiée via le backend et gérée automatiquement par le frontend d'une manière centralisée (via Interceptor et structure des erreurs toujours homogène) 
   - Les erreurs sous les champs s'effaceront dès lors qu'on corrige
 
+### Inscription de l'utilisateur `u1`
 - Corrigez l'email en indiquant une valeur qui n'existe pas déjà ; pour la démo, indiquez `u1@test.com`
 - Cliquez sur le bouton `S'inscrire`
 - Corrigez la dernière erreur de contrôle d'unicité, en indiquant `u1` pour le username 
 - Cliquez sur le bouton `S'inscrire`
-- A la suite d'un enregistrement valide, l'utilisateur `u1` est directement connecté : 
+- A la suite d'un enregistrement valide, l'utilisateur `u1` est directement connecté et arrive sur l'écran des Articles (Posts) : 
 ![connexion-u1.jpg](modules/front/docs/assets/screens/connexion-u1.jpg)
 
-### Connexion de l'utilisateur u2 via le browser edge
-Pour cette deuxième connexion via Edge, vous allez utiliser le username `u2` (qui existe déjà comme déjà vu).
+### Connexion de l'utilisateur `u2` via le browser Edge
+Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe déjà comme déjà vu).
 - Cliquez sur le bouton `Se connecter`
-  - A noter que vous pouvez vous connecter aussi bien avec le username qu'avec son email.
-  - Si vous faites une erreur sur le mot de passe ou bien sur le nom d'utilisateur, l'erreur qui est affichée est volontairement vague afin de ne pas donner d'indication à un hacker.
+> **Note**
+> - Vous pouvez vous connecter aussi bien avec le username qu'avec son email.
+> - Si vous faites une erreur sur le mot de passe ou bien sur le nom d'utilisateur, l'erreur affichée est volontairement vague afin de ne pas donner d'indication à un hacker.
   
 ![connexion-u2-failed.jpg](modules/front/docs/assets/screens/connexion-u2-failed.jpg)
 
+### Disposez côte à côte le browser chrome de `u1` ainsi que le browser Edge de `u2`
 - Voici u1 et u2 connectés dans deux browsers différents :
 
 ![connexions-u1-u2-ok.jpg](modules/front/docs/assets/screens/connexions-u1-u2-ok.jpg)
 
-### Enregistrez-vous également via votre téléphone mobile avec vos propres références
+### Enregistrez-vous également via votre téléphone mobile avec vos propres références (votre email et votre nom)
 - puis affichez la page des Thèmes :
-screen
 
+![mobile-menuThemes.jpg](modules/front/docs/assets/screens/mobile-menuThemes.jpg) ![mobile-themes.jpg](modules/front/docs/assets/screens/mobile-themes.jpg) ![mobile-themes-subscribe.jpg](modules/front/docs/assets/screens/mobile-themes-subscribe.jpg)
+
+> **Note** 
+> Pour ma part, je suis déjà abonné à plusieurs thèmes (faites en autant !)
 
 ## Scénarios d'abonnement
 
-### u2 doit s'abonner au Thème 
-Si vous cliquez sur le logo Profil, vous avez un guidage qui vous indique que vous n'avez pas encore d'abonnement :
+### u1 (Chrome) veut s'abonner au Thème `Spring Webflux`
+- Comme vu dans les use-cases du dossier d'architecture, 
+  - la page `Thèmes` présente les thèmes et permet de `S'abonner` 
+  - la page `Profil` présente les Abonnements en cours et permet de `Se désabonner`
+- Si vous cliquez sur le logo `Profil` alors que vous n'avez pas encore d'abonnements, vous avez un guidage qui vous dirige vers la page des Thèmes :
+![u1-profil-no-subscription.jpg](modules/front/docs/assets/screens/u1-profil-no-subscription.jpg)
+- Cliquez sur le lien [page de Thèmes](#thèmes) :
+![u1-theme-subscribe.jpg](modules/front/docs/assets/screens/u1-theme-subscribe.jpg)
+- Comme les textes sont tronqués (avec des points de suite ...), vous pouvez cliquez sur le texte pour `zoomer` :
+![u1-theme-zoom.jpg](modules/front/docs/assets/screens/u1-theme-zoom.jpg)
 
-Un message vous indique que vous devez aller sur la page de Thèmes :
-
+- Abonnez-vous à `Spring Webflux` !
 

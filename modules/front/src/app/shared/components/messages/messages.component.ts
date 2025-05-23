@@ -3,6 +3,10 @@ import {MessagesService} from "../../services/messages.service";
 import {NgClass, NgIf} from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 
+/**
+ * deprecatead : plus utilisé car message est dans le service
+ * (remplacé par snackbar)
+ */
 @Component({
     selector: 'messages',
     templateUrl: './messages.component.html',
