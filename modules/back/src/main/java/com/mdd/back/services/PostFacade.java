@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,12 +170,13 @@ public class PostFacade {
     /**
      * Exporte les posts vers un fichier JSON
      *
-     * @param sortBy   Critère de tri
-     * @param topicId  ID du topic (optionnel)
-     * @param filename Nom du fichier (optionnel, par défaut "posts.json")
+     * @param sortBy     Critère de tri
+     * @param topicId    ID du topic (optionnel)
+     * @param filename   Nom du fichier (optionnel, par défaut "posts.json")
+     * @param filterType Type de filtre (optionnel, "subscribed" ou "all")
      * @return Un Mono contenant le chemin du fichier créé
      */
-    public Mono<String> exportPostsToJson(String sortBy, UUID topicId, String filename) {
+    public Mono<String> exportPostsToJson(String sortBy, UUID topicId, String filename, String filterType) {
         if (filename == null || filename.trim().isEmpty()) {
             filename = "posts.json";
         }
@@ -192,18 +194,34 @@ public class PostFacade {
             } else {
                 postsFlux = getPostsByTopic(topicId);
             }
-        } else {
+        } else if ("subscribed".equals(filterType)) {
+            if ("topic".equals(sortBy)) {
+                postsFlux = getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getTopicTitle)
+                                .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+            } else if ("author".equals(sortBy)) {
+                postsFlux = getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getCreatedByUsername)
+                                .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+            } else if ("date-asc".equals(sortBy)) {
+                postsFlux = getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getCreatedAt));
+            } else {
+                postsFlux = getAllPostsSubscribed();
+            }
+        } else if ("all".equals(filterType) || sortBy != null) {
             if ("topic".equals(sortBy)) {
                 postsFlux = getAllPostsSortedByTopic();
             } else if ("author".equals(sortBy)) {
                 postsFlux = getAllPostsSortedByAuthor();
-            } else if ("all".equals(sortBy)) {
-                postsFlux = getAllPosts();
             } else if ("date-asc".equals(sortBy)) {
                 postsFlux = getAllPostsSortedByDateAsc();
             } else {
-                postsFlux = getAllPostsSubscribed();
+                postsFlux = getAllPosts();
             }
+        } else {
+            // Comportement par défaut
+            postsFlux = getAllPostsSubscribed();
         }
 
         String finalFilename = filename;

@@ -36,20 +36,41 @@ export class PostService {
   getPosts(sortBy?: string | null, topicId?: string | null): Observable<PostDto[]> {
     let params = new HttpParams();
 
-    if (sortBy) {
-      params = params.set('sortBy', sortBy);
-    }
+    // Cas 1: Filtre "Mes thèmes" (subscribed)
+    if (topicId === 'subscribed') {
+      // Ne pas ajouter de topicId, mais ajouter un paramètre spécial pour indiquer qu'on veut les posts des abonnements
+      params = params.set('filterType', 'subscribed');
 
-    // Si topicId est 'subscribed' ou 'all', on ne l'ajoute pas aux paramètres
-    // 'subscribed': le backend utilisera getAllPostsSubscribed() par défaut
-    // 'all': le backend utilisera getAllPosts() quand sortBy='all'
-    if (topicId && topicId !== 'subscribed' && topicId !== 'all') {
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 2: Filtre "Tous les thèmes" (all)
+    else if (topicId === 'all') {
+      // Toujours indiquer qu'on veut tous les posts
+      params = params.set('filterType', 'all');
+
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 3: Filtre par topic spécifique
+    else if (topicId) {
       params = params.set('topicId', topicId);
-    }
 
-    // Si topicId est 'all' et qu'aucun sortBy n'est défini, on utilise 'all' comme valeur par défaut
-    if (topicId === 'all' && !sortBy) {
-      params = params.set('sortBy', 'all');
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 4: Aucun filtre spécifié (comportement par défaut)
+    else {
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
     }
 
     return this.http.get<PostDto[]>(this.apiUrl, {params});
@@ -89,16 +110,41 @@ export class PostService {
   exportPostsToJson(sortBy?: string | null, topicId?: string | null, filename?: string): Observable<string> {
     let params = new HttpParams();
 
-    if (sortBy) {
-      params = params.set('sortBy', sortBy);
-    }
+    // Cas 1: Filtre "Mes thèmes" (subscribed)
+    if (topicId === 'subscribed') {
+      // Ne pas ajouter de topicId, mais ajouter un paramètre spécial pour indiquer qu'on veut les posts des abonnements
+      params = params.set('filterType', 'subscribed');
 
-    if (topicId && topicId !== 'subscribed' && topicId !== 'all') {
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 2: Filtre "Tous les thèmes" (all)
+    else if (topicId === 'all') {
+      // Toujours indiquer qu'on veut tous les posts
+      params = params.set('filterType', 'all');
+
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 3: Filtre par topic spécifique
+    else if (topicId) {
       params = params.set('topicId', topicId);
-    }
 
-    if (topicId === 'all' && !sortBy) {
-      params = params.set('sortBy', 'all');
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
+    }
+    // Cas 4: Aucun filtre spécifié (comportement par défaut)
+    else {
+      // Ajouter le critère de tri s'il existe
+      if (sortBy) {
+        params = params.set('sortBy', sortBy);
+      }
     }
 
     if (filename) {

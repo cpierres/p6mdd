@@ -20,6 +20,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 @Slf4j
@@ -132,13 +133,18 @@ public class PostController {
     )
     public Flux<PostDto> getAllPosts(
             @RequestParam(required = false)
-            @Schema(description = "Tri des résultats : `topic` pour trier par topic, `author` pour trier par auteur, `all` pour tous les posts, null pour le filtre par défaut (posts des topics auxquels l'utilisateur est abonné).",
+            @Schema(description = "Tri des résultats : `topic` pour trier par topic, `author` pour trier par auteur, `date-asc` pour trier par date croissante, null pour le tri par défaut (date décroissante).",
                     example = "topic")
             String sortBy,
             @RequestParam(required = false)
             @Schema(description = "Filtrage par l'identifiant d'un topic (UUID). Si spécifié, seuls les posts appartenant à ce topic sont retournés.",
                     example = "d1a27f64-403d-4c27-9fb7-1b54168a546d")
-            UUID topicId) {
+            UUID topicId,
+            @RequestParam(required = false)
+            @Schema(description = "Type de filtre : `subscribed` pour les posts des topics auxquels l'utilisateur est abonné, `all` pour tous les posts.",
+                    example = "subscribed")
+            String filterType) {
+
         // Si un topicId est spécifié, on filtre par ce topic avec le tri spécifié
         if (topicId != null) {
             if ("topic".equals(sortBy)) {
@@ -153,18 +159,39 @@ public class PostController {
             }
         }
 
-        // Si aucun topicId n'est spécifié, on utilise le comportement existant
-        if ("topic".equals(sortBy)) {
-            return postFacade.getAllPostsSortedByTopic();
-        } else if ("author".equals(sortBy)) {
-            return postFacade.getAllPostsSortedByAuthor();
-        } else if ("all".equals(sortBy)) {
-            return postFacade.getAllPosts();
-        } else if ("date-asc".equals(sortBy)) {
-            return postFacade.getAllPostsSortedByDateAsc();
-        } else {
-            return postFacade.getAllPostsSubscribed();
+        // Si filterType est "subscribed", on retourne les posts des abonnements
+        if ("subscribed".equals(filterType)) {
+            if ("topic".equals(sortBy)) {
+                return postFacade.getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getTopicTitle)
+                                .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+            } else if ("author".equals(sortBy)) {
+                return postFacade.getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getCreatedByUsername)
+                                .thenComparing(PostDto::getUpdatedAt, Comparator.reverseOrder()));
+            } else if ("date-asc".equals(sortBy)) {
+                return postFacade.getAllPostsSubscribed()
+                        .sort(Comparator.comparing(PostDto::getCreatedAt));
+            } else {
+                return postFacade.getAllPostsSubscribed();
+            }
         }
+
+        // Si filterType est "all" ou si aucun filtre n'est spécifié mais qu'on a un tri
+        if ("all".equals(filterType) || sortBy != null) {
+            if ("topic".equals(sortBy)) {
+                return postFacade.getAllPostsSortedByTopic();
+            } else if ("author".equals(sortBy)) {
+                return postFacade.getAllPostsSortedByAuthor();
+            } else if ("date-asc".equals(sortBy)) {
+                return postFacade.getAllPostsSortedByDateAsc();
+            } else {
+                return postFacade.getAllPosts();
+            }
+        }
+
+        // Comportement par défaut (ni topicId, ni filterType, ni sortBy)
+        return postFacade.getAllPostsSubscribed();
     }
 
     @GetMapping("/posts/{id}")
@@ -293,12 +320,13 @@ public class PostController {
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) UUID topicId,
             @RequestParam(required = false) String filename,
+            @RequestParam(required = false) String filterType,
             ServerWebExchange exchange) {
 
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
-        return postFacade.exportPostsToJson(sortBy, topicId, filename)
+        return postFacade.exportPostsToJson(sortBy, topicId, filename, filterType)
                 .map(filePath -> {
                     ApiResult<String> apiResult = new ApiResult<>(
                             filePath,
