@@ -241,6 +241,7 @@
     </profiles>
 
     <build>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -270,7 +271,7 @@
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
-                        <compilerArg>-parameters</compilerArg>
+                        <arg>-parameters</arg>
                         <!-- compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg -->
                     </compilerArgs>
                 </configuration>
