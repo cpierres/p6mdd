@@ -1,0 +1,61 @@
+@startuml
+!theme plain
+title Diagramme de Cas d'Utilisation - Utilisateur Authentifié et Système
+
+' Acteurs
+actor "Utilisateur Authentifié" as AuthUser
+
+' Packages pour organiser les cas d'utilisation
+rectangle "Gestion des Utilisateurs" {
+  usecase "Consulter son profil" as UC3
+  usecase "Mettre à jour son profil" as UC4
+  usecase "Se désabonner d'un topic" as UC7
+}
+
+rectangle "Gestion des Topics (Thèmes)" {
+  usecase "Consulter les topics avec statut d'abonnement false" as UC8
+  usecase "S'abonner à un topic" as UC6
+}
+
+rectangle "Gestion des Posts (Articles)" {
+  usecase "Consulter les posts" as UC11
+  usecase "Créer un post" as UC10
+}
+
+rectangle "Gestion des Commentaires" {
+  usecase "Ajouter un commentaire à un post" as UC15
+  usecase "Consulter les commentaires d'un post" as UC16
+}
+
+' Relations pour Utilisateur Authentifié
+AuthUser --> UC3
+AuthUser --> UC4
+AuthUser --> UC6
+AuthUser --> UC7
+AuthUser --> UC8
+AuthUser --> UC10
+AuthUser --> UC11
+AuthUser --> UC15
+AuthUser --> UC16
+
+' Relations d'inclusion et d'extension
+UC10 ..> UC11 : <<extend>>
+UC15 ..> UC16 : <<extend>>
+
+note bottom of UC11
+  Propositions d'amélioration :
+  - Par défaut, consultation posts/articles des topics/thèmes auxquels le user est abonné (sélection : "Mes thèmes" - demande actuelle)
+  - Consulter tous les posts/articles (sélection : "Tous les thèmes" - même si pas abonné)
+  - Consulter les posts/articles d'un topic/thème donné (les thèmes seront triés instanément par popularité)
+end note
+
+note bottom of "Gestion des Topics (Thèmes)"
+  Dans le MVP il n'est pas prévu de CRUD pour les topics.
+  Des topics pré-définis sont chargés automatiquement au lancement de l'application.
+end note
+
+note bottom of UC10
+ On ne peut créer un Post que sur Thèmes abonnés
+end note
+
+@enduml

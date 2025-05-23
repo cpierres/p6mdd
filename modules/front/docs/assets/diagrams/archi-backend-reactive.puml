@@ -1,0 +1,91 @@
+@startuml
+!theme plain
+title Architecture du Backend - Spring WebFlux avec R2DBC
+
+package "Spring WebFlux" as webflux {
+  [Handlers] as handler
+  [Controllers] as controller
+}
+
+package "Services" as services {
+  [AuthService]
+  [JwtService]
+  [TopicService]
+  [PostService]
+  [CommentService]
+  [UserService]
+}
+
+package "Repositories" as repos {
+  [UserRepository]
+  [TopicRepository]
+  [PostRepository]
+  [CommentRepository]
+  [UserTopicSubscriptionRepository]
+}
+
+package "Entities" as entities {
+  [User]
+  [Topic]
+  [Post]
+  [Comment]
+  [UserTopicSubscription]
+}
+
+package "Data Transfer Objects" as dtos {
+  [UserDto]
+  [TopicDto]
+  [PostDto]
+  [CommentDto]
+}
+
+package "Mappers" as mappers {
+  [UserMapper]
+  [TopicMapper]
+  [PostMapper]
+  [CommentMapper]
+}
+
+package "Security" as security {
+  [SecurityConfig]
+  [JwtAuthenticationFilter]
+}
+
+package "Event Emitters" as emitters {
+  [TopicStatsEmitter]
+  [CommentEmitter]
+  [PostEmitter]
+}
+
+database "PostgreSQL" as db
+
+controller --> services
+services --> repos
+repos --> entities
+repos --> db
+services --> mappers
+mappers --> entities
+mappers --> dtos
+services --> emitters
+security --> services
+
+note left of webflux
+  Architecture non-bloquante
+  Programmation réactive
+  Flux et Mono
+end note
+
+note top of repos
+  Repositories réactifs
+  R2DBC pour accès asynchrone
+end note
+
+note top of emitters
+  Server-Sent Events (SSE)
+  Notifications en temps réel
+end note
+
+note top of db
+  R2DBC
+end note
+@enduml

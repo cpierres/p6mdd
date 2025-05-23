@@ -1,0 +1,18 @@
+@startuml
+!theme plain
+title Diagramme de Cas d'Utilisation - Utilisateur Non Authentifié
+
+' Acteur
+actor "Utilisateur Non Authentifié" as UnauthUser
+
+' Packages pour organiser les cas d'utilisation
+rectangle "Gestion des Utilisateurs" {
+  usecase "S'inscrire" as UC1
+  usecase "Se connecter" as UC2
+}
+
+' Relations pour Utilisateur Non Authentifié
+UnauthUser --> UC1
+UnauthUser --> UC2
+
+@enduml

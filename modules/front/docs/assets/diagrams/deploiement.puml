@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title Diagramme de Déploiement - P6MDD
+
+node "Navigateur Client" as client {
+  [Application Angular] as angular
+}
+
+cloud "Environnement de Déploiement" {
+  node "Conteneur Docker Frontend" as frontContainer {
+    [Nginx] as nginx
+    [Application Angular compilée] as angularBuild
+  }
+
+  node "Conteneur Docker Backend" as backContainer {
+    [Spring Boot Application] as springBoot
+  }
+
+  node "Conteneur Docker Base de Données" as dbContainer {
+    [PostgreSQL] as postgres
+    [Volume Persistant] as volume
+  }
+}
+
+client --> frontContainer : HTTP/HTTPS
+frontContainer --> backContainer : HTTP/HTTPS
+backContainer --> dbContainer : TCP/IP
+
+nginx --> angularBuild
+springBoot --> postgres
+postgres --> volume
+
+note right of client
+  Interface utilisateur
+  Exécution du code JavaScript
+end note
+
+note right of frontContainer
+  Port: 67
+  Serveur web Nginx
+  Fichiers statiques
+end note
+
+note right of backContainer
+  Port: 8067
+  API REST
+  Server-Sent Events
+end note
+
+note right of dbContainer
+  Port: 5437
+  Données persistantes
+end note
+@enduml

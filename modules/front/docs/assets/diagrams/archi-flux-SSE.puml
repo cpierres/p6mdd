@@ -1,0 +1,84 @@
+@startuml
+!theme plain
+title Flux de Données en Temps Réel - Server-Sent Events (SSE)
+
+actor "Utilisateur 1" as user1
+actor "Utilisateur 2" as user2
+participant "Frontend\nComponent" as frontComp1
+participant "Frontend\nService" as frontService1
+participant "Frontend\nComponent" as frontComp2
+participant "Frontend\nService" as frontService2
+participant "SSE Controller\n(Backend)" as sseController
+participant "Event Emitter\n(Backend)" as eventEmitter
+participant "Service\n(Backend)" as backService
+participant "Repository\n(Backend)" as repo
+database "Base de données" as db
+
+== Initialisation des connexions SSE ==
+
+user1 -> frontComp1: Chargement de la page
+activate frontComp1
+frontComp1 -> frontService1: Initialisation
+activate frontService1
+frontService1 -> sseController: Connexion SSE\n(GET /api/events/stream)
+activate sseController
+sseController -> eventEmitter: getEventStream()
+activate eventEmitter
+eventEmitter --> sseController: Flux<ServerSentEvent>
+sseController --> frontService1: Connexion établie
+note right of frontService1: La connexion reste ouverte
+
+user2 -> frontComp2: Chargement de la page
+activate frontComp2
+frontComp2 -> frontService2: Initialisation
+activate frontService2
+frontService2 -> sseController: Connexion SSE\n(GET /api/events/stream)
+sseController -> eventEmitter: getEventStream()
+eventEmitter --> sseController: Flux<ServerSentEvent>
+sseController --> frontService2: Connexion établie
+note right of frontService2: La connexion reste ouverte
+
+== Création d'un événement ==
+
+user1 -> frontComp1: Action utilisateur
+frontComp1 -> frontService1: createEntity()
+frontService1 -> backService: HTTP POST /api/entity
+activate backService
+backService -> repo: save(entity)
+activate repo
+repo -> db: Requête R2DBC
+activate db
+db --> repo: Résultat
+deactivate db
+repo --> backService: Entity
+deactivate repo
+
+backService -> eventEmitter: notifyNewEvent(event)
+activate eventEmitter
+eventEmitter -> eventEmitter: eventSink.tryEmitNext(event)
+note right of eventEmitter: Émission de l'événement\ndans le Sink réactif
+eventEmitter --> sseController: Notification
+deactivate eventEmitter
+
+backService --> frontService1: Réponse HTTP
+deactivate backService
+frontService1 --> frontComp1: Confirmation
+deactivate frontService1
+frontComp1 --> user1: Mise à jour de l'interface
+deactivate frontComp1
+
+== Diffusion de l'événement ==
+
+sseController -> frontService1: Envoi de l'événement SSE
+frontService1 -> frontComp1: Notification
+activate frontComp1
+frontComp1 --> user1: Mise à jour de l'interface
+deactivate frontComp1
+
+sseController -> frontService2: Envoi de l'événement SSE
+frontService2 -> frontComp2: Notification
+activate frontComp2
+frontComp2 --> user2: Mise à jour de l'interface
+deactivate frontComp2
+
+@enduml
