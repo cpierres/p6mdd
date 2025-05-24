@@ -32,7 +32,7 @@
 .snackbar-success {
   --mdc-snackbar-container-color: mediumvioletred;
   --mat-mdc-snack-bar-button-color: black;
-  --mdc-snackbar-supporting-text-color: black;
+  --mdc-snackbar-supporting-text-color: white;
 
   .mat-mdc-snack-bar-actions {
     color: black;
