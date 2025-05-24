@@ -1,12 +1,35 @@
 # Projet P6 - MDD Full Stack
 
+## Table des matières
+
+- [Préalables](#préalables)
+- [Introduction](#introduction)
+- [Préalables d'installation](#préalables-dinstallation)
+  - [Pré-requis](#pré-requis)
+  - [Installation option 1](#installation-option-1-la-plus-rapide--installation-via-le-pom-multi-modules-maven-avec-profils-prodlocal-et-docker-image)
+  - [Installation option 2](#installation-option-2--installation-classique-pour-le-développement)
+- [Documentation de l'API](#documentation-de-lapi)
+- [Auteur et contexte](#auteur-et-contexte)
+- [Technologies et bonnes pratiques](#technologies-et-bonnes-pratiques-appliquées-pour-le-projet-6)
+  - [Automatisation des installations](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
+  - [Gestion des migrations](#gestion-automatisée-des-migrations-de-données-avec-flyway)
+  - [Backend avec SpringBoot](#backend-avec-springboot-344-et-spring-webflux)
+  - [Frontend avec Angular](#frontend-avec-angular-192)
+  - [Bonnes pratiques](#bonnes-pratiques)
+- [Scénarios de démonstration](#scénarios-destinés-à-mettre-en-valeur-lapport-des-technologies-utilisées-pour-lutilisateur)
+  - [Affichage multi-navigateurs](#affichez-lapplication-sur-2-navigateurs-différents-ainsi-que-sur-votre-téléphone-mobile-avec-des-logins-différents)
+  - [Inscription et connexions](#scénarios-dinscription-et-de-connexions)
+  - [Abonnement et désabonnement](#scénarios-dabonnement--désabonnement)
+  - [Articles et commentaires](#création-darticles-posts-et-de-commentaires)
+
+## Préalables
 
 - En préalable à ce README, je recommande la lecture du [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
  - Vous pourrez également accéder à mon [site de veille technologique sur les Architectures, Spring et Angular](https://veille.cpierres.dscloud.me/),
-depuis la page d'Accueil, cliquez sur le **Projet P6 - MDD (Client Orion)**
+depuis la page d'Accueil de ce site, cliquez sur le **Projet P6 - MDD (Client Orion)**
 
-Application accessible depuis internet : [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/)
-Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me:8068/swagger-ui/](http://apimdd.cpierres.dscloud.me:8068/swagger-ui/)
+- Application accessible depuis internet : [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/)
+- Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me:8068/swagger-ui/](http://apimdd.cpierres.dscloud.me:8068/swagger-ui/)
 
 ## Introduction
 A la base, l'application présente vise à répondre au cahier des charges du projet 6 MDD d'OpenClassrooms (réseau social MDD : le "Monde Des Développeurs").
@@ -421,7 +444,44 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 - Cliquez sur le bouton `Créer` pour valider
 
 > **Note**
-> Dès la sauvegarde, u1b voit l'article de u2 s'afficher sans intervention de sa part (sur mobile également)
+> Dès la sauvegarde, l'article de u2 est affiché sur tous les browsers et dans le bon ordre de tri
+
+![u1-u2-article-list-sorted.jpg](modules/front/docs/assets/screens/u1-u2-article-list-sorted.jpg)
+
+### u1 va créer un commentaire sur le nouvel article de u2 ; u2 affiche le détail de son article
+- affichez sur le mobile, la page des Topics (pour voir les compteurs de popularité)
+
+![cpierres-mobile-topics.jpg](modules/front/docs/assets/screens/cpierres-mobile-topics.jpg)
+
+- u1 clique sur le nouvel article de u2
+- u2 affiche aussi le détail de son propre article
+- u1 commence à saisir un commentaire :
+![u1-u2-comment1.jpg](modules/front/docs/assets/screens/u1-u2-comment1.jpg)
+
+
+- u1 envoie le commentaire
+> **Note**
+> Dès la sauvegarde, tous les terminaux sont mis simultanément à jour :
+
+![u1-u2-comment2.jpg](modules/front/docs/assets/screens/u1-u2-comment2.jpg)
+
+> **Note**
+> Le compteur est également mis à jour instantanément sur le mobile :
+
+![u1-u2-comment-3-compteur.jpg](modules/front/docs/assets/screens/u1-u2-comment-3-compteur.jpg)
+
+### u2 va répondre à u1 dans le fil de commentaire de son article ; une conversation s'engage (visible par tous les utilisateurs)
+
+![u1-u2-comment-4.jpg](modules/front/docs/assets/screens/u1-u2-comment-4.jpg)
+
+> **Note**
+> Chaque utilisateur découvre le commentaire de l'autre instantanément !
+> De quoi engager une conversation à 2 ou à plusieurs ...
+
+Par ailleurs, si sur le mobile, vous affichez la page des Articles et que vous regardez à ce moment-là la liste des filtres, la popularité s'actualisera également sous vos yeux !
+
+![u1-u2-article-list-sorted.jpg](modules/front/docs/assets/screens/u1-u2-article-list-sorted.jpg)
+
 
 
 
