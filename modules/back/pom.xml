@@ -10,7 +10,6 @@
     </parent>
     <!-- groupId>com.mdd</groupId -->
     <artifactId>back</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <name>P6MDD Backend</name>
     <description>Module backend de l'application P6MDD</description>
     <url/>
@@ -18,7 +17,15 @@
         <license/>
     </licenses>
     <developers>
-        <developer/>
+        <developer>
+            <id>dev-1</id>
+            <name>Christophe Pierrès</name>
+            <email>cpierres@hotmail.com</email>
+            <roles>
+                <role>Développeur full stack</role>
+            </roles>
+            <organizationUrl>https://veille.cpierres.dscloud.me/</organizationUrl>
+        </developer>
     </developers>
     <scm>
         <connection/>
