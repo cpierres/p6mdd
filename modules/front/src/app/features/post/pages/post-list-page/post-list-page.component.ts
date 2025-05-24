@@ -75,11 +75,8 @@ export class PostListPageComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.postEventService.getNewPostStream().subscribe(newPost => {
         if (newPost) {
-          // Vérifier si le post correspond aux critères de filtrage actuels
-          if (this.shouldAddPost(newPost)) {
-            // Ajouter le nouveau post au début de la liste
-            this.posts = [newPost, ...this.posts];
-          }
+          // La méthode shouldAddPost gère maintenant l'ajout du post avec le tri approprié
+          this.shouldAddPost(newPost);
         }
       })
     );
@@ -92,27 +89,73 @@ export class PostListPageComponent implements OnInit, OnDestroy {
 
   /**
    * Détermine si un post doit être ajouté à la liste en fonction des filtres actuels
+   * et gère l'ajout en respectant le tri actuel
    */
   private shouldAddPost(post: PostDto): boolean {
     // Si on affiche tous les posts
     if (this.selectedTopicId === 'all') {
-      return true;
+      // Ajouter le post en respectant le tri actuel
+      this.addPostWithCurrentSort(post);
+      return false; // On l'a déjà ajouté manuellement
     }
 
     // Si on filtre par topic spécifique
     if (this.selectedTopicId !== 'subscribed' && this.selectedTopicId !== 'all') {
-      return post.topicId === this.selectedTopicId;
+      if (post.topicId === this.selectedTopicId) {
+        // Ajouter le post en respectant le tri actuel
+        this.addPostWithCurrentSort(post);
+        return false; // On l'a déjà ajouté manuellement
+      }
+      return false;
     }
 
     // Pour 'subscribed', on ne peut pas déterminer facilement si l'utilisateur est abonné au topic
-    // On pourrait soit recharger la liste complète, soit maintenir une liste des IDs des topics auxquels l'utilisateur est abonné
-    // Pour simplifier, on recharge la liste complète quand un nouveau post arrive et qu'on est en mode 'subscribed'
+    // On recharge la liste complète pour garantir le tri correct et l'inclusion des posts pertinents
     if (this.selectedTopicId === 'subscribed') {
       this.loadPosts();
       return false; // On ne l'ajoute pas manuellement puisqu'on recharge la liste
     }
 
     return false;
+  }
+
+  /**
+   * Ajoute un post à la liste en respectant le tri actuel
+   */
+  private addPostWithCurrentSort(post: PostDto): void {
+    // Ajouter le post à la liste existante
+    const updatedPosts = [...this.posts];
+    updatedPosts.push(post);
+
+    // Trier la liste selon le critère actuel
+    if (this.sortCriteria === 'topic') {
+      // Tri par topic puis par date décroissante
+      updatedPosts.sort((a, b) => {
+        const topicCompare = a.topicTitle.localeCompare(b.topicTitle);
+        if (topicCompare !== 0) return topicCompare;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
+    } else if (this.sortCriteria === 'author') {
+      // Tri par auteur puis par date décroissante
+      updatedPosts.sort((a, b) => {
+        const authorCompare = a.createdByUsername.localeCompare(b.createdByUsername);
+        if (authorCompare !== 0) return authorCompare;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
+    } else if (this.sortCriteria === 'date-asc') {
+      // Tri par date croissante
+      updatedPosts.sort((a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    } else {
+      // Tri par défaut: date décroissante
+      updatedPosts.sort((a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+    }
+
+    // Mettre à jour la liste
+    this.posts = updatedPosts;
   }
 
   openCreatePost() {
