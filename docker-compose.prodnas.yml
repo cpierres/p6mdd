@@ -80,8 +80,8 @@ services:
       args:
         ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
         VERSION: ${PROJECT_VERSION:-1.0.0-SNAPSHOT}
-    image: cpierres/ocr-p6-mdd-front-prodnas:${PROJECT_VERSION:-1.0.0-SNAPSHOT}
-    container_name: ocr-p6-mdd-frontend-prodnas-${PROJECT_VERSION:-1.0.0-SNAPSHOT}
+    image: cpierres/ocr-p6-mdd-frontend-prodnas:${PROJECT_VERSION:-1.0.0-SNAPSHOT}
+    container_name: ocr-p6-mdd-frontend-prodnas
     restart: always
     depends_on:
       - backend
