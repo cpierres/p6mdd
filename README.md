@@ -2,7 +2,7 @@
 
 
 - En préalable à ce README, je recommande la lecture du [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
-- Vous pourrez également accéder à mon [site de veille technologique sur les Architectures, Spring et Angular](https://veille.cpierres.dscloud.me/) ,
+ - Vous pourrez également accéder à mon [site de veille technologique sur les Architectures, Spring et Angular](https://veille.cpierres.dscloud.me/),
 depuis la page d'Accueil, cliquez sur le **Projet P6 - MDD (Client Orion)**
 
 Application accessible depuis internet : [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/)
@@ -11,7 +11,7 @@ Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me:8068/swagger
 ## Introduction
 A la base, l'application présente vise à répondre au cahier des charges du projet 6 MDD d'OpenClassrooms (réseau social MDD : le "Monde Des Développeurs").
 
-Ce projet autorise une liberté concernant les choix des technologies mais doit respecter les maquettes d'écran fournies (pour deskop et mobile) :
+Ce projet autorise une liberté concernant les choix des technologies mais doit respecter les maquettes d'écran fournies (pour desktop et mobile) :
 [Maquettes Figma (desktop et mobile)](https://www.figma.com/file/Rflr3TVBog35BNMnn0DF09/Maquettes-MDD-(desktop-et-mobile)?node-id=0%3A1)
 
 Il s'agit d'un **MVP** (Minimum Viable Product) devant servir de base du développement complet futur.
@@ -26,7 +26,7 @@ Je précise que ce projet n'aborde pas certains points non demandés :
 
 ## Préalables d'installation
 
-- Pour être testée, cette applicatio MVP n'a pas besoin d'être installée car déployée sur internet.
+- Pour être testée, cette application MVP n'a pas besoin d'être installée car déployée sur internet.
 
 - Si néanmoins, vous souhaitez effectuer l'installation sur votre poste de développement, vous avez deux possibilités d'installation :
   - Option 1 : via maven avec pom parent multi-modules (profils : prodlocal et docker-image)
@@ -42,7 +42,7 @@ Les étapes détaillées sont décrites ci-après.
 
 ### Installation option 1 (la plus rapide) : installation via le pom multi-modules maven (avec profils prodlocal et docker-image)
 
-L'application est installée entièrement sous docker (base de données, back et front), prête pour la prod, via le pom parent.
+L'application est installée entièrement sous docker-compose (base de données, back et front), prête pour la prod, via le pom parent.
 Les fichiers d'environnement ne doivent théoriquement jamais être versionnés. 
 - Pour cette application de démonstration, vous avez tout de même un fichier modèle : `_env.prodlocal.yml` que vous devez renommer en `.env.prodlocal.yml`
 - Ouvrir `docker-compose.prodlocal.yml`
@@ -216,12 +216,15 @@ Le frontend respecte également le principe de responsabilité unique :
 
 - **Architecture par fonctionnalités** : Organisation du code en dossiers par domaine fonctionnel (`auth`, `user`, `topic`, etc.).
 - **Composants autonomes** : Chaque composant a une responsabilité unique :
-  - `RegisterComponent` : Gère uniquement l'inscription
-  - `UserFormComponent` : Responsable uniquement de l'affichage et de la validation du formulaire
+    - `UserFormComponent` : Composant partagé responsable de l'affichage et de la validation du formulaire, selon 2 contextes
+    - `RegisterComponent` : Gère l'inscription en activant les paramètres adéquats du composant `UserFormComponent`
+    - `ProfilComponent` : Gère la mise à jour du profil en activant les paramètres adéquats du composant `UserFormComponent`
+  
 - **Services spécialisés** :
   - `AuthService` : Gère uniquement les opérations d'authentification
   - `ErrorHandlingService` : Responsable uniquement de la gestion des erreurs
   - `SessionService` : Gère uniquement l'état de la session utilisateur
+  - `MessagesService` : Gère l'affichage des Messages dans un snackBar (basé sur Signal)
 
 ###### Open/Closed Principle (OCP)
 Le principe ouvert/fermé est respecté par :
@@ -280,7 +283,6 @@ L'objectif sera de constater la mise à jour simultanée, ceci avec différents 
 - Affichez l'application depuis [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/) sur votre téléphone
   mobile
 
-
 ## Scénarios d'inscription et de connexions
 
 ### Inscription via le browser Chrome
@@ -291,7 +293,6 @@ L'objectif sera de constater la mise à jour simultanée, ceci avec différents 
   - Mettez à l'épreuve les contrôles de surface :
     - omettez la présence d'un `@` dans l'email par exemple,
     - le fait que les informations soient obligatoires,
-    - la longueur du username doit être d'au moins 2 caractères etc ...
     - Pour le mot de passe, saisissez dans un premier temps une valeur ne correspondant pas aux contraintes, par exemple : `Test`
   - Puis corrigez vos saisies
   - Pour que le mot de passe soit valide, saisissez par exemple `Test!1234`
@@ -338,9 +339,9 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 > **Note** 
 > Pour ma part, je suis déjà abonné à plusieurs thèmes (faites en autant !)
 
-## Scénarios d'abonnement
+## Scénarios d'abonnement / Désabonnement
 
-### u1 (Chrome) veut s'abonner au Thème `Spring Webflux`
+### u1 (Chrome) veut s'abonner au Thème `Spring Webflux` et `R2DBC`
 - Comme vu dans les use-cases du dossier d'architecture, 
   - la page `Thèmes` présente les thèmes et permet de `S'abonner` 
   - la page `Profil` présente les Abonnements en cours et permet de `Se désabonner`
@@ -348,8 +349,82 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 ![u1-profil-no-subscription.jpg](modules/front/docs/assets/screens/u1-profil-no-subscription.jpg)
 - Cliquez sur le lien [page de Thèmes](#thèmes) :
 ![u1-theme-subscribe.jpg](modules/front/docs/assets/screens/u1-theme-subscribe.jpg)
-- Comme les textes sont tronqués (avec des points de suite ...), vous pouvez cliquez sur le texte pour `zoomer` :
+- Comme les descriptifs sont tronqués (avec des points de suite ...), vous pouvez cliquez sur le texte pour `zoomer` :
 ![u1-theme-zoom.jpg](modules/front/docs/assets/screens/u1-theme-zoom.jpg)
+- Abonnez-vous à `Spring Webflux` et `R2DBC`
 
-- Abonnez-vous à `Spring Webflux` !
+### u1 (Chrome) veut se désabonner du Thème `R2DBC`
+- Cliquez sur le logo `Profil`
+> **Note**
+> Les abonnements sont affichés en bas du Profil (c'est le comportement souhaité)
+- Cliquez sur `Se désabonner` de RD2DBC
+
+#### Modification du Profil username et du mot de passe
+- Maintenant cliquez sur Modifier :
+![u1-profil-modif1.jpg](modules/front/docs/assets/screens/u1-profil-modif1.jpg)
+> **Note technique**
+> Vous pouvez être étonné du message en dessous de l'email indiquant que si vous le modifiez, 
+> vous devrez vous reconnecter. En fait, ce comportement a pour origine un problème de re-validation 
+> du token qui devenait invalide côté Sécurité Spring comme sa signature ne correspondait plus (cette information 
+> faisant partie du token). Depuis, j'ai corrigé le problème côté backend. Désormais on pourrait modifier
+> l'email sans avoir besoin de se reconnecter ... mais je n'ai pas encore corrigé ce mauvais comportement 
+> côté frontend (ceci sera fait dans la prochaine version).
+> Cela donne l'occasion de voir comment on peut gérer un comportement fin dans l'IHM ! (Signal, effect ont été
+> utilisés)
+- Modifiez l'email ; vous constaterez que le libellé et le comportement du bouton de validation changent instantanément :
+![ui-profil-modif-email.jpg](modules/front/docs/assets/screens/ui-profil-modif-email.jpg)
+> **Note technique**
+> La modification du profil et l'écran d'inscription sont deux pages qui partagent le même composant `user-form`
+> avec deux comportements différents selon le contexte d'appel (profil ou register)
+- Rétablissez l'email à sa valeur d'origine et vous constaterez que le libellé du bouton reviendra à son libellé d'origine
+- Modifiez le username en ajoutant la lettre `b` à la fin par exemple
+- Vous devrez modifier le Mot de passe pour que le bouton `Sauvegarder` puisse s'activer :
+![ui-profil-modif-save.jpg](modules/front/docs/assets/screens/ui-profil-modif-save.jpg)
+- Après sauvarde, affichage d'un snackbar de success :
+![ui-profil-modif-save-done.jpg](modules/front/docs/assets/screens/ui-profil-modif-save-done.jpg)
+> **Note**
+> La bulle `snackBar` de success s'affiche 2 secondes (`MessagesService` shared basé sur Signal)
+
+
+
+### u2 (Edge) veut s'abonner au Thème `Spring Webflux`
+- Cliquez sur `Thèmes` puis sur `S'abonner` (rester sur cet écran)
+
+## Création d'Articles (Posts) et de Commentaires
+
+### u1 affiche les Articles
+> **Note**
+> Par défaut, seuls les articles concernant les thèmes auxquels l'utilisateur s'est abonné sont affichés.
+> Testez les capacités de Filtre et de Tri. Revenir au tri par défaut : `Date (récent d'abord)` avant de passer à la suite.
+
+![u1-articles-1.jpg](modules/front/docs/assets/screens/u1-articles-1.jpg)
+
+### u1 crée un article pour le Thème `Spring Webflux`
+- Cliquez sur le bouton `Créer un article`
+![u1-articles-creer.jpg](modules/front/docs/assets/screens/u1-articles-creer.jpg)
+
+- Une fois les données saisies, cliquez sur le bouton `Créer`
+> **Note**
+> Au retour vers la liste, le compteur des articles (popularité) de u2 est instantanément actualisé (ainsi que sur votre mobile)
+
+![u1-u2-compteur-articles.jpg](modules/front/docs/assets/screens/u1-u2-compteur-articles.jpg)
+
+### u2 crée un article pour le Thème `Spring Webflux` à son tour
+- Cliquez sur le bouton `Créer un article`
+
+![u1-u2-compteur-articles.jpg](modules/front/docs/assets/screens/u1-u2-compteur-articles.jpg)
+
+- Saisissez des données :
+
+![u1-u2-article-new-u2.jpg](modules/front/docs/assets/screens/u1-u2-article-new-u2.jpg)
+
+- Cliquez sur le bouton `Créer` pour valider
+
+> **Note**
+> Dès la sauvegarde, u1b voit l'article de u2 s'afficher sans intervention de sa part (sur mobile également)
+
+
+
+
+
 
