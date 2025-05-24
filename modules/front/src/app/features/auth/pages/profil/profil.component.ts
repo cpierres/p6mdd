@@ -93,9 +93,13 @@ export class ProfilComponent {
           this.sessionService.logOut();
           this.router.navigate(['/auth/login']);
         } else {
-          this.isEditMode.set(false);//revenir en mode lecture après la sauvegarde
+          // Mettre à jour le currentUser avec les nouvelles données
+          // Récupérer les données utilisateur mises à jour
+          this.authService.me().subscribe((updatedUser: User) => {
+            this.currentUser.set(updatedUser);
+            this.isEditMode.set(false); // Revenir en mode lecture après la sauvegarde
+          });
         }
-        //this.isEditMode.set(false); // Revenir en mode lecture après la sauvegarde
         this.messagesService.showMessage('Profil mis à jour avec succès', 'success');
       },
       error: (responseDetails: ResponseDetails) => {
