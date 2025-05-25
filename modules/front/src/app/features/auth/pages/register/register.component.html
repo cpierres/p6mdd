@@ -1,0 +1,7 @@
+<!-- app-user-form [headTitle]="headTitle" [labelSubmit]="labelSubmit" (submit)="handleFormSubmit($event)"
+               [backendFieldErrors]="backendFieldErrors" [context]="'register'"
+               [isEditMode]="isEditMode" [currentUser]="currentUser"></app-user-form -->
+
+<app-user-form [headTitle]="headTitle" [labelSubmit]="labelSubmit" (submit)="handleFormSubmit($event)"
+               [backendFieldErrors]="errorHandlingService.fieldErrors" [context]="'register'"
+               [isEditMode]="isEditMode" [currentUser]="currentUser"></app-user-form>

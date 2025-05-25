@@ -1,0 +1,137 @@
+.post-list-container {
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  // Ajuster les marges horizontales selon la taille d'écran
+  @media (max-width: 599px) {
+    padding: 8px; // 8px de marge uniforme sur mobile
+  }
+
+  @media (min-width: 600px) and (max-width: 959px) {
+    padding: 16px; // 16px de marge sur tablette
+  }
+
+  @media (min-width: 960px) {
+    padding: 24px; // 24px de marge sur desktop
+  }
+}
+
+.post-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+
+  button {
+    height: 56px; /* Hauteur pour correspondre aux mat-form-field */
+    margin: 0; /* Éliminer les marges qui pourraient affecter l'alignement */
+    margin-top: -6px; /* Remonter le bouton de 2 pixels pour aligner avec le haut des listes */
+    margin-right: 16px; /* Ajouter un gap uniquement sur le côté droit du bouton */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 250px; /* Largeur minimum cohérente avec les listes */
+
+    @media (max-width: 599px) {
+      margin-top: 0; /* Réinitialiser la marge négative sur les petits écrans */
+      margin-right: 0; /* Réinitialiser la marge droite sur les petits écrans car on utilise déjà gap */
+      /* Le padding-right est maintenant géré par le conteneur parent */
+      width: 100%; /* Assurer que le bouton prend toute la largeur disponible comme les listes */
+    }
+  }
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    align-items: flex-start; /* Changer de stretch à flex-start pour éviter l'étirement complet */
+    gap: 16px; /* Augmenter l'espace entre le bouton et les contrôles de filtre */
+  }
+}
+
+.filter-sort-controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px; /* Ajouter de l'espace au-dessus des boutons de filtre */
+
+  /* Règles pour assurer un alignement cohérent sur tous les écrans */
+  width: 100%;
+  justify-content: flex-start; /* Aligner à gauche pour être cohérent avec le header */
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%; /* Assurer que le conteneur prend toute la largeur disponible */
+    justify-content: flex-start; /* Réinitialiser pour mobile */
+  }
+}
+
+/* Style pour élargir la liste déroulante "Filtrer par thème" */
+::ng-deep .theme-filter-panel {
+  min-width: 400px !important; /* Largeur minimum augmentée */
+  max-width: 900px !important; /* Largeur maximum */
+  width: auto !important;      /* Largeur automatique basée sur le contenu */
+}
+
+/* Style pour la zone de sélection elle-même */
+.custom-select {
+  min-width: 250px; /* Largeur minimum du champ de sélection */
+}
+
+/* Style pour toutes les mat-form-field dans les contrôles de filtre et tri */
+.filter-sort-controls mat-form-field {
+  width: 100%; /* Assure que les champs prennent toute la largeur disponible */
+  min-width: 250px; /* Largeur minimum cohérente avec .custom-select */
+}
+
+/* Assurer un centrage cohérent pour mat-grid-list sur les écrans larges */
+mat-grid-list {
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0; /* Supprimer tout padding qui pourrait causer un décalage */
+}
+
+mat-grid-tile {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+
+  ::ng-deep .mat-grid-tile-content {
+    align-items: center; /* Centrer verticalement */
+    justify-content: center; /* Centrer horizontalement */
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+  }
+}
+
+/* Ajuster l'espacement vertical entre les tuiles dans la grille */
+::ng-deep .mat-grid-tile {
+  margin-bottom: 2px !important; /* Espacement vertical homogène réduit */
+}
+
+app-post-list {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Assurer que la carte est centrée */
+  margin: 0 auto;
+  max-width: 100%; /* Empêcher le débordement */
+}
+
+@media (max-width: 599px) {
+  .post-grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espacement constant de 8px */
+  }
+
+  /* Masquer mat-grid-list sur mobile */
+  mat-grid-list {
+    display: none;
+  }
+}

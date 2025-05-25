@@ -1,0 +1,136 @@
+.post-card {
+  min-height: 210px; /* Hauteur minimale au lieu de fixe */
+  height: auto;
+  margin: 0; /* Suppression de la marge inférieure */
+  display: flex;
+  flex-direction: column;
+  //justify-content: space-between; /* Gère l’espacement interne */
+  align-items: normal;
+  padding: 8px; /* Ajoute un padding uniforme autour du contenu */
+  padding-top: 0; /* Supprime le padding en haut car mat-card-header a son propre padding */
+  padding-right: 16px; /* Augmenter le padding à droite pour éviter que le texte soit trop collé */
+  background-color: #eeeeee;
+  cursor: pointer;
+  transition: transform 0.2s;
+  overflow: hidden; /* Empêche le débordement */
+  word-wrap: break-word; /* Assure que le texte se plie correctement */
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (max-width: 599px) {
+    min-height: auto; /* Permettre une hauteur adaptative sur mobile */
+    height: auto; /* S'assurer que la hauteur s'adapte au contenu */
+    padding: 16px; /* Maintenir le même padding que sur desktop */
+    padding-top: 0; /* Supprimer le padding en haut car mat-card-header a son propre padding */
+    padding-right: 24px; /* Augmenter le padding à droite pour éviter la troncature */
+  }
+}
+
+.post-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+
+  @media (max-width: 599px) {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.post-content {
+  margin-top: 0;
+  white-space: pre-line;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  width: 100%;
+
+  &.overflow-content {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    //align-self: flex-start;
+
+    &::after {
+      content: '...';
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding-left: 5px;
+      background-color: #eeeeee;
+      display: none;
+    }
+
+    /* Fallback for browsers that don't support -webkit-line-clamp */
+    @supports not ((-webkit-line-clamp: 4) and (-webkit-box-orient: vertical)) {
+      max-height: 6.8em; /* Approximation for 4 lines */
+      &::after {
+        display: block;
+      }
+    }
+  }
+}
+
+mat-card-header {
+  /* Pas besoin de padding-right car le padding est déjà défini dans .post-card */
+}
+
+mat-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Aligne les enfants en haut */
+  width: 100%;
+  flex: 1 1 auto; /* Permet l'expansion automatique */
+  overflow: hidden; /* Empêche le débordement */
+  padding-right: 8px; /* Ajouter un padding supplémentaire à droite pour éviter que le texte soit trop collé */
+}
+
+/* Styles pour assurer que le titre s'affiche correctement sur mobile */
+::ng-deep .mat-mdc-card-title {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  width: 100%;
+
+  @media (max-width: 599px) {
+    font-size: 18px; /* Taille de police légèrement réduite sur mobile */
+    line-height: 1.3; /* Espacement des lignes réduit pour plus de compacité */
+    margin-bottom: 8px; /* Espace supplémentaire sous le titre */
+  }
+}
+
+/* Ajustement pour l'affichage mobile */
+@media (max-width: 599px) {
+  .post-content {
+    &.overflow-content {
+      -webkit-line-clamp: 3; /* Réduire le nombre de lignes sur mobile pour donner plus d'espace au titre */
+      padding-right: 16px; /* Ajouter du padding à droite pour éviter la troncature */
+
+      /* Fallback for browsers that don't support -webkit-line-clamp on mobile */
+      @supports not ((-webkit-line-clamp: 3) and (-webkit-box-orient: vertical)) {
+        max-height: 5.1em; /* Approximation for 3 lines */
+      }
+    }
+  }
+
+  mat-card-header {
+    padding-bottom: 8px; /* Ajouter de l'espace sous l'en-tête pour séparer du contenu */
+    padding-right: 16px; /* Ajouter du padding à droite pour éviter la troncature */
+  }
+}
+
+.topic-title {
+  cursor: pointer;
+  color: #3f51b5;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

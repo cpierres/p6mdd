@@ -1,0 +1,34 @@
+<div class="container">
+  <div class="content">
+    <div class="header-container">
+      <app-back class="back-button"></app-back>
+      <h1>Se connecter</h1>
+      <div class="spacer"></div> <!-- objet invisible pour équilibrer centrage (même largeur que back) -->
+    </div>
+
+    <div class="user-form-container">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="fill">
+          <mat-label>Email ou nom</mat-label>
+          <input matInput formControlName="identifier"/>
+          <mat-error *ngIf="form.get('identifier')?.hasError('required')">
+            Votre identifiant est requis
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Mot de passe</mat-label>
+          <input matInput formControlName="password" type="password"/>
+          <mat-error *ngIf="form.get('password')?.hasError('required')">
+            Votre mot de passe est requis
+          </mat-error>
+        </mat-form-field>
+        <div class="button-container">
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid" class="submit-button">
+            Connexion
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

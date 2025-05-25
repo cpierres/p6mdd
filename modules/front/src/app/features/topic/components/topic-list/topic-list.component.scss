@@ -1,0 +1,72 @@
+.topic-list-container {
+  padding: 16px;
+}
+
+.topic-grid {
+  display: grid; /* Grille pour agencer les cartes */
+  gap: 16px; /* Espacement entre cartes */
+  justify-content: center; /* Centre horizontalement */
+  align-content: center; /* Centre verticalement si nécessaire */
+}
+
+.topic-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5; /* Gris très clair */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optionnel : une ombre légère pour un relief */
+  border-radius: 8px; /* Optionnel : coins arrondis pour un style plus moderne */
+
+  mat-card-content {
+    flex-grow: 1;
+  }
+
+  .description {
+    max-height: 120px; // environ 5 lignes
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    display: -webkit-box; //flex;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+  }
+}
+
+mat-card-actions {
+  padding: 16px;
+
+  button {
+    width: 50%;
+    align-items: center;
+  }
+}
+
+.center-actions {
+  display: flex; /* Utilise Flexbox */
+  justify-content: center; /* Centre les éléments horizontalement */
+}
+
+.stats-footer {
+  padding-top: 2px;
+  margin-top: 0 ;
+
+  .popularity-stats {
+    text-align: center;
+    margin: 0;
+    font-weight: bold;
+  }
+}
+
+.description {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  .view-more {
+    color: #3f51b5;
+    font-size: 0.9em;
+    margin-left: 5px;
+  }
+}

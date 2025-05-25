@@ -1,0 +1,22 @@
+<app-user-form   [isEditMode]="isEditMode" [headTitle]="headTitle" [labelSubmit]="labelSubmit"
+               (submit)="handleFormSubmit($event)" [currentUser]="currentUser"
+               [backendFieldErrors]="errorHandlingService.fieldErrors" [context]="'profil'"></app-user-form>
+<hr class="separator">
+<h1>Abonnements</h1>
+<div class="subscribed-topics-section">
+  <!-- Afficher la liste des topics si l'utilisateur a des abonnements -->
+  @if (hasSubscribedTopics) {
+    <app-topic-list
+      [topics]="topics"
+      [showSubscribeButton]="false"
+      [showUnsubscribeButton]="true"
+      [filterSubscribed]="true">
+    </app-topic-list>
+  } @else {
+    <!-- Message et lien quand il n'y a pas d'abonnements -->
+    <div class="no-subscriptions-message">
+      <p>Vous n'avez aucun abonnement pour le moment.</p>
+      <p>Rendez-vous sur la <a routerLink="/topics" class="topics-link">page des Thèmes</a> pour vous abonner à un ou plusieurs thèmes.</p>
+    </div>
+  }
+</div>

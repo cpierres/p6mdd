@@ -1,0 +1,25 @@
+services:
+  postgres-r2dbc:
+    image: postgres:17
+    restart: always
+    container_name: postgres-r2dbc-mdd
+    environment:
+      POSTGRES_USER: ${P6_DB_USER}
+      POSTGRES_PASSWORD: ${P6_DB_PASSWORD}
+      POSTGRES_DB: dbmdd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mdduser", "-d", "dbmdd"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${P6_DOCKER_PATH_VOLUME}

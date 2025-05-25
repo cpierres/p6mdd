@@ -1,0 +1,61 @@
+@startuml
+!theme plain
+title Modèle de Données - Entités Principales
+
+package "Schema: mddsocial" {
+  class User {
+    +id: UUID
+    +email: String
+    +password: String
+    +username: String
+    +createdAt: LocalDateTime
+    +updatedAt: LocalDateTime
+  }
+
+  class Topic {
+    +id: UUID
+    +title: String
+    +description: String
+    +createdAt: LocalDateTime
+    +updatedAt: LocalDateTime
+  }
+
+  class UserTopicSubscription {
+    +id: UUID
+    +userId: UUID
+    +topicId: UUID
+    +createdAt: LocalDateTime
+  }
+
+  class Post {
+    +id: UUID
+    +title: String
+    +content: String
+    +topicId: UUID
+    +createdBy: UUID
+    +createdAt: LocalDateTime
+    +updatedAt: LocalDateTime
+  }
+
+  class Comment {
+    +id: UUID
+    +content: String
+    +postId: UUID
+    +createdBy: UUID
+    +createdAt: LocalDateTime
+    +updatedAt: LocalDateTime
+  }
+}
+
+User "1" -- "n" UserTopicSubscription
+Topic "1" -- "n" UserTopicSubscription
+User "1" -- "n" Post
+User "1" -- "n" Comment
+Topic "1" -- "n" Post
+Post "1" -- "n" Comment
+
+note bottom of UserTopicSubscription
+  Table d'association des abonnements
+end note
+
+@enduml

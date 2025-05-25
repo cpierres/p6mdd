@@ -1,0 +1,157 @@
+.logo img {
+  max-width: 150px;
+}
+
+/* Styles communs pour le nom d'utilisateur */
+.username-display {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Style pour le conteneur du profil et du nom d'utilisateur en desktop */
+.profile-container {
+  position: relative; /* Pour permettre le positionnement absolu du username */
+  display: flex;
+  align-items: center; /* Aligne le bouton du profil verticalement avec les autres éléments */
+  height: 100%; /* Assure que le profil a la hauteur complète du header */
+  margin: 0; /* Supprime les marges qui pourraient affecter la hauteur */
+  padding: 0; /* Supprime les paddings qui pourraient affecter la hauteur */
+}
+
+/* Style pour le bouton du profil */
+.profile-container button {
+  height: 100%; /* Assure que le bouton a la hauteur complète du conteneur */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: normal; /* Réinitialise la hauteur de ligne pour éviter les problèmes d'alignement */
+  padding: 5px 0 0 0; /* Ajoute un padding en haut pour déplacer le contenu vers le bas */
+  box-sizing: border-box; /* S'assure que le padding est inclus dans la hauteur */
+  margin: 0; /* Supprime les marges qui pourraient affecter l'alignement */
+}
+
+/* Style pour l'image à l'intérieur du bouton du profil */
+.profile-container button img {
+  display: block; /* Évite les espaces blancs sous l'image */
+  max-height: 58px; /* Limite la hauteur de l'image */
+  width: auto; /* Maintient les proportions de l'image */
+  margin-top: 5px; /* Déplace l'image légèrement vers le bas */
+}
+
+/* Style pour le carré de subrillance du bouton du profil */
+.profile-container button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: -1;
+}
+
+/* Style pour le carré de subrillance du bouton du profil au survol et au focus */
+.profile-container button:hover::before,
+.profile-container button:focus::before {
+  background-color: transparent; /* Aucune surbrillance */
+}
+
+/* Style pour le nom d'utilisateur en superposition sur l'image du profil (desktop) */
+.desktop-username {
+  position: absolute;
+  bottom: -8px; /* Positionné un peu plus haut que le bas de l'image */
+  left: 0;
+  right: 0;
+  text-align: center;
+  /* Pas de fond pour éviter le fond blanc */
+  padding: 0px 0;
+  color: black;
+}
+
+/* Style pour le conteneur du menu mobile et du nom d'utilisateur */
+.mobile-menu-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end; /* Aligne les éléments à droite */
+}
+
+/* Style pour le nom d'utilisateur à gauche du menu hamburger (mobile) */
+.mobile-username {
+  font-size: 10px;
+  margin-right: 5px; /* Marge à droite pour l'espacement avec le menu hamburger */
+  color: #666; /* Couleur grise pour le username en mobile */
+}
+
+mat-toolbar {
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid black; /* Ligne en bas */
+}
+
+/* Menu complet visible uniquement sur grand écran */
+.menu-desktop {
+  display: flex;
+  gap: 20px; /* Espacement entre les boutons */
+}
+
+/* Masquer le menu complet sur mobile */
+.menu-desktop {
+  display: none;
+}
+
+.menu-mobile {
+  display: none;
+}
+
+/* Afficher le menu complet ou burger selon la taille de l'écran */
+@media (max-width: 768px) {
+  .menu-desktop {
+    display: none;
+  }
+  .menu-mobile {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .menu-desktop {
+    display: flex;
+  }
+  .menu-mobile {
+    display: none;
+  }
+}
+
+// Styles pour mobile
+@media (max-width: 768px) {
+  // Styles pour les pages non authentifiées (login, register)
+  mat-toolbar:not(.authenticated) {
+    height: 60px; // Hauteur fixe plus compacte (au lieu de auto)
+    flex-direction: column; // Empile les éléments verticalement
+    padding: 5px 0; // Réduire l'espacement vertical (était 10px)
+    align-items: center; // Centre les éléments horizontalement
+  }
+
+  // Styles pour les pages authentifiées (profil)
+  mat-toolbar.authenticated {
+    height: 60px; // Hauteur fixe plus compacte (au lieu de auto)
+    flex-direction: row; // Garde les éléments en ligne
+    padding: 5px; // Réduire l'espacement (était 10px)
+    justify-content: space-between; // Logo à gauche, menu à droite
+  }
+
+  // Ajuster la taille du logo en mobile pour qu'il soit proportionnel
+  .logo img {
+    max-height: 50px; // Limiter la hauteur du logo en mode mobile
+    width: auto; // Maintenir les proportions
+  }
+
+  // La classe mobile-order-2 n'est appliquée que lorsque non authentifié
+  .mobile-order-2 {
+    order: 2; // Le logo passe en dessous du back en mode mobile
+    margin-top: 5px; // Petit espacement entre le back et le logo
+  }
+}

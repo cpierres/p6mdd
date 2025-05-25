@@ -1,0 +1,58 @@
+@startuml
+!theme plain
+title Architecture réactive - Spring WebFlux avec R2DBC
+
+actor "Client" as client
+participant "Serveur d'application" as server
+box "Event Loop" #LightGreen
+participant "Spring WebFlux\nRouter" as router
+participant "Handler" as handler
+participant "Service\n(Reactive)" as service
+participant "Repository\n(R2DBC)" as repository
+end box
+database "Base de données\n(R2DBC)" as db
+
+client -> server: HTTP Request
+activate server
+
+server -> router: Enregistre la requête dans l'Event Loop
+activate router
+
+router -> handler: route(request)
+activate handler
+note right of handler: Le thread n'attend pas\nil est immédiatement libéré
+
+handler -> service: processData()\nretourne Mono/Flux
+activate service
+note right of service: Opération non-bloquante\nretourne immédiatement une promesse
+
+service -> repository: findData()\nretourne Mono/Flux
+activate repository
+note right of repository: Opération non-bloquante
+
+repository -> db: executeQuery()\nasynchrone
+activate db
+note right of db: Connexion asynchrone\naucun thread bloqué
+
+db -[#green]-> repository: onNext(data)
+deactivate db
+note right of repository: Callback quand\nles données sont prêtes
+
+repository -[#green]-> service: onNext(data)
+deactivate repository
+note right of service: Propagation réactive\ndes données
+
+service -[#green]-> handler: onNext(result)
+deactivate service
+
+handler -[#green]-> router: onNext(response)
+deactivate handler
+
+router -[#green]-> server: onNext(response)
+deactivate router
+
+server -[#green]-> client: HTTP Response
+deactivate server
+note right of client: Les threads sont disponibles\npour d'autres requêtes\npendant tout le traitement
+
+@enduml

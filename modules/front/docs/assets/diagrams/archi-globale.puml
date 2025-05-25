@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+title Architecture Globale de l'Application P6MDD
+
+package "Frontend (Angular)" as frontend {
+  [Components]
+  [Services]
+  [Interceptors]
+  [Guards]
+}
+
+package "Backend (Spring Boot)" as backend {
+  [Controllers]
+  [Services]
+  [Repositories]
+  [Entities]
+  [Security]
+}
+
+database "PostgreSQL" as db {
+  [Tables]
+}
+
+actor "Utilisateur" as user
+
+user --> frontend : HTTP/HTTPS
+frontend <--> backend : REST API
+backend <--> db : R2DBC (Reactive)
+
+note right of frontend
+  Angular 19.2.x
+  Standalone Components
+  Angular Material
+  RxJS & Signal
+end note
+
+note right of backend
+  Spring Boot 3.4.4
+  Spring WebFlux (Reactive)
+  Spring Security
+  JWT Authentication
+  R2DBC
+end note
+
+note right of db
+  PostgreSQL 17
+  Schema: mddsocial
+end note
+@enduml

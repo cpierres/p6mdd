@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title Architecture bloquante - Spring MVC avec JPA/JDBC
+
+actor "Client" as client
+participant "Serveur d'application" as server
+box "Thread dédié" #LightYellow
+participant "Spring MVC\nDispatcherServlet" as dispatcher
+participant "Controller" as controller
+participant "Service" as service
+participant "Repository\n(JPA)" as repository
+end box
+database "Base de données\n(JDBC)" as db
+
+client -> server: HTTP Request
+activate server
+
+server -> dispatcher: Assigne un thread dédié
+activate dispatcher
+
+dispatcher -> controller: handleRequest()
+activate controller
+
+controller -> service: processData()
+activate service
+note right of service: Le thread attend\npendant tout le traitement
+
+service -> repository: findData()
+activate repository
+
+repository -> db: executeQuery()
+activate db
+note right of db: Opération bloquante\nLe thread est en attente
+
+db --> repository: Résultats
+deactivate db
+
+repository --> service: Données
+deactivate repository
+
+service --> controller: Résultat traité
+deactivate service
+
+controller --> dispatcher: Réponse
+deactivate controller
+
+dispatcher --> server: Réponse formatée
+deactivate dispatcher
+
+server --> client: HTTP Response
+deactivate server
+note right of client: Le thread est libéré\nseulement à la fin\ndu traitement complet
+
+@enduml

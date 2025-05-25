@@ -1,0 +1,46 @@
+/*Styles pour les différentes sévérités de SnackBar*/
+.snackbar-error {
+     --mdc-snackbar-container-color: red;
+     --mat-mdc-snack-bar-button-color: white;
+     --mdc-snackbar-supporting-text-color: white;
+
+     .mat-mdc-snack-bar-actions {
+       color: white;
+     }
+   }
+
+.snackbar-warning {
+  --mdc-snackbar-container-color: #fcec01;
+  --mat-mdc-snack-bar-button-color: black;
+  --mdc-snackbar-supporting-text-color: black;
+
+  .mat-mdc-snack-bar-actions {
+    color: black;
+  }
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: #2176f7;
+  --mat-mdc-snack-bar-button-color: white;
+  --mdc-snackbar-supporting-text-color: white;
+
+  .mat-mdc-snack-bar-actions {
+    color: white;
+  }
+}
+
+.snackbar-success {
+  --mdc-snackbar-container-color: mediumvioletred;
+  --mat-mdc-snack-bar-button-color: black;
+  --mdc-snackbar-supporting-text-color: white;
+
+  .mat-mdc-snack-bar-actions {
+    color: black;
+  }
+}
+
+.preserve-newlines {
+  .mat-mdc-snack-bar-label {
+    white-space: pre-line !important;
+  }
+}

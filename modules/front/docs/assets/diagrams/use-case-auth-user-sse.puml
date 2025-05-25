@@ -1,0 +1,67 @@
+@startuml
+!theme plain
+title Diagramme de Cas d'Utilisation - Notifications en Temps Réel (SSE)
+
+' Acteurs
+actor "Utilisateur Authentifié" as AuthUser
+actor "Système" as System
+
+rectangle "Notifications en Temps Réel (SSE)" {
+  ' Cas d'utilisation pour l'émission (côté système)
+  usecase "Émettre les mises à jour des statistiques de topics" as UC17_Emit
+  usecase "Émettre les notifications de nouveaux posts" as UC18_Emit
+  usecase "Émettre les notifications de nouveaux commentaires" as UC19_Emit
+
+  ' Cas d'utilisation pour la réception (côté utilisateur)
+  usecase "Recevoir les mises à jour des statistiques de topics" as UC17_Receive
+  usecase "Recevoir les notifications de nouveaux posts" as UC18_Receive
+  usecase "Recevoir les notifications de nouveaux commentaires" as UC19_Receive
+}
+
+' Relations pour Utilisateur Authentifié (réception uniquement)
+AuthUser --> UC17_Receive
+AuthUser --> UC18_Receive
+AuthUser --> UC19_Receive
+
+' Relations pour Système (émission uniquement)
+System --> UC17_Emit
+System --> UC18_Emit
+System --> UC19_Emit
+
+' Relations entre émission et réception
+UC17_Emit ..> UC17_Receive : <<include>>
+UC18_Emit ..> UC18_Receive : <<include>>
+UC19_Emit ..> UC19_Receive : <<include>>
+
+' Notes explicatives
+note top of UC17_Emit
+  Implémenté par TopicStatsEmitter
+  via topicStatsSink.tryEmitNext()
+end note
+
+note top of UC18_Emit
+  Implémenté par PostEmitter
+  via postSink.tryEmitNext()
+end note
+
+note top of UC19_Emit
+  Implémenté par CommentEmitter
+  via commentSink.tryEmitNext()
+end note
+
+note bottom of UC17_Receive
+  Connexion au endpoint
+  /api/topics/stats/stream
+end note
+
+note bottom of UC18_Receive
+  Connexion au endpoint
+  /api/posts/stream
+end note
+
+note bottom of UC19_Receive
+  Connexion au endpoint
+  /api/comments/stream
+end note
+
+@enduml

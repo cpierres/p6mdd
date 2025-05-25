@@ -1,0 +1,76 @@
+@startuml
+!theme plain
+title Architecture du Frontend - Angular Standalone Components
+
+package "Core" as core {
+  [AppComponent]
+  [AppRoutes]
+  [AppConfig]
+}
+
+package "Features" as features {
+  package "Auth" as auth {
+    [LoginComponent]
+    [RegisterComponent]
+    [AuthService]
+    [AuthGuard]
+  }
+
+  package "Topic" as topic {
+    [TopicListComponent]
+    [TopicDetailComponent]
+    [TopicService]
+  }
+
+  package "Post" as post {
+    [PostListComponent]
+    [PostDetailComponent]
+    [PostCreateComponent]
+    [PostService]
+  }
+
+  package "User" as user {
+    [UserProfileComponent]
+    [UserService]
+  }
+}
+
+package "Shared" as shared {
+  [Components]
+  [Interceptors]
+  [Models]
+  [Services]
+}
+
+package "HTTP" as http {
+  [HttpClient]
+  [JwtInterceptor]
+  [ErrorInterceptor]
+}
+
+core --> features
+features --> shared
+features --> http
+shared --> http
+
+note left of core
+  Architecture Standalone
+  Pas de NgModules
+end note
+
+note top of features
+  Organisation par domaine fonctionnel
+  Composants autonomes
+end note
+
+note top of shared
+  Composants réutilisables
+  Services partagés
+end note
+
+note top of http
+  Communication avec le backend
+  Gestion des tokens JWT
+  Gestion des erreurs
+end note
+@enduml

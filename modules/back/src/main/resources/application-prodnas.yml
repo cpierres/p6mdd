@@ -1,0 +1,63 @@
+spring:
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://postgres-r2dbc:5432/dbmdd?connectTimeout=30
+    user: ${P6_DB_USER:mdduser}
+    driver-class-name: org.postgresql.Driver
+    password: ${P6_DB_PASSWORD:mddpw}
+    create-schemas: true
+    default-schema: mddsocial
+    schemas: mddsocial
+    connect-retries: 5
+    connect-retry-interval: 10
+#    validate-migration-naming: false
+#    baseline-on-migrate: true
+#    baseline-version: "0"
+    locations: classpath:db/migration
+  r2dbc:
+    url: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
+    username: ${P6_DB_USER:mdduser}
+    password: ${P6_DB_PASSWORD:mddpw}
+    properties:
+      schema: mddsocial
+      connectTimeout: 30s
+      socketTimeout: 30s
+      ssl: false
+      tcpKeepAlive: true
+      autodetectExtensions: true
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 10
+      max-idle-time: 30m
+      max-create-connection-time: 30s
+      validation-query: SELECT 1
+      validation-depth: LOCAL
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.mdd.back: INFO
+    org.flywaydb: DEBUG
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+    # debug JDBC connection
+    org.postgresql: DEBUG
+    com.zaxxer.hikari: DEBUG
+    # Spring Boot startup and configuration
+    org.springframework.boot.web.embedded: INFO
+    org.springframework.boot.autoconfigure: INFO
+
+jwt:
+  secret-key: ${P6_JWT_SECRET_KEY:vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=}
+  expiration-time: ${P6_JWT_EXPIRATION_TIME:3600}
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+frontend:
+  url: ${P6_FRONTEND_URL}

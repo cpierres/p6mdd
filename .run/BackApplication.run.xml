@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BackApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="back" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.mdd.back.BackApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

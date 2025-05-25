@@ -1,0 +1,79 @@
+@startuml "Gestion des erreurs et messages"
+
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam sequenceArrowFontSize 11
+
+title Gestion des erreurs et messages entre Backend et Frontend
+
+participant "Client\nAngular" as Client
+participant "HTTP Interceptor\n(Frontend)" as Interceptor
+participant "Service Angular" as Service
+participant "Contrôleur\n(Backend)" as Controller
+participant "Service\n(Backend)" as BackendService
+participant "Exception Handler\n(Backend)" as ExceptionHandler
+
+== Cas de succès ==
+
+Client -> Service: Appel d'une méthode\n(ex: createPost())
+Service -> Controller: HTTP POST /api/posts
+Controller -> BackendService: Traitement de la requête
+BackendService --> Controller: Résultat du traitement
+Controller -> Controller: Création d'un ApiResult<T>\n- data: PostDto\n- message: "Post créé avec succès"\n- status: 201\n- timestamp: instant actuel\n- requestId: UUID généré
+
+note right of Controller
+  ApiResult<T> encapsule:
+  - Les données de réponse (data)
+  - Un message explicite
+  - Le code HTTP
+  - Un timestamp
+  - Un requestId pour le suivi
+end note
+
+Controller --> Service: Réponse HTTP 201\nAvec ApiResult<PostDto>
+Service -> Service: Extraction des données\nde ApiResult.data
+Service --> Client: Retourne PostDto\nAffiche message de succès
+
+== Cas d'erreur de validation ==
+
+Client -> Service: Appel avec données invalides
+Service -> Controller: HTTP POST /api/posts
+Controller -> Controller: Validation @Valid échoue
+Controller -> ExceptionHandler: WebExchangeBindException
+ExceptionHandler -> ExceptionHandler: Création de ResponseDetails\n- message: "Les données d'entrée ne sont pas valides"\n- severity: ERROR\n- fieldErrors: Liste des erreurs par champ
+
+note right of ExceptionHandler
+  ResponseDetails contient:
+  - Un message général
+  - Une sévérité (ERROR, WARNING, INFO, SUCCESS)
+  - Des erreurs détaillées par champ (optionnel)
+end note
+
+ExceptionHandler -> ExceptionHandler: Création d'un ApiResult<ResponseDetails>\n- data: ResponseDetails\n- message: "Erreur de validation"\n- status: 400\n- timestamp: instant actuel\n- requestId: UUID
+
+ExceptionHandler --> Service: Réponse HTTP 400\nAvec ApiResult<ResponseDetails>
+Service -> Interceptor: Interception de l'erreur HTTP
+Interceptor -> Interceptor: Extraction des données\nde ApiResult.data
+Interceptor -> Interceptor: Traitement des erreurs de champ\nvia ErrorHandlingService
+Interceptor -> Interceptor: Affichage du message\nvia MessagesService
+Interceptor --> Client: Affichage des erreurs\ndans le formulaire\net notification
+
+== Cas d'erreur serveur ==
+
+Client -> Service: Appel d'une méthode
+Service -> Controller: HTTP GET /api/resource
+Controller -> BackendService: Traitement
+BackendService -> ExceptionHandler: Exception inattendue
+ExceptionHandler -> ExceptionHandler: Création de ResponseDetails\n- message: "Une erreur interne est survenue"\n- severity: ERROR
+ExceptionHandler -> ExceptionHandler: Création d'un ApiResult<ResponseDetails>\n- data: ResponseDetails\n- message: "Erreur interne du serveur"\n- status: 500\n- timestamp: instant actuel\n- requestId: UUID
+
+ExceptionHandler --> Service: Réponse HTTP 500\nAvec ApiResult<ResponseDetails>
+Service -> Interceptor: Interception de l'erreur HTTP
+Interceptor -> Interceptor: Extraction du message\nde ApiResult.data
+Interceptor -> Interceptor: Affichage du message\nvia MessagesService
+Interceptor --> Client: Notification d'erreur
+
+@enduml

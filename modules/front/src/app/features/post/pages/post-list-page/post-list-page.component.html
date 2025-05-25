@@ -1,0 +1,65 @@
+<div class="post-list-container">
+  <div class="post-list-header">
+    <button mat-raised-button color="primary" (click)="openCreatePost()" (contextmenu)="onRightClick($event)" [matMenuTriggerFor]="exportMenu">
+      Créer un article
+    </button>
+    <!-- Menu contextuel -->
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportPosts()">
+        <mat-icon>file_download</mat-icon>
+        <span>Exporter les posts (posts.json)</span>
+      </button>
+      <button mat-menu-item (click)="exportPostsWithCustomFilename()">
+        <mat-icon>edit</mat-icon>
+        <span>Exporter avec nom personnalisé</span>
+      </button>
+    </mat-menu>
+
+    <div class="filter-sort-controls">
+      <mat-form-field appearance="outline" class="custom-select">
+        <mat-label>Filtrer par thème</mat-label>
+        <mat-select [(ngModel)]="selectedTopicId" (selectionChange)="onTopicFilterChange()" panelClass="theme-filter-panel">
+          <mat-option [value]="'subscribed'">Mes thèmes</mat-option>
+          <mat-option [value]="'all'">Tous les thèmes</mat-option>
+          <mat-option *ngFor="let topic of topics" [value]="topic.id">
+            {{ topic.title }} ({{ topic.countPosts }} article{{ topic.countPosts > 1 ? 's' : '' }}
+            - {{ topic.countComments }} commentaire{{ topic.countComments > 1 ? 's' : '' }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Trier par</mat-label>
+        <mat-select [(ngModel)]="sortCriteria" (selectionChange)="onSortChange()">
+          <mat-option value="date">Date (récent d'abord)</mat-option>
+          <mat-option value="date-asc">Date (par ordre de création)</mat-option>
+          <mat-option value="topic">Thème</mat-option>
+          <mat-option value="author">Auteur</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Conteneur flex pour mobile (pour résoudre pb d'espacement) -->
+  <div class="post-grid-container" *ngIf="cols === 1">
+    <app-post-list
+      *ngFor="let post of posts"
+      [post]="post"
+      [overflowPoints]="true"
+      (onSelect)="onSelectPost($event)">
+    </app-post-list>
+  </div>
+
+  <!-- Grid list ok pour les autres tailles d'écran -->
+  <mat-grid-list [cols]="cols" [gutterSize]="gutterSize" rowHeight="210px" *ngIf="cols > 1">
+    <mat-grid-tile *ngFor="let post of posts">
+      <app-post-list
+        [post]="post"
+        [overflowPoints]="true"
+        (onSelect)="onSelectPost($event)">
+      </app-post-list>
+    </mat-grid-tile>
+  </mat-grid-list>
+
+
+</div>

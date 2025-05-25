@@ -1,0 +1,74 @@
+/* Conteneur principal centré */
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  min-height: 100%;
+  text-align: center;
+  padding: 20px;
+  margin-top: -5vh; /* Décale légèrement vers le haut */
+  box-sizing: border-box;
+}
+
+/* Taille normale du logo sur écran large */
+.logo {
+  width: 400px;
+  height: auto;
+  max-width: 90%; /* Empêche le débordement sur petits écrans */
+}
+
+/* Conteneur des boutons */
+.buttons-container {
+  display: flex;
+  gap: 80px; /* Espacement horizontal entre boutons */
+  margin-top: 40px; /* Espace entre le logo et les boutons */
+}
+
+.same-width-btn {
+  width: 200px;
+}
+
+/* Boutons en colonne sur petit écran */
+@media (max-width: 768px) {
+  .home-container {
+    margin-top: -10vh; /* Décalage plus important sur mobile */
+    padding: 15px;
+  }
+
+  .buttons-container {
+    flex-direction: column;
+    gap: 15px; /* Légèrement augmenté pour meilleure lisibilité */
+    margin-top: 30px;
+  }
+
+  .logo {
+    width: 150px; /* Légèrement plus grand que l'original */
+  }
+}
+
+/* Ajustements pour le mode paysage sur mobile/tablette */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home-container {
+    flex-direction: row;
+    justify-content: space-around;
+    margin-top: 0;
+    padding: 10px;
+  }
+
+  .logo {
+    width: 120px;
+    margin-right: 20px;
+  }
+
+  .buttons-container {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  .same-width-btn {
+    width: 180px; /* Boutons légèrement plus petits */
+  }
+}

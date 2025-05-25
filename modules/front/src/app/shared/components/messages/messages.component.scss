@@ -1,0 +1,63 @@
+
+.messages-container {
+  display: flex;
+  position: relative;
+  margin-top: 20px;
+  justify-content: center;
+  width: 100%;
+  padding: 0 10px; // Ajouter du padding pour les petits écrans
+}
+
+.message {
+  width: 100%; // Utiliser 100% au lieu d'une largeur fixe
+  max-width: 600px; // Limiter la largeur maximale
+  min-width: auto; // Supprimer la largeur minimale fixe
+  padding: 20px;
+  position: relative;
+  border-radius: 10px;
+  font-size: 16px;
+  word-wrap: break-word; // Permettre le retour à la ligne des mots longs
+  display: flex;
+  align-items: center;
+}
+
+.message mat-icon {
+  margin-right: 10px;
+  flex-shrink: 0; // Empêcher l'icône de rétrécir
+}
+
+.message.error {
+  color: white;
+  background-color: red;
+  border: 1px solid #50277c;
+}
+
+.message.info {
+  color: white;
+  background-color: #2176f7;
+  border: 1px solid #50277c;
+}
+
+.message.warning {
+  color: black;
+  background-color: #fcec01;
+  border: 1px solid #50277c;
+}
+
+.message.success {
+  color: white;
+  background-color: mediumvioletred;
+  border: 1px solid #50277c;
+}
+
+.close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+  max-height: 20px;
+}
+
+.message span {
+  white-space: pre-line;
+}
