@@ -2,25 +2,46 @@
 
 ## Table des matières
 
-- [Préalables](#préalables)
 - [Introduction](#introduction)
+- [Préalables](#préalables)
 - [Préalables d'installation](#préalables-dinstallation)
   - [Pré-requis](#pré-requis)
-  - [Installation option 1](#installation-option-1-la-plus-rapide--installation-via-le-pom-multi-modules-maven-avec-profils-prodlocal-et-docker-image)
-  - [Installation option 2](#installation-option-2--installation-classique-pour-le-développement)
-- [Documentation de l'API](#documentation-de-lapi)
-- [Auteur et contexte](#auteur-et-contexte)
-- [Technologies et bonnes pratiques](#technologies-et-bonnes-pratiques-appliquées-pour-le-projet-6)
-  - [Automatisation des installations](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
-  - [Gestion des migrations](#gestion-automatisée-des-migrations-de-données-avec-flyway)
-  - [Backend avec SpringBoot](#backend-avec-springboot-344-et-spring-webflux)
-  - [Frontend avec Angular](#frontend-avec-angular-192)
+  - [Installation option 1 (la plus rapide) : installation via le pom multi-modules maven (avec profils prodlocal et docker-image)](#installation-option-1-la-plus-rapide--installation-via-le-pom-multi-modules-maven-avec-profils-prodlocal-et-docker-image)
+  - [Installation option 2 : installation classique (pour le développement)](#installation-option-2--installation-classique-pour-le-développement)
+    - [Installation de la base de données Postgresql depuis docker-compose](#installation-de-la-base-de-données-postgresql-depuis-docker-compose)
+    - [Exécution de l'application sur le poste de dev](#exécution-de-lapplication-sur-le-poste-de-dev)
+- [Technologies et bonnes pratiques appliquées pour le projet 6](#technologies-et-bonnes-pratiques-appliquées-pour-le-projet-6)
+  - [Automatisation des installations et déploiements avec Docker et Docker-compose](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
+  - [Gestion automatisée des migrations de données avec flyway](#gestion-automatisée-des-migrations-de-données-avec-flyway)
+  - [Backend avec SpringBoot 3.4.4 et Spring WebFlux](#backend-avec-springboot-344-et-spring-webflux)
+  - [Frontend avec Angular 19.2](#frontend-avec-angular-192)
   - [Bonnes pratiques](#bonnes-pratiques)
-- [Scénarios de démonstration](#scénarios-destinés-à-mettre-en-valeur-lapport-des-technologies-utilisées-pour-lutilisateur)
-  - [Affichage multi-navigateurs](#affichez-lapplication-sur-2-navigateurs-différents-ainsi-que-sur-votre-téléphone-mobile-avec-des-logins-différents)
-  - [Inscription et connexions](#scénarios-dinscription-et-de-connexions)
-  - [Abonnement et désabonnement](#scénarios-dabonnement--désabonnement)
-  - [Articles et commentaires](#création-darticles-posts-et-de-commentaires)
+- [Gestion centralisée des erreurs et des messages](#gestion-centralisée-des-erreurs-et-des-messages)
+- [Scénarios destinés à mettre en valeur l'apport des technologies utilisées](#scénarios-destinés-à-mettre-en-valeur-lapport-des-technologies-utilisées)
+  - [Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile (avec des logins différents)](#affichez-lapplication-sur-2-navigateurs-différents-ainsi-que-sur-votre-téléphone-mobile-avec-des-logins-différents)
+- [Scénarios d'inscription et de connexions](#scénarios-dinscription-et-de-connexions)
+  - [Inscription via le browser Chrome](#inscription-via-le-browser-chrome)
+  - [Inscription de l'utilisateur `u1`](#inscription-de-lutilisateur-u1)
+  - [Connexion de l'utilisateur `u2` via le browser Edge](#connexion-de-lutilisateur-u2-via-le-browser-edge)
+  - [Disposez côte à côte le browser chrome de `u1` ainsi que le browser Edge de
+    `u2`](#disposez-côte-à-côte-le-browser-chrome-de-u1-ainsi-que-le-browser-edge-de-u2)
+  - [Enregistrez-vous également via votre téléphone mobile avec vos propres références](#enregistrez-vous-également-via-votre-téléphone-mobile-avec-vos-propres-références)
+- [Scénarios d'abonnement / Désabonnement](#scénarios-dabonnement--désabonnement)
+  - [u1 (Chrome) veut s'abonner au Thème `Spring Webflux` et
+    `R2DBC`](#u1-chrome-veut-sabonner-au-thème-spring-webflux-et-r2dbc)
+  - [u1 (Chrome) veut se désabonner du Thème `R2DBC`](#u1-chrome-veut-se-désabonner-du-thème-r2dbc)
+- [Création d'Articles (Posts) et de Commentaires](#création-darticles-posts-et-de-commentaires)
+  - [u1 affiche les Articles](#u1-affiche-les-articles)
+  - [u1 crée un article pour le Thème `Spring Webflux`](#u1-crée-un-article-pour-le-thème-spring-webflux)
+  - [u2 crée un article pour le Thème
+    `Spring Webflux` à son tour](#u2-crée-un-article-pour-le-thème-spring-webflux-à-son-tour)
+  - [u1 va créer un commentaire sur le nouvel article de u2 ; u2 affiche le détail de son article](#u1-va-créer-un-commentaire-sur-le-nouvel-article-de-u2--u2-affiche-le-détail-de-son-article)
+  - [u2 va répondre à u1 dans le fil de commentaire de son article](#u2-va-répondre-à-u1-dans-le-fil-de-commentaire-de-son-article)
+- [Détail de l'architecture de sécurité](#détail-de-larchitecture-de-sécurité)
+  - [Serveur d'autorisation vs Serveur de ressources dans OAuth 2.0](#serveur-dautorisation-vs-serveur-de-ressources-dans-oauth-20)
+  - [Utilité de la dépendance
+    `spring-security-oauth2-jose` dans le projet P6MDD](#utilité-de-la-dépendance-spring-security-oauth2-jose-dans-le-projet-p6mdd)
+- [Auteur et contexte](#auteur-et-contexte)
 
 ## Préalables
 
@@ -43,9 +64,11 @@ qualitatifs pour y parvenir.
 
 Ce projet MVP a peu de fonctionnalités mais celles-ci sont bien pensées car suffisantes pour couvrir la plupart des uses case techniques (relations de 1-1, de 1 à plusieurs, tables d'association) afin de couvrir les mécanismes utiles à mettre en oeuvre.
 
-Je précise que ce projet n'aborde pas certains points non demandés :
+Ce projet n'aborde pas certains points car non demandés dans les objectifs du MVP :
 - pas de gestion du multi-langues
 - pas de tests. Ce sujet a déjà été bien développé dans le projet précédent : https://github.com/cpierres/P5-Test-full-stack.
+- ces sujets seront développés dans une prochaine release !
+
 
 ## Préalables d'installation
 
@@ -72,7 +95,12 @@ Les fichiers d'environnement ne doivent théoriquement jamais être versionnés.
   - Adapter si besoin le port de PostgreSQL exposé localement (exposé sur 5437)
   - Adapter si besoin le port du backend exposé localement (exposé sur 8067)
   - Le frontend est exposé sur le port : 67
-- Ensuite, depuis le répertoire parent, exécutez : 
+
+> **Note**
+> - Les composants du stack sont présents sur Dockerhub. Par conséquent, vous n'avez pas vraiment besoin de le générer en local.
+> - Pensez juste à bien définir les variables d'environnement dans votre OS ou bien via le fichier .env.prodlocal
+
+- Pour générer le stack des composants Docker localement, depuis le répertoire parent, exécutez : 
   ```
   mvn clean install -P prodlocal,docker-image
   ```
@@ -102,7 +130,7 @@ Depuis le répertoire racine :
   docker-compose -p p6mdd-dev up -d
   ```
 
-#### Exécution de l'application
+#### Exécution de l'application sur le poste de dev
 
 ##### Backend (Spring Boot)
 
@@ -145,15 +173,7 @@ Depuis le répertoire racine :
 - Ouvrez votre navigateur et accédez à `http://localhost:4200/`
 - Documentation de l'API : [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
-## Documentation de l'API
 
-- En mode développement : [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
-
-## Auteur et contexte
-- Auteur : Christophe Pierrès
-- Dans le cadre du projet N°6 d'OpenClassrooms, en vue d'obtenir la certification
-  **Expert en développement logiciel**. Plus d'informations
-  disponibles [ici](https://www.francecompetences.fr/recherche/rncp/36912/)
 
 
 ## Technologies et bonnes pratiques appliquées pour le projet 6
@@ -169,26 +189,33 @@ Depuis le répertoire racine :
 #### Mise à jour instantanée
 - Mise à jour instantanée pour tous les utilisateurs suite à l'ajout d'un article ou d'un commentaire (SSE)
   - Les statistiques de popularité et les ajouts d'éléments sont actualisés en temps réel pour tous.
-  - Voici un diagramme de séquence pour illustrer la mise en oeuvre d'un SSE avec Spring WebFlux.
-Le use case est la mise à jour du SSE suite à l'ajout d'un commentaire (ce qui envoie l'information du commentaire ainsi que la mise à jour des statistiques de popularité pour tous les clients) :
+  - Voici un diagramme de séquence illustrant la mise en oeuvre d'un SSE avec Spring WebFlux.
+
+  - Le use case est la mise à jour du SSE suite à l'ajout d'un commentaire (ce qui envoie l'information du commentaire ainsi que la mise à jour des statistiques de popularité pour tous les clients) :
+  
 ![postCommentSSE.png](modules/front/docs/assets/diagrams/sequence/postCommentSSE.png)
 
-#### Sécurité basée sur token
+#### Sécurité basée sur OAuth2 et token
+(Cf. [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf))
 
 
 ### Frontend avec Angular 19.2
 - Full standalone components
-- Mise en oeuvre des signaux
+- Mise en oeuvre de l'API Signal
 
 ### Bonnes pratiques
+
 #### Gestion des messages, exceptions et erreurs
+
 - transmission des messages backend selon différents niveaux de sévérité (erreur, warning, info, success)
 - centralisation de la gestion des erreurs tant au niveau backend (via handler) que frontend (via Interceptor) ; permet rigueur et simplification de la gestion côté frontend.
 - erreurs backend regroupées lorsque nécessaires (par exemple, double contrôle d'unicité sur email et username en une seule passe).
 - response empaquetée avec requestId, timestamp (utile pour tracer l'aspect asynchrone et le traitement d'une requête dans une architecture micro-services)
 
 Ergonomie :
-- doubler certaines règles de gestion backend vers le frontend pour améliorer l'ergonomie (contrôles de surface tels que validité du mot de passe côté backend et côté frontend pour un meilleur guidage et éviter du trafic réseau).
+- doubler certaines règles de gestion backend vers le frontend pour améliorer l'ergonomie 
+  - contrôles de surface tels que validité du mot de passe côté backend et côté frontend pour un meilleur guidage et éviter du trafic réseau.
+
 
 #### Respect rigoureux des principes SOLID
 
@@ -290,13 +317,64 @@ Le projet P6MDD respecte rigoureusement les principes SOLID tant au niveau du ba
 
 Cette adhérence aux principes SOLID contribue à la maintenabilité, l'extensibilité et la robustesse du code, facilitant ainsi les évolutions futures et la collaboration entre développeurs.
 
-## Scénarios destinés à mettre en valeur l'apport des technologies utilisées pour l'utilisateur
+## Gestion centralisée des erreurs et des messages
+
+Une bonne gestion des erreurs et des messages (centralisée) est indispensable.
+Voici un diagramme qui illustre la gestion des erreurs et des messages entre le backend et le frontend :
+
+![gestion_erreurs_msg.png](modules/front/docs/assets/diagrams/sequence/gestion_erreurs_msg.png)
+
+### Intérêt d'ApiResult
+
+L'utilisation d'ApiResult dans l'architecture de l'application présente plusieurs avantages clés :
+
+#### 1. Structure de réponse unifiée
+
+ApiResult fournit une structure cohérente pour toutes les réponses API, qu'il s'agisse de succès ou d'erreurs. Cette uniformité simplifie le traitement côté client car toutes les réponses suivent le même format.
+
+#### 2. Contenu riche et contextuel
+
+ApiResult contient :
+- **data** : Les données de la réponse (typées avec un générique `<T>`)
+- **message** : Un message explicite décrivant le résultat
+- **status** : Le code HTTP associé
+- **timestamp** : L'horodatage précis de la réponse
+- **requestId** : Un identifiant unique pour le suivi et le débogage
+
+#### 3. Gestion sophistiquée des erreurs
+
+Pour les erreurs, le champ `data` contient un objet `ResponseDetails` qui offre :
+- Un message général d'erreur
+- Un niveau de sévérité (ERROR, WARNING, INFO, SUCCESS)
+- Une liste détaillée des erreurs par champ (pour les validations de formulaire)
+
+#### 4. Traçabilité et débogage
+
+Le `requestId` unique permet de suivre une requête à travers les différentes couches de l'application, ce qui est particulièrement utile dans une architecture microservices (si l'application évolue vers cette architecture) ou pour le débogage dans le cadre de Webflux (asynchronisme).
+
+#### 5. Séparation des préoccupations
+
+- Le backend peut fournir des messages techniques dans `message` et des messages utilisateur dans `data.message`
+- Le frontend peut choisir d'afficher le message approprié selon le contexte
+
+#### 6. Centralisation du traitement des erreurs
+
+- Côté backend : Le `GlobalExceptionHandler` capture toutes les exceptions et les transforme en ApiResult
+- Côté frontend : L'`errorInterceptor` intercepte toutes les erreurs HTTP et extrait les informations pertinentes
+
+#### 7. Expérience utilisateur améliorée
+
+Cette structure permet d'afficher des messages contextuels avec différents niveaux de sévérité, des erreurs de validation précises sur les champs de formulaire, et des notifications adaptées à chaque situation.
+
+En résumé, ApiResult constitue un contrat clair entre le backend et le frontend, permettant une communication riche et structurée qui va au-delà des simples codes HTTP, tout en facilitant le traitement des erreurs et l'amélioration de l'expérience utilisateur.
+
+## Scénarios destinés à mettre en valeur l'apport des technologies utilisées
 Ces scénarios vous guident sur l'utilisation de l'application afin d'illustrer et commenter les apports techniques :
 - mise à jour en temps réel de l'IHM pour tous les utilisateurs (un article ou un commentaire nouveau ainsi que les statistiques de popularité apparaissent instantanément pour tous les utilisateurs sans besoin d'actualiser le browser)
 - messages des règles de gestion
 - ergonomie
 
-## Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile (avec des logins différents)
+### Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile (avec des logins différents)
 
 L'objectif sera de constater la mise à jour simultanée, ceci avec différents noms d'utilisateur.
 
@@ -409,7 +487,6 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 > La bulle `snackBar` de success s'affiche 2 secondes (`MessagesService` shared basé sur Signal)
 
 
-
 ### u2 (Edge) veut s'abonner au Thème `Spring Webflux`
 - Cliquez sur `Thèmes` puis sur `S'abonner` (rester sur cet écran)
 
@@ -483,8 +560,215 @@ Par ailleurs, si sur le mobile, vous affichez la page des Articles et que vous r
 ![u1-u2-article-list-sorted.jpg](modules/front/docs/assets/screens/u1-u2-article-list-sorted.jpg)
 
 
+## Détail de l'architecture de sécurité
+
+L'architecture globale de sécurité est décrite dans le : [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
+
+Quelques précisions ici concernant le fait que l'application est autonome sur la sécurité.
+
+### Serveur d'autorisation vs Serveur de ressources dans OAuth 2.0
+
+#### Distinction conceptuelle dans OAuth 2.0
+
+Dans l'architecture OAuth 2.0, le **serveur d'autorisation** et le **serveur de ressources** sont deux composants conceptuellement distincts avec des responsabilités différentes :
+
+1. **Serveur d'autorisation** :
+  - Authentifie les utilisateurs
+  - Émet des tokens d'accès (JWT dans notre cas)
+  - Gère les informations d'identification des utilisateurs
+  - Implémente les endpoints d'authentification (login, register)
+
+2. **Serveur de ressources** :
+  - Valide les tokens d'accès reçus dans les requêtes
+  - Protège les ressources (API, données)
+  - Autorise ou refuse l'accès aux ressources en fonction de la validité du token
+  - Implémente la logique de vérification des tokens
+
+#### Implémentation dans Spring Security
+
+Dans Spring Boot avec Spring Security, ces deux composants peuvent être implémentés de différentes manières :
+
+1. **Serveur d'autorisation** :
+  - `spring-boot-starter-oauth2-authorization-server` (nouveau module)
+  - Ou : Implémentation personnalisée (comme dans notre projet)
+
+2. **Serveur de ressources** :
+  - `spring-boot-starter-oauth2-resource-server` (ce que nous utilisons)
+  - Configuration via `.oauth2ResourceServer(oauth2 -> oauth2.jwt(...))`
+
+#### Configuration dans P6MDD (Serveur autonome)
+
+Dans notre projet P6MDD, nous avons une architecture de **serveur de ressources OAuth2 autonome** où :
+
+1. Nous utilisons `oauth2ResourceServer` pour configurer l'application comme un serveur de ressources :
+   ```
+   .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+   ```
+
+2. Nous implémentons également notre propre logique de serveur d'autorisation :
+  - `JwtService` pour générer les tokens JWT
+  - Endpoints `/api/auth/login` et `/api/auth/register` pour l'authentification
+  - `AuthenticationService` pour la validation des identifiants
 
 
+- `oauth2ResourceServer` configure spécifiquement la partie **serveur de ressources** de l'architecture
+- La logique de **serveur d'autorisation** est implémentée manuellement dans notre application
+
+Dans notre projet, nous avons choisi d'implémenter ces deux composants dans la même application, ce qui est une approche valide et courante pour les applications autonomes.
+Cette approche "tout-en-un" est appelée "serveur de ressources OAuth2 autonome".
+
+#### Avantages de cette approche
+
+1. **Simplicité** : Une seule application à déployer et à maintenir
+2. **Cohérence** : Utilisation de la même clé secrète pour la génération et la validation des tokens
+3. **Contrôle** : Personnalisation complète du processus d'authentification
+4. **Performance** : Pas de communication réseau entre le serveur d'autorisation et le serveur de ressources
+
+#### Alternatives possibles
+
+1. **Serveurs séparés** : Déployer un serveur d'autorisation dédié (comme Keycloak) et configurer notre application uniquement comme serveur de ressources
+2. **Utilisation d'un fournisseur externe** : Utiliser un service d'authentification tiers
+3. **Spring Authorization Server** : Utiliser le nouveau module `spring-boot-starter-oauth2-authorization-server` pour une implémentation standard
+
+#### Conclusion
+
+`oauth2ResourceServer` est une configuration qui implémente spécifiquement la partie **serveur de ressources** de l'architecture OAuth 2.0. Dans notre projet, nous avons également implémenté manuellement la partie **serveur d'autorisation**, créant ainsi une solution complète et autonome.
+
+Les deux composants (serveur d'autorisation et serveur de ressources) sont des concepts distincts dans l'architecture OAuth 2.0, mais ils peuvent être implémentés ensemble dans la même application, comme c'est le cas dans notre projet P6MDD.
 
 
+### Utilité de la dépendance `spring-security-oauth2-jose` dans le projet P6MDD
+
+#### Introduction
+
+La dépendance `spring-security-oauth2-jose` est une composante essentielle de l'architecture de sécurité du projet P6MDD.
+Elle fournit les fonctionnalités nécessaires pour manipuler les tokens JWT (JSON Web Tokens) dans le contexte d'une application configurée comme serveur de ressources OAuth2.
+
+```xml
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-oauth2-jose</artifactId>
+</dependency>
+```
+
+#### Qu'est-ce que JOSE ?
+
+JOSE (JSON Object Signing and Encryption) est un ensemble de spécifications qui standardisent la façon dont les objets JSON sont signés et chiffrés. Ces spécifications comprennent :
+
+- **JWT (JSON Web Token)** : Format pour représenter des claims de manière sécurisée entre deux parties
+- **JWS (JSON Web Signature)** : Mécanisme pour signer des données avec une signature numérique
+- **JWE (JSON Web Encryption)** : Mécanisme pour chiffrer des données
+- **JWK (JSON Web Key)** : Format pour représenter des clés cryptographiques
+- **JWA (JSON Web Algorithms)** : Algorithmes cryptographiques utilisés dans les spécifications ci-dessus
+
+#### Rôle dans l'architecture OAuth2
+
+Dans l'architecture OAuth2, les tokens JWT sont couramment utilisés comme tokens d'accès pour :
+
+1. **Authentifier** les utilisateurs
+2. **Autoriser** l'accès aux ressources protégées
+3. **Transmettre des informations** sur l'utilisateur et ses droits
+
+La dépendance `spring-security-oauth2-jose` fournit les outils nécessaires pour :
+
+- **Générer** des tokens JWT (côté serveur d'autorisation)
+- **Valider** des tokens JWT (côté serveur de ressources)
+- **Extraire des informations** des tokens JWT
+
+#### Classes et fonctionnalités principales
+
+Dans le projet P6MDD, plusieurs classes fournies par cette dépendance sont utilisées :
+
+##### 1. `NimbusJwtEncoder`
+
+Cette classe est utilisée pour créer et signer des tokens JWT. Elle est configurée dans `SecurityConfig` :
+
+```java
+@Bean
+public JwtEncoder jwtEncoder(JwtService jwtService) {
+    return new NimbusJwtEncoder(new ImmutableSecret<>(jwtService.getSecretKey()));
+}
+```
+
+##### 2. `NimbusReactiveJwtDecoder`
+
+Cette classe est utilisée pour valider et décoder les tokens JWT dans un contexte réactif. Elle est configurée dans `SecurityConfig` :
+
+```java
+@Bean
+public ReactiveJwtDecoder reactiveJwtDecoder(JwtService jwtService) {
+    return NimbusReactiveJwtDecoder
+            .withSecretKey(jwtService.getSecretKey()).build();
+}
+```
+
+##### 3. `ImmutableSecret`
+
+Cette classe représente une clé secrète immuable utilisée pour signer et valider les tokens JWT. 
+Elle est utilisée dans la configuration de `NimbusJwtEncoder`.
+
+#### Intégration dans le système de sécurité
+
+La dépendance `spring-security-oauth2-jose` est intégrée dans le système de sécurité du projet P6MDD de la manière suivante :
+
+##### 1. Configuration du serveur de ressources OAuth2
+
+Dans la méthode `securityWebFilterChain` de la classe `SecurityConfig` :
+
+```
+return http
+        // autres configurations...
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+        .build();
+```
+
+Cette configuration indique à Spring Security que l'application doit agir comme un serveur de ressources OAuth2 qui valide les tokens JWT.
+
+##### 2. Génération des tokens JWT
+
+Dans le service `JwtService`, les tokens JWT sont générés en utilisant la bibliothèque `io.jsonwebtoken` :
+
+```java
+public String generateToken(UUID id, String username) {
+    return Jwts.builder()
+            .setSubject(username)
+            .claim("id", id)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_TIME * 1000))
+            .signWith(SECRET_KEY)
+            .compact();
+}
+```
+
+##### 3. Validation des tokens JWT
+
+La validation des tokens JWT est gérée automatiquement par Spring Security grâce à la configuration du serveur de ressources OAuth2 et du décodeur JWT.
+
+#### Architecture "serveur de ressources OAuth2 autonome"
+
+Le projet P6MDD utilise une architecture de "serveur de ressources OAuth2 autonome" où l'application joue à la fois le rôle de :
+
+1. **Serveur d'autorisation** : Responsable de l'authentification des utilisateurs et de l'émission des tokens JWT
+2. **Serveur de ressources** : Responsable de la validation des tokens JWT et de la protection des ressources
+
+La dépendance `spring-security-oauth2-jose` est essentielle pour cette architecture car elle fournit les outils nécessaires pour la manipulation des tokens JWT des deux côtés.
+
+#### Avantages de l'utilisation de `spring-security-oauth2-jose`
+
+1. **Sécurité renforcée** : Implémentation robuste des spécifications JOSE
+2. **Intégration transparente** avec Spring Security
+3. **Support des standards** : Conformité aux spécifications JWT, JWS, JWE, JWK et JWA
+4. **Flexibilité** : Support de différents algorithmes de signature et de chiffrement
+5. **Performance** : Implémentation optimisée pour les applications Spring Boot
+
+#### Conclusion
+
+La dépendance `spring-security-oauth2-jose` joue un rôle important dans l'architecture de sécurité du projet P6MDD en fournissant les fonctionnalités nécessaires pour la manipulation des tokens JWT dans le contexte OAuth2. Elle permet à l'application de fonctionner à la fois comme serveur d'autorisation et serveur de ressources, offrant ainsi une solution de sécurité complète et autonome.
+
+
+## Auteur et contexte
+- Auteur : Christophe Pierrès
+- Dans le cadre du projet N°6 d'OpenClassrooms, en vue d'obtenir la certification
+  **Expert en développement logiciel**. Plus d'informations
+  disponibles [ici](https://www.francecompetences.fr/recherche/rncp/36912/) et dans la section `About me` de mon site de veille technologique : https://veille.cpierres.dscloud.me/
 
