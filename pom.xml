@@ -5,11 +5,18 @@
 
     <groupId>com.mdd</groupId>
     <artifactId>p6mdd-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <name>P6MDD Parent</name>
     <description>Projet P6MDD - Application de réseau social</description>
+
+    <scm>
+        <connection>scm:git:https://github.com/cpierres/p6mdd.git</connection>
+        <developerConnection>scm:git:https://github.com/votre-cpierres/p6mdd.git</developerConnection>
+        <url>https://github.com/votre-cpierres/p6mdd</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <modules>
         <module>modules/back</module>
