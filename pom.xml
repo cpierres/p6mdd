@@ -108,4 +108,16 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <!-- distributionManagement>
+        <repository>
+            <id>local-repo</id>
+            <url>file://${project.basedir}/local-maven-repo/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-snapshots</id>
+            <url>file://${project.basedir}/local-maven-repo/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement -->
+
 </project>
