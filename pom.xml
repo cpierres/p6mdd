@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mdd</groupId>
     <artifactId>p6mdd-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>P6MDD Parent</name>
     <description>Projet P6MDD - Application de réseau social</description>
+
+    <scm>
+        <connection>scm:git:https://github.com/cpierres/p6mdd.git</connection>
+        <developerConnection>scm:git:https://github.com/cpierres/p6mdd.git</developerConnection>
+        <url>https://github.com/votre-cpierres/p6mdd</url>
+        <tag>v1.0.0</tag>
+    </scm>
 
     <modules>
         <module>modules/back</module>
@@ -102,4 +108,16 @@
             <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
+
+    <!-- distributionManagement>
+        <repository>
+            <id>local-repo</id>
+            <url>file://${project.basedir}/local-maven-repo/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>local-snapshots</id>
+            <url>file://${project.basedir}/local-maven-repo/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement -->
+
 </project>
