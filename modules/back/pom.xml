@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.mdd</groupId>
         <artifactId>p6mdd-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <!-- groupId>com.mdd</groupId -->
@@ -27,10 +27,10 @@
         </developer>
     </developers>
     <scm>
-        <connection />
-        <developerConnection />
+        <connection></connection>
+        <developerConnection></developerConnection>
         <tag>v1.0.0</tag>
-        <url />
+        <url></url>
     </scm>
     <dependencyManagement>
         <!-- on remplace le parent BOM qui existait avant par un import BOM -->
