@@ -2,46 +2,7 @@
 
 ## Table des matières
 
-- [Introduction](#introduction)
-- [Préalables](#préalables)
-- [Préalables d'installation](#préalables-dinstallation)
-  - [Pré-requis](#pré-requis)
-  - [Installation option 1 (la plus rapide) : installation via le pom multi-modules maven (avec profils prodlocal et docker-image)](#installation-option-1-la-plus-rapide--installation-via-le-pom-multi-modules-maven-avec-profils-prodlocal-et-docker-image)
-  - [Installation option 2 : installation classique (pour le développement)](#installation-option-2--installation-classique-pour-le-développement)
-    - [Installation de la base de données Postgresql depuis docker-compose](#installation-de-la-base-de-données-postgresql-depuis-docker-compose)
-    - [Exécution de l'application sur le poste de dev](#exécution-de-lapplication-sur-le-poste-de-dev)
-- [Technologies et bonnes pratiques appliquées pour le projet 6](#technologies-et-bonnes-pratiques-appliquées-pour-le-projet-6)
-  - [Automatisation des installations et déploiements avec Docker et Docker-compose](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
-  - [Gestion automatisée des migrations de données avec flyway](#gestion-automatisée-des-migrations-de-données-avec-flyway)
-  - [Backend avec SpringBoot 3.4.4 et Spring WebFlux](#backend-avec-springboot-344-et-spring-webflux)
-  - [Frontend avec Angular 19.2](#frontend-avec-angular-192)
-  - [Bonnes pratiques](#bonnes-pratiques)
-- [Gestion centralisée des erreurs et des messages](#gestion-centralisée-des-erreurs-et-des-messages)
-- [Scénarios destinés à mettre en valeur l'apport des technologies utilisées](#scénarios-destinés-à-mettre-en-valeur-lapport-des-technologies-utilisées)
-  - [Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile (avec des logins différents)](#affichez-lapplication-sur-2-navigateurs-différents-ainsi-que-sur-votre-téléphone-mobile-avec-des-logins-différents)
-- [Scénarios d'inscription et de connexions](#scénarios-dinscription-et-de-connexions)
-  - [Inscription via le browser Chrome](#inscription-via-le-browser-chrome)
-  - [Inscription de l'utilisateur `u1`](#inscription-de-lutilisateur-u1)
-  - [Connexion de l'utilisateur `u2` via le browser Edge](#connexion-de-lutilisateur-u2-via-le-browser-edge)
-  - [Disposez côte à côte le browser chrome de `u1` ainsi que le browser Edge de
-    `u2`](#disposez-côte-à-côte-le-browser-chrome-de-u1-ainsi-que-le-browser-edge-de-u2)
-  - [Enregistrez-vous également via votre téléphone mobile avec vos propres références](#enregistrez-vous-également-via-votre-téléphone-mobile-avec-vos-propres-références)
-- [Scénarios d'abonnement / Désabonnement](#scénarios-dabonnement--désabonnement)
-  - [u1 (Chrome) veut s'abonner au Thème `Spring Webflux` et
-    `R2DBC`](#u1-chrome-veut-sabonner-au-thème-spring-webflux-et-r2dbc)
-  - [u1 (Chrome) veut se désabonner du Thème `R2DBC`](#u1-chrome-veut-se-désabonner-du-thème-r2dbc)
-- [Création d'Articles (Posts) et de Commentaires](#création-darticles-posts-et-de-commentaires)
-  - [u1 affiche les Articles](#u1-affiche-les-articles)
-  - [u1 crée un article pour le Thème `Spring Webflux`](#u1-crée-un-article-pour-le-thème-spring-webflux)
-  - [u2 crée un article pour le Thème
-    `Spring Webflux` à son tour](#u2-crée-un-article-pour-le-thème-spring-webflux-à-son-tour)
-  - [u1 va créer un commentaire sur le nouvel article de u2 ; u2 affiche le détail de son article](#u1-va-créer-un-commentaire-sur-le-nouvel-article-de-u2--u2-affiche-le-détail-de-son-article)
-  - [u2 va répondre à u1 dans le fil de commentaire de son article](#u2-va-répondre-à-u1-dans-le-fil-de-commentaire-de-son-article)
-- [Détail de l'architecture de sécurité](#détail-de-larchitecture-de-sécurité)
-  - [Serveur d'autorisation vs Serveur de ressources dans OAuth 2.0](#serveur-dautorisation-vs-serveur-de-ressources-dans-oauth-20)
-  - [Utilité de la dépendance
-    `spring-security-oauth2-jose` dans le projet P6MDD](#utilité-de-la-dépendance-spring-security-oauth2-jose-dans-le-projet-p6mdd)
-- [Auteur et contexte](#auteur-et-contexte)
+
 
 ## Préalables
 
@@ -67,7 +28,7 @@ Ce projet MVP a peu de fonctionnalités mais celles-ci sont bien pensées car su
 Ce projet n'aborde pas certains points car non demandés dans les objectifs du MVP :
 - pas de gestion du multi-langues
 - pas de tests. Ce sujet a déjà été bien développé dans le projet précédent : https://github.com/cpierres/P5-Test-full-stack.
-- ces sujets seront développés dans une prochaine release !
+- ces sujets seront néanmoins développés dans une prochaine release !
 
 
 ## Préalables d'installation
@@ -174,9 +135,7 @@ Depuis le répertoire racine :
 - Documentation de l'API : [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
 
 
-
-
-## Technologies et bonnes pratiques appliquées pour le projet 6
+## Technologies et bonnes pratiques appliquées
 
 ### Automatisation des installations et déploiements avec Docker et Docker-compose
 - Gestion automatisée de 3 profils de déploiements (dev, prodlocal sous windows, prodnas vers linux)
@@ -184,9 +143,12 @@ Depuis le répertoire racine :
 
 ### Gestion automatisée des migrations de données avec flyway
 
+Flyway est un outil de gestion des migrations de base de données. 
+Son principal avantage réside dans sa capacité à versionner et automatiser les modifications de schémas de base de données (comme les ajouts ou modifications de tables, colonnes, etc.), tout en assurant la cohérence entre plusieurs environnements (développement, production, etc.). Il favorise une approche contrôlée et reproductible des évolutions des bases de données, réduisant ainsi les risques d'erreurs ou de divergences.
+
 ### Backend avec SpringBoot 3.4.4 et Spring WebFlux
 
-#### Mise à jour instantanée
+#### Mise à jour instantanée (SSE : Server Send Event)
 - Mise à jour instantanée pour tous les utilisateurs suite à l'ajout d'un article ou d'un commentaire (SSE)
   - Les statistiques de popularité et les ajouts d'éléments sont actualisés en temps réel pour tous.
   - Voici un diagramme de séquence illustrant la mise en oeuvre d'un SSE avec Spring WebFlux.
@@ -196,10 +158,12 @@ Depuis le répertoire racine :
 ![postCommentSSE.png](modules/front/docs/assets/diagrams/sequence/postCommentSSE.png)
 
 #### Sécurité basée sur OAuth2 et token
+
 (Cf. [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf))
 
 
 ### Frontend avec Angular 19.2
+
 - Full standalone components
 - Mise en oeuvre de l'API Signal
 
@@ -384,11 +348,11 @@ L'objectif sera de constater la mise à jour simultanée, ceci avec différents 
 - Affichez l'application depuis [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/) sur votre téléphone
   mobile
 
-## Scénarios d'inscription et de connexions
+### Scénarios d'inscription et de connexions
 
-### Inscription via le browser Chrome
+#### Inscription via le browser Chrome
 
-#### Scénario d'inscription avec erreurs de contrôle de surface et de backend (utilisateur u2 existe déjà)
+##### Scénario d'inscription avec erreurs de contrôle de surface et de backend (utilisateur u2 existe déjà)
 - Cliquez sur le bouton `S'inscrire` :
 - Dans un premier temps, saisissez volontairement un utilisateur qui existe déjà : email `u2@test.com` ainsi que le username : `u2`
   - Mettez à l'épreuve les contrôles de surface :
@@ -410,7 +374,7 @@ L'objectif sera de constater la mise à jour simultanée, ceci avec différents 
     - La sévérité des messages est qualifiée via le backend et gérée automatiquement par le frontend d'une manière centralisée (via Interceptor et structure des erreurs toujours homogène) 
   - Les erreurs sous les champs s'effaceront dès lors qu'on corrige
 
-### Inscription de l'utilisateur `u1`
+#### Inscription de l'utilisateur `u1`
 - Corrigez l'email en indiquant une valeur qui n'existe pas déjà ; pour la démo, indiquez `u1@test.com`
 - Cliquez sur le bouton `S'inscrire`
 - Corrigez la dernière erreur de contrôle d'unicité, en indiquant `u1` pour le username 
@@ -418,7 +382,7 @@ L'objectif sera de constater la mise à jour simultanée, ceci avec différents 
 - A la suite d'un enregistrement valide, l'utilisateur `u1` est directement connecté et arrive sur l'écran des Articles (Posts) : 
 ![connexion-u1.jpg](modules/front/docs/assets/screens/connexion-u1.jpg)
 
-### Connexion de l'utilisateur `u2` via le browser Edge
+#### Connexion de l'utilisateur `u2` via le browser Edge
 Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe déjà comme déjà vu).
 - Cliquez sur le bouton `Se connecter`
 > **Note**
@@ -427,12 +391,13 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
   
 ![connexion-u2-failed.jpg](modules/front/docs/assets/screens/connexion-u2-failed.jpg)
 
-### Disposez côte à côte le browser chrome de `u1` ainsi que le browser Edge de `u2`
+#### Disposez côte à côte le browser chrome de `u1` ainsi que le browser Edge de `u2`
 - Voici u1 et u2 connectés dans deux browsers différents :
 
 ![connexions-u1-u2-ok.jpg](modules/front/docs/assets/screens/connexions-u1-u2-ok.jpg)
 
-### Enregistrez-vous également via votre téléphone mobile avec vos propres références (votre email et votre nom)
+#### Enregistrez-vous également via votre téléphone mobile avec vos propres références (votre email et votre nom)
+
 - puis affichez la page des Thèmes :
 
 ![mobile-menuThemes.jpg](modules/front/docs/assets/screens/mobile-menuThemes.jpg) ![mobile-themes.jpg](modules/front/docs/assets/screens/mobile-themes.jpg) ![mobile-themes-subscribe.jpg](modules/front/docs/assets/screens/mobile-themes-subscribe.jpg)
@@ -440,9 +405,9 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 > **Note** 
 > Pour ma part, je suis déjà abonné à plusieurs thèmes (faites en autant !)
 
-## Scénarios d'abonnement / Désabonnement
+### Scénarios d'abonnement / Désabonnement
 
-### u1 (Chrome) veut s'abonner au Thème `Spring Webflux` et `R2DBC`
+#### u1 (Chrome) veut s'abonner au Thème `Spring Webflux` et `R2DBC`
 - Comme vu dans les use-cases du dossier d'architecture, 
   - la page `Thèmes` présente les thèmes et permet de `S'abonner` 
   - la page `Profil` présente les Abonnements en cours et permet de `Se désabonner`
@@ -454,7 +419,7 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 ![u1-theme-zoom.jpg](modules/front/docs/assets/screens/u1-theme-zoom.jpg)
 - Abonnez-vous à `Spring Webflux` et `R2DBC`
 
-### u1 (Chrome) veut se désabonner du Thème `R2DBC`
+#### u1 (Chrome) veut se désabonner du Thème `R2DBC`
 - Cliquez sur le logo `Profil`
 > **Note**
 > Les abonnements sont affichés en bas du Profil (c'est le comportement souhaité)
@@ -487,19 +452,19 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 > La bulle `snackBar` de success s'affiche 2 secondes (`MessagesService` shared basé sur Signal)
 
 
-### u2 (Edge) veut s'abonner au Thème `Spring Webflux`
+#### u2 (Edge) veut s'abonner au Thème `Spring Webflux`
 - Cliquez sur `Thèmes` puis sur `S'abonner` (rester sur cet écran)
 
-## Création d'Articles (Posts) et de Commentaires
+### Création d'Articles (Posts) et de Commentaires
 
-### u1 affiche les Articles
+#### u1 affiche les Articles
 > **Note**
 > Par défaut, seuls les articles concernant les thèmes auxquels l'utilisateur s'est abonné sont affichés.
 > Testez les capacités de Filtre et de Tri. Revenir au tri par défaut : `Date (récent d'abord)` avant de passer à la suite.
 
 ![u1-articles-1.jpg](modules/front/docs/assets/screens/u1-articles-1.jpg)
 
-### u1 crée un article pour le Thème `Spring Webflux`
+#### u1 crée un article pour le Thème `Spring Webflux`
 - Cliquez sur le bouton `Créer un article`
 ![u1-articles-creer.jpg](modules/front/docs/assets/screens/u1-articles-creer.jpg)
 
@@ -509,7 +474,7 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 
 ![u1-u2-compteur-articles.jpg](modules/front/docs/assets/screens/u1-u2-compteur-articles.jpg)
 
-### u2 crée un article pour le Thème `Spring Webflux` à son tour
+#### u2 crée un article pour le Thème `Spring Webflux` à son tour
 - Cliquez sur le bouton `Créer un article`
 
 ![u1-u2-compteur-articles.jpg](modules/front/docs/assets/screens/u1-u2-compteur-articles.jpg)
@@ -525,7 +490,7 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 
 ![u1-u2-article-list-sorted.jpg](modules/front/docs/assets/screens/u1-u2-article-list-sorted.jpg)
 
-### u1 va créer un commentaire sur le nouvel article de u2 ; u2 affiche le détail de son article
+#### u1 va créer un commentaire sur le nouvel article de u2 ; u2 affiche le détail de son article
 - affichez sur le mobile, la page des Topics (pour voir les compteurs de popularité)
 
 ![cpierres-mobile-topics.jpg](modules/front/docs/assets/screens/cpierres-mobile-topics.jpg)
@@ -547,7 +512,7 @@ Pour la **deuxième connexion via Edge**, utilisez le username `u2` (qui existe 
 
 ![u1-u2-comment-3-compteur.jpg](modules/front/docs/assets/screens/u1-u2-comment-3-compteur.jpg)
 
-### u2 va répondre à u1 dans le fil de commentaire de son article ; une conversation s'engage (visible par tous les utilisateurs)
+#### u2 va répondre à u1 dans le fil de commentaire de son article ; une conversation s'engage (visible par tous les utilisateurs)
 
 ![u1-u2-comment-4.jpg](modules/front/docs/assets/screens/u1-u2-comment-4.jpg)
 
@@ -560,7 +525,7 @@ Par ailleurs, si sur le mobile, vous affichez la page des Articles et que vous r
 ![u1-u2-article-list-sorted.jpg](modules/front/docs/assets/screens/u1-u2-article-list-sorted.jpg)
 
 
-## Détail de l'architecture de sécurité
+## Détails de l'architecture de sécurité
 
 L'architecture globale de sécurité est décrite dans le : [Dossier des choix techniques et d'architecture](https://veille.cpierres.dscloud.me/assets/pdf/choix-techniques-archi-mvp.pdf)
 
@@ -764,6 +729,226 @@ La dépendance `spring-security-oauth2-jose` est essentielle pour cette architec
 #### Conclusion
 
 La dépendance `spring-security-oauth2-jose` joue un rôle important dans l'architecture de sécurité du projet P6MDD en fournissant les fonctionnalités nécessaires pour la manipulation des tokens JWT dans le contexte OAuth2. Elle permet à l'application de fonctionner à la fois comme serveur d'autorisation et serveur de ressources, offrant ainsi une solution de sécurité complète et autonome.
+
+## Instructions pour le DevOps (maven) et la gestion des commits (gitflow) 
+
+Cette section décrit les aspects DevOps du projet P6MDD, notamment la gestion Maven centralisée et les pratiques GitFlow recommandées.
+
+### Gestion Maven centralisée
+
+Le projet P6MDD utilise une architecture Maven multi-modules qui centralise la configuration et la gestion des dépendances :
+
+#### Structure des modules
+
+```
+p6mdd/
+├── pom.xml                  # POM parent qui définit la structure globale
+├── modules/
+│   ├── back/                # Module backend Spring Boot
+│   │   └── pom.xml          # POM du backend qui hérite du parent
+│   └── front/               # Module frontend Angular
+│       └── pom.xml          # POM du frontend qui hérite du parent
+```
+
+#### Avantages de cette approche
+
+- **Gestion centralisée des versions** : Les versions des dépendances et des plugins sont définies dans le POM parent
+- **Cohérence entre modules** : Tous les modules partagent les mêmes versions de dépendances
+- **Profils de build unifiés** : Les profils (`dev`, `prodlocal`, `prodnas`) sont définis au niveau parent
+- **Déploiement simplifié** : Un seul point d'entrée pour construire l'ensemble de l'application
+
+#### Commandes Maven principales
+
+```bash
+# Construction complète du projet (tous les modules)
+mvn clean install
+
+# Construction avec un profil spécifique
+mvn clean install -P prodlocal
+
+# Construction et génération des images Docker
+mvn clean install -P prodlocal,docker-image
+```
+
+### Directives GitFlow
+
+Le projet est configuré pour suivre le workflow GitFlow, une méthodologie de gestion de branches qui facilite le développement parallèle et les releases.
+
+#### Initialisation de GitFlow dans le projet
+
+Pour initialiser GitFlow dans un dépôt existant :
+
+```bash
+# Se positionner à la racine du projet
+cd p6mdd
+
+# Initialiser GitFlow avec les paramètres par défaut
+git flow init -d
+
+# Ou initialiser avec des paramètres personnalisés
+git flow init
+```
+
+#### Branches principales
+
+- **`main`** : Code en production, stable
+- **`develop`** : Branche d'intégration pour le développement
+
+#### Gestion des features
+
+Pour développer une nouvelle fonctionnalité :
+
+```bash
+# Création d'une branche de feature depuis develop
+git flow feature start nom-de-la-feature
+
+# Développement de la fonctionnalité avec commits réguliers
+git add .
+git commit -m "Description des changements"
+
+# Mise à jour régulière avec develop
+git checkout develop
+git pull
+git checkout feature/nom-de-la-feature
+git merge develop
+
+# Une fois la feature terminée, fusion dans develop
+git flow feature finish nom-de-la-feature
+```
+
+#### Création d'une release
+
+Pour préparer une nouvelle version :
+
+```bash
+# Création d'une branche de release depuis develop
+git flow release start x.y.z
+
+# Corrections de bugs spécifiques à la release
+git add .
+git commit -m "Correction pour la release x.y.z"
+
+# Finalisation de la release
+git flow release finish x.y.z
+```
+
+Cette commande effectue automatiquement :
+- La fusion de la branche release dans main
+- La création d'un tag avec la version
+- La fusion de la branche release dans develop
+- La suppression de la branche release
+
+#### Gestion des hotfixes
+
+Pour corriger un bug critique en production :
+
+```bash
+# Création d'une branche hotfix depuis main
+git flow hotfix start x.y.z+1
+
+# Correction du bug
+git add .
+git commit -m "Fix: description du correctif"
+
+# Finalisation du hotfix
+git flow hotfix finish x.y.z+1
+```
+
+Cette commande effectue automatiquement :
+- La fusion du hotfix dans main
+- La création d'un tag avec la version
+- La fusion du hotfix dans develop
+- La suppression de la branche hotfix
+
+### Intégration GitFlow et Maven
+
+Le projet P6MDD combine GitFlow et Maven pour une gestion efficace des versions et des déploiements :
+
+#### Configuration du plugin maven-release-plugin
+
+Le POM parent inclut la configuration du `maven-release-plugin` qui facilite la gestion des versions :
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-release-plugin</artifactId>
+    <version>3.0.1</version>
+    <configuration>
+        <tagNameFormat>v@{project.version}</tagNameFormat>
+        <autoVersionSubmodules>true</autoVersionSubmodules>
+        <releaseProfiles>release</releaseProfiles>
+    </configuration>
+</plugin>
+```
+
+Cette configuration permet :
+- De créer automatiquement des tags Git avec le format `vX.Y.Z`
+- De mettre à jour les versions de tous les sous-modules
+- D'activer le profil `release` lors de la création d'une release
+
+#### Workflow de release complet avec GitFlow et Maven
+
+1. **Préparation** :
+   ```bash
+   # Création d'une branche de release
+   git flow release start x.y.z
+   ```
+
+2. **Mise à jour des versions** :
+   ```bash
+   # Mise à jour des versions dans les POM
+   mvn versions:set -DnewVersion=x.y.z
+   git add .
+   git commit -m "Version bump to x.y.z"
+   ```
+
+3. **Exécution de la release Maven** :
+   ```bash
+   # Sur la branche release/x.y.z
+   mvn release:prepare
+   mvn release:perform
+   ```
+
+4. **Finalisation de la release GitFlow** :
+   ```bash
+   git flow release finish x.y.z
+   ```
+
+5. **Publication des tags et branches** :
+   ```bash
+   git push origin develop
+   git push origin main
+   git push origin --tags
+   ```
+
+#### Déploiement continu
+
+Le projet est configuré pour faciliter le déploiement continu avec Docker :
+
+- **Images Docker** : Générées automatiquement via le profil `docker-image`
+- **Orchestration** : Utilisation de `docker-compose` pour déployer l'ensemble de la stack
+- **Environnements** : Configuration spécifique pour chaque environnement via les fichiers `.env.*`
+
+Pour déployer l'application en environnement local de production :
+
+```bash
+# Construction des images
+mvn clean install -P prodlocal,docker-image
+
+# Déploiement
+docker-compose --env-file .env.prodlocal -f docker-compose.prodlocal.yml -p p6-mdd-prodlocal up -d
+```
+
+#### Bonnes pratiques GitFlow pour le projet
+
+1. **Toujours utiliser les commandes GitFlow** plutôt que les commandes Git standard pour les opérations liées au workflow
+2. **Ne jamais modifier directement les branches `main` et `develop`**
+3. **Créer des branches de feature pour chaque nouvelle fonctionnalité**
+4. **Utiliser des branches de release pour préparer les versions**
+5. **Utiliser des branches de hotfix pour les corrections urgentes en production**
+6. **Toujours mettre à jour les versions dans les POM avant de finaliser une release**
+7. **Exécuter les tests avant de finaliser une feature, une release ou un hotfix**
+8. **Documenter les changements dans un fichier CHANGELOG.md**
 
 
 ## Auteur et contexte
