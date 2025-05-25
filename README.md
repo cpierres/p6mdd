@@ -2,7 +2,39 @@
 
 ## Table des matières
 
-
+- [Préalables](#préalables)
+- [Introduction](#introduction)
+- [Préalables d'installation](#préalables-dinstallation)
+    - [Pré-requis](#pré-requis)
+    - [Installation option 1](#installation-option-1-la-plus-rapide--installation-via-le-pom-multi-modules-maven-avec-profils-prodlocal-et-docker-image)
+    - [Installation option 2](#installation-option-2--installation-classique-pour-le-développement)
+        - [Installation de la base de données](#installation-de-la-base-de-données-postgresql-depuis-docker-compose)
+        - [Exécution de l'application](#exécution-de-lapplication-sur-le-poste-de-dev)
+- [Technologies et bonnes pratiques appliquées](#technologies-et-bonnes-pratiques-appliquées)
+    - [Automatisation des installations](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
+    - [Gestion automatisée des migrations](#gestion-automatisée-des-migrations-de-données-avec-flyway)
+    - [Backend avec SpringBoot](#backend-avec-springboot-344-et-spring-webflux)
+        - [Mise à jour instantanée](#mise-à-jour-instantanée-sse--server-send-event)
+        - [Sécurité basée sur OAuth2](#sécurité-basée-sur-oauth2-et-token)
+    - [Frontend avec Angular](#frontend-avec-angular-192)
+    - [Bonnes pratiques](#bonnes-pratiques)
+        - [Gestion des messages](#gestion-des-messages-exceptions-et-erreurs)
+        - [Respect rigoureux des principes SOLID](#respect-rigoureux-des-principes-solid)
+- [Gestion centralisée des erreurs](#gestion-centralisée-des-erreurs-et-des-messages)
+    - [Intérêt d'ApiResult](#intérêt-dapiresult)
+- [Scénarios destinés à mettre en valeur l'apport des technologies utilisées](#scénarios-destinés-à-mettre-en-valeur-lapport-des-technologies-utilisées)
+    - [Affichez l'application sur 2 navigateurs différents ainsi que sur votre téléphone mobile](#affichez-lapplication-sur-2-navigateurs-différents-ainsi-que-sur-votre-téléphone-mobile-avec-des-logins-différents)
+    - [Scénarios d'inscription et de connexions](#scénarios-dinscription-et-de-connexions)
+    - [Scénarios d'abonnement / Désabonnement](#scénarios-dabonnement--désabonnement)
+    - [Création d'Articles (Posts) et de Commentaires](#création-darticles-posts-et-de-commentaires)
+- [Détails de l'architecture de sécurité](#détails-de-larchitecture-de-sécurité)
+    - [Serveur d'autorisation vs Ressources](#serveur-dautorisation-vs-serveur-de-ressources-dans-oauth-20)
+    - [Utilité de spring-security-oauth2-jose](#utilité-de-la-dépendance-spring-security-oauth2-jose-dans-le-projet-p6mdd)
+- [Instructions pour le DevOps](#instructions-pour-le-devops-maven-et-la-gestion-des-commits-gitflow)
+    - [Gestion Maven centralisée](#gestion-maven-centralisée)
+    - [Directives GitFlow](#directives-gitflow)
+    - [Intégration GitFlow et Maven](#intégration-gitflow-et-maven)
+- [Auteur et contexte](#auteur-et-contexte)
 
 ## Préalables
 
@@ -740,15 +772,13 @@ Le projet P6MDD utilise une architecture Maven multi-modules qui centralise la c
 
 #### Structure des modules
 
-```
-p6mdd/
-├── pom.xml                  # POM parent qui définit la structure globale
-├── modules/
-│   ├── back/                # Module backend Spring Boot
-│   │   └── pom.xml          # POM du backend qui hérite du parent
-│   └── front/               # Module frontend Angular
-│       └── pom.xml          # POM du frontend qui hérite du parent
-```
+- p6mdd/
+  - pom.xml : POM parent qui définit la structure globale
+  - modules/
+    - back/ : Module backend Spring Boot
+      - pom.xml : POM du backend qui hérite du parent
+    - front/ : Module frontend Angular
+      - pom.xml : POM du frontend qui hérite du parent
 
 #### Avantages de cette approche
 
