@@ -28,13 +28,10 @@ export class AuthService {
     // utilisation d'un pipe pour traiter le flux dans le service avant utilisation par le composant.
     // le routage se fera plutôt dans le composant appelant (SOLID : SRP)
     // Dans le composant register, subscribe du projet 3 est déprécié
-    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/register`, registerRequest).pipe(
-      tap((apiResult: ApiResult<AuthSuccess>) => {
-        //en cas de succès, on authentifie directement le nouvel utilisateur
-        if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
-        }
-      }),
+    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/register`, registerRequest, {
+      withCredentials: true // Important pour que le cookie soit envoyé/reçu
+    }).pipe(
+      // Ne plus stocker le token dans localStorage
       // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal
       // afin que l'observable ne se termine pas tant que l'utilisateur n'est pas complètement connecté
       switchMap((apiResult: ApiResult<AuthSuccess>) => {
@@ -71,7 +68,9 @@ export class AuthService {
   }
 
   public me(): Observable<User> {
-    return this.http.get<ApiResult<User>>(`${this.pathService}/me`).pipe(
+    return this.http.get<ApiResult<User>>(`${this.pathService}/me`, {
+      withCredentials: true // Important pour que le cookie soit envoyé
+    }).pipe(
       map((apiResult: ApiResult<User>) => {
         if (!apiResult.data) {
           throw new Error('User data not found in API response');
@@ -100,16 +99,14 @@ export class AuthService {
   //   );
   // }
   public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
-    return this.http.put<ApiResult<AuthSuccess>>(`${this.pathService}/me`, userUpdate).pipe(
+    return this.http.put<ApiResult<AuthSuccess>>(`${this.pathService}/me`, userUpdate, {
+      withCredentials: true // Important pour que le cookie soit envoyé/reçu
+    }).pipe(
       tap((apiResult: ApiResult<AuthSuccess>) => {
-        // Stocker le nouveau token
-        if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
-          // Rafraîchir les informations utilisateur
-          this.me().subscribe((user: User) => {
-            this.sessionService.logIn(user);
-          });
-        }
+        // Rafraîchir les informations utilisateur
+        this.me().subscribe((user: User) => {
+          this.sessionService.logIn(user);
+        });
       }),
       // Transformer ApiResult<AuthSuccess> en AuthSuccess
       map((apiResult: ApiResult<AuthSuccess>) => apiResult.data as AuthSuccess),
@@ -120,13 +117,10 @@ export class AuthService {
   }
 
   public login(request: LoginRequest): Observable<AuthSuccess> {
-    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/login`, request).pipe(
-      tap((apiResult: ApiResult<AuthSuccess>) => {
-        // Stocker le token JWT retourné par le backend
-        if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
-        }
-      }),
+    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/login`, request, {
+      withCredentials: true // Important pour que le cookie soit envoyé/reçu
+    }).pipe(
+      // Ne plus stocker le token dans localStorage
       // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal
       switchMap((apiResult: ApiResult<AuthSuccess>) => {
         return this.me().pipe(
@@ -150,4 +144,19 @@ export class AuthService {
     );
   }
 
+  // Ajouter une méthode de déconnexion
+  public logout(): Observable<any> {
+    return this.http.post<ApiResult<void>>(`${this.pathService}/logout`, {}, {
+      withCredentials: true // Important pour que le cookie soit envoyé/reçu
+    }).pipe(
+      tap(() => {
+        // Nettoyer les données de session côté client
+        this.sessionService.logOut();
+      }),
+      catchError(error => {
+        this.messagesService.showMessage('Une erreur est survenue lors de la déconnexion', 'error');
+        return throwError(() => error);
+      })
+    );
+  }
 }

@@ -14,12 +14,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import java.time.Duration;
 
 @Tag(
         name = "auth-controller",
@@ -103,9 +106,21 @@ public class AuthController {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Détecter si la requête est en HTTPS
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+
         return authFacade.registerNewUser(request)
                 .map(user -> {
                     String token = jwtService.generateToken(user.getId(), user.getEmail());
+
+                    // Créer le cookie HttpOnly
+                    ResponseCookie cookie = ResponseCookie.from("auth-token", token)
+                        .httpOnly(true)
+                        .secure(isSecure) // Sécurisé uniquement si HTTPS
+                        .sameSite("Strict")
+                        .maxAge(Duration.ofSeconds(jwtService.getExpirationTime()))
+                        .path("/")
+                        .build();
 
                     ApiResult<AuthSuccess> apiResult = new ApiResult<>(
                             new AuthSuccess(token),
@@ -114,7 +129,9 @@ public class AuthController {
                             requestId
                     );
 
-                    return ResponseEntity.ok(apiResult);
+                    return ResponseEntity.ok()
+                            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                            .body(apiResult);
                 }) // ne pas traiter l'erreur ici ; la laisser remonter dans gestionnaire global
                 ;
     }
@@ -166,17 +183,32 @@ public class AuthController {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Détecter si la requête est en HTTPS
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+
         return authFacade.login(loginRequest)
                 .flatMap(userId -> {
                     String token = jwtService.generateToken(userId, loginRequest.getIdentifier());
-//                    return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
+
+                    // Créer le cookie HttpOnly
+                    ResponseCookie cookie = ResponseCookie.from("auth-token", token)
+                        .httpOnly(true)
+                        .secure(isSecure) // Sécurisé uniquement si HTTPS
+                        .sameSite("Strict")
+                        .maxAge(Duration.ofSeconds(jwtService.getExpirationTime()))
+                        .path("/")
+                        .build();
+
                     ApiResult<AuthSuccess> successResponse = new ApiResult<>(
                             new AuthSuccess(token),
                             "Authentification réussie.",
                             HttpStatus.OK.value(),
                             requestId
                     );
-                    return Mono.just(ResponseEntity.ok(successResponse));
+
+                    return Mono.just(ResponseEntity.ok()
+                            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                            .body(successResponse));
                 })
                 .switchIfEmpty(Mono.just(ResponseEntity
                         .status(HttpStatus.UNAUTHORIZED)
@@ -316,6 +348,9 @@ public class AuthController {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Détecter si la requête est en HTTPS
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+
         return authFacade.updateAuthenticatedUser(updateAuthenticatedUserRequest)
                 .flatMap(userDto -> {
                     // Générer un nouveau token avec les informations mises à jour
@@ -324,6 +359,15 @@ public class AuthController {
                             userDto.getEmail()
                     );
 
+                    // Créer le cookie HttpOnly
+                    ResponseCookie cookie = ResponseCookie.from("auth-token", newToken)
+                        .httpOnly(true)
+                        .secure(isSecure) // Sécurisé uniquement si HTTPS
+                        .sameSite("Strict")
+                        .maxAge(Duration.ofSeconds(jwtService.getExpirationTime()))
+                        .path("/")
+                        .build();
+
                     ApiResult<AuthSuccess> apiResult = new ApiResult<>(
                             new AuthSuccess(newToken),
                             "Informations utilisateur mises à jour avec succès.",
@@ -331,7 +375,9 @@ public class AuthController {
                             requestId
                     );
 
-                    return Mono.just(ResponseEntity.ok(apiResult));
+                    return Mono.just(ResponseEntity.ok()
+                            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                            .body(apiResult));
                 })
                 .switchIfEmpty(Mono.just(ResponseEntity
                         .status(HttpStatus.NOT_FOUND)
@@ -342,5 +388,50 @@ public class AuthController {
                                 requestId
                         ))
                 ));
+    }
+
+    @Operation(summary = "Déconnexion de l'utilisateur",
+            description = "Supprime le cookie d'authentification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Déconnexion réussie",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResult.class,
+                                    example = """
+                                            {
+                                                "data": null,
+                                                "message": "Déconnexion réussie.",
+                                                "status": 200,
+                                                "timestamp": "2025-05-05T14:25:34.726938Z",
+                                                "requestId": "60f7396f-df28-4b64-888e-a1932adfe12a"
+                                            }
+                                            """)
+                    ))
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<ApiResult<Void>>> logout(ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        // Créer un cookie expiré pour supprimer le token
+        ResponseCookie cookie = ResponseCookie.from("auth-token", "")
+            .httpOnly(true)
+            .secure(exchange.getRequest().getSslInfo() != null) // Sécurisé uniquement si HTTPS
+            .sameSite("Strict")
+            .maxAge(0) // Expire immédiatement
+            .path("/")
+            .build();
+
+        ApiResult<Void> response = new ApiResult<>(
+            null,
+            "Déconnexion réussie.",
+            HttpStatus.OK.value(),
+            requestId
+        );
+
+        return Mono.just(ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(response));
     }
 }

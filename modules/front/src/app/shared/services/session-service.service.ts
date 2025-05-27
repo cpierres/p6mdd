@@ -27,25 +27,22 @@ export class SessionService implements OnInit {
 
   //pour gérer le cas d'un refresh du browser (on perdait le menu)
   private checkToken(): void {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Si un token existe, récupérer les informations de l'utilisateur
-      // Avec la nouvelle structure ApiResult, nous devons extraire l'utilisateur du champ data
-      this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`).subscribe({
-        next: (apiResult: ApiResult<User>) => {
-          if (apiResult.data) {
-            this.logIn(apiResult.data);
-          } else {
-            // Si data est null, déconnecter l'utilisateur
-            this.logOut();
-          }
-        },
-        error: () => {
-          // En cas d'erreur (token invalide), déconnecter l'utilisateur
+    // Ne plus vérifier le localStorage, mais plutôt faire une requête /me
+    // avec withCredentials: true pour vérifier si l'utilisateur est connecté
+    this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`, {
+      withCredentials: true
+    }).subscribe({
+      next: (apiResult: ApiResult<User>) => {
+        if (apiResult.data) {
+          this.logIn(apiResult.data);
+        } else {
           this.logOut();
         }
-      });
-    }
+      },
+      error: () => {
+        this.logOut();
+      }
+    });
   }
 
   public $isLogged(): Observable<boolean> {
@@ -60,7 +57,7 @@ export class SessionService implements OnInit {
   }
 
   public logOut(): void {
-    localStorage.removeItem('token');
+    // Ne plus supprimer le token du localStorage
     this.user = undefined;
     this.isLogged = false;
     this.next();

@@ -76,4 +76,13 @@ public class JwtService {
     public SecretKey getSecretKey() {
         return SECRET_KEY;
     }
+
+    /**
+     * Renvoie la durée d'expiration des tokens JWT en secondes.
+     * 
+     * @return La durée d'expiration en secondes
+     */
+    public Integer getExpirationTime() {
+        return JWT_EXPIRATION_TIME;
+    }
 }
