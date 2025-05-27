@@ -180,7 +180,7 @@ Son principal avantage réside dans sa capacité à versionner et automatiser le
 
 ### Backend avec SpringBoot 3.4.4 et Spring WebFlux
 
-#### Mise à jour instantanée (SSE : Server Send Event)
+#### Mise à jour instantanée (SSE : Server Sent Event)
 - Mise à jour instantanée pour tous les utilisateurs suite à l'ajout d'un article ou d'un commentaire (SSE)
   - Les statistiques de popularité et les ajouts d'éléments sont actualisés en temps réel pour tous.
   - Voici un diagramme de séquence illustrant la mise en oeuvre d'un SSE avec Spring WebFlux.
@@ -188,6 +188,10 @@ Son principal avantage réside dans sa capacité à versionner et automatiser le
   - Le use case est la mise à jour du SSE suite à l'ajout d'un commentaire (ce qui envoie l'information du commentaire ainsi que la mise à jour des statistiques de popularité pour tous les clients) :
   
 ![postCommentSSE.png](modules/front/docs/assets/diagrams/sequence/postCommentSSE.png)
+
+- Représentation simplifiée du flux SSE multi-utilisateurs :
+
+![archi-flux-SSE.png](modules/front/docs/assets/diagrams/archi-flux-SSE.png)
 
 #### Sécurité basée sur OAuth2 et token
 
