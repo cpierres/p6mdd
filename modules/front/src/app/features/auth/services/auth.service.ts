@@ -3,7 +3,6 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {catchError, map, Observable, switchMap, tap, throwError} from 'rxjs';
 import {RegisterRequest} from '../interfaces/registerRequest.interface';
 import {AuthSuccess} from '../interfaces/authSuccess.interface';
-//import {MessagesService} from '../../../shared/services/messages.service';
 import {environment} from '../../../../environments/environment';
 import {User} from '../../user/interfaces/user.interface';
 import {SessionService} from '../../../shared/services/session-service.service';
@@ -12,6 +11,7 @@ import {MessagesService} from '../../../shared/services/messages.service';
 import {ApiResult} from '../../../shared/interfaces/ApiResult';
 import {ResponseDetails} from '../../../shared/interfaces/ResponseDetails';
 import {LoginRequest} from '../interfaces/loginRequest.interface';
+import {TokenService} from '../../../shared/services/token.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,18 +21,21 @@ export class AuthService {
 
   constructor(private http: HttpClient,
               private sessionService: SessionService,
-              private messagesService: MessagesService) {
+              private messagesService: MessagesService,
+              private tokenService: TokenService) {
   }
 
   public register(registerRequest: RegisterRequest): Observable<AuthSuccess> {
     // utilisation d'un pipe pour traiter le flux dans le service avant utilisation par le composant.
     // le routage se fera plutôt dans le composant appelant (SOLID : SRP)
     // Dans le composant register, subscribe du projet 3 est déprécié
-    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/register`, registerRequest).pipe(
+    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/register`, registerRequest, {
+      withCredentials: true // Important pour recevoir le cookie HttpOnly
+    }).pipe(
       tap((apiResult: ApiResult<AuthSuccess>) => {
         //en cas de succès, on authentifie directement le nouvel utilisateur
         if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
+          this.tokenService.setToken(apiResult.data.token);
         }
       }),
       // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal
@@ -100,11 +103,13 @@ export class AuthService {
   //   );
   // }
   public updateMe(userUpdate: UserUpdate): Observable<AuthSuccess> {
-    return this.http.put<ApiResult<AuthSuccess>>(`${this.pathService}/me`, userUpdate).pipe(
+    return this.http.put<ApiResult<AuthSuccess>>(`${this.pathService}/me`, userUpdate, {
+      withCredentials: true // Important pour recevoir le cookie HttpOnly
+    }).pipe(
       tap((apiResult: ApiResult<AuthSuccess>) => {
         // Stocker le nouveau token
         if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
+          this.tokenService.setToken(apiResult.data.token);
           // Rafraîchir les informations utilisateur
           this.me().subscribe((user: User) => {
             this.sessionService.logIn(user);
@@ -119,12 +124,36 @@ export class AuthService {
     );
   }
 
+  /**
+   * Déconnecte l'utilisateur en appelant l'endpoint de déconnexion du backend
+   * et en supprimant le token du service
+   */
+  public logout(): Observable<any> {
+    return this.http.post(`${this.pathService}/logout`, {}, {
+      withCredentials: true // Important pour supprimer le cookie HttpOnly
+    }).pipe(
+      tap(() => {
+        // Supprimer le token et déconnecter l'utilisateur
+        this.tokenService.clearToken();
+        this.sessionService.logOut();
+      }),
+      catchError(error => {
+        // Même en cas d'erreur, on déconnecte l'utilisateur localement
+        this.tokenService.clearToken();
+        this.sessionService.logOut();
+        return throwError(() => error);
+      })
+    );
+  }
+
   public login(request: LoginRequest): Observable<AuthSuccess> {
-    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/login`, request).pipe(
+    return this.http.post<ApiResult<AuthSuccess>>(`${this.pathService}/login`, request, {
+      withCredentials: true // Important pour recevoir le cookie HttpOnly
+    }).pipe(
       tap((apiResult: ApiResult<AuthSuccess>) => {
         // Stocker le token JWT retourné par le backend
         if (apiResult.data && apiResult.data.token) {
-          localStorage.setItem('token', apiResult.data.token);
+          this.tokenService.setToken(apiResult.data.token);
         }
       }),
       // Utiliser switchMap pour enchaîner l'appel à me() à l'observable principal

@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
+                                "/api/auth/refresh",
                                 "/api/topics",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -139,8 +140,10 @@ public class SecurityConfig {
         corsConfig.setAllowedOrigins(frontendUrls);
         //log.debug("*** corsConfigurationSource *** : "+frontendUrls.toString());
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        corsConfig.setAllowCredentials(true); // Si vous utilisez des cookies ou des sessions partagées
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cookie"));
+        corsConfig.setExposedHeaders(Arrays.asList("Set-Cookie", "Access-Control-Allow-Credentials"));
+        corsConfig.setAllowCredentials(true); // Important pour les cookies HttpOnly
+        corsConfig.setMaxAge(3600L); // Cache la réponse pre-flight pendant 1 heure
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig); // Appliquer à tous les endpoints

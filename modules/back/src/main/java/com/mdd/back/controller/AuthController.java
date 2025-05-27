@@ -3,9 +3,14 @@ package com.mdd.back.controller;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.*;
+import com.mdd.back.repositories.UserRepository;
 import com.mdd.back.services.AuthFacade;
 import com.mdd.back.services.JwtService;
+import com.mdd.back.services.RefreshTokenService;
 import com.mdd.back.utils.context.RequestIdContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import java.time.Duration;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,11 +39,15 @@ public class AuthController {
     private final AuthFacade authFacade;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper) {
+    public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper, RefreshTokenService refreshTokenService, UserRepository userRepository) {
         this.authFacade = authFacade;
         this.jwtService = jwtService;
         this.userMapper = userMapper;
+        this.refreshTokenService = refreshTokenService;
+        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Enregistrement d'un utilisateur (contrôle d'unicité sur email et username)",
@@ -168,15 +177,34 @@ public class AuthController {
 
         return authFacade.login(loginRequest)
                 .flatMap(userId -> {
+                    // Générer l'access token
                     String token = jwtService.generateToken(userId, loginRequest.getIdentifier());
-//                    return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
-                    ApiResult<AuthSuccess> successResponse = new ApiResult<>(
-                            new AuthSuccess(token),
-                            "Authentification réussie.",
-                            HttpStatus.OK.value(),
-                            requestId
-                    );
-                    return Mono.just(ResponseEntity.ok(successResponse));
+
+                    // Créer un refresh token
+                    return refreshTokenService.createRefreshToken(userId)
+                            .map(refreshToken -> {
+                                // Créer la réponse avec l'access token
+                                ApiResult<AuthSuccess> successResponse = new ApiResult<>(
+                                        new AuthSuccess(token),
+                                        "Authentification réussie.",
+                                        HttpStatus.OK.value(),
+                                        requestId
+                                );
+
+                                // Créer un cookie HttpOnly pour le refresh token
+                                ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                                        .httpOnly(true)
+                                        .secure(true)
+                                        .path("/api/auth")
+                                        .maxAge(Duration.ofDays(7))
+                                        .sameSite("Strict")
+                                        .build();
+
+                                // Retourner la réponse avec le cookie
+                                return ResponseEntity.ok()
+                                        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                                        .body(successResponse);
+                            });
                 })
                 .switchIfEmpty(Mono.just(ResponseEntity
                         .status(HttpStatus.UNAUTHORIZED)
@@ -224,6 +252,102 @@ public class AuthController {
             )
     })
     @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping("/refresh")
+    public Mono<ResponseEntity<ApiResult<AuthSuccess>>> refreshToken(ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        // Récupérer le refresh token depuis le cookie
+        return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst("refresh_token"))
+                .map(cookie -> cookie.getValue())
+                .flatMap(refreshToken -> refreshTokenService.validateRefreshToken(refreshToken)
+                        .flatMap(userId -> {
+                            // Récupérer l'utilisateur pour obtenir son identifiant
+                            return userRepository.findById(userId)
+                                    .flatMap(user -> {
+                                        // Générer un nouveau token
+                                        String newToken = jwtService.generateToken(userId, user.getEmail());
+
+                                        // Créer la réponse
+                                        ApiResult<AuthSuccess> successResponse = new ApiResult<>(
+                                                new AuthSuccess(newToken),
+                                                "Token rafraîchi avec succès.",
+                                                HttpStatus.OK.value(),
+                                                requestId
+                                        );
+
+                                        // Configurer le cookie de refresh token (prolonger sa durée)
+                                        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                                                .httpOnly(true)
+                                                .secure(true)
+                                                .path("/api/auth")
+                                                .maxAge(Duration.ofDays(7))
+                                                .sameSite("Strict")
+                                                .build();
+
+                                        return Mono.just(ResponseEntity.ok()
+                                                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                                                .body(successResponse));
+                                    });
+                        })
+                        .switchIfEmpty(Mono.just(ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(new ApiResult<>(
+                                        null,
+                                        "Refresh token invalide.",
+                                        HttpStatus.UNAUTHORIZED.value(),
+                                        requestId
+                                ))))
+                )
+                .switchIfEmpty(Mono.just(ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResult<>(
+                                null,
+                                "Refresh token manquant.",
+                                HttpStatus.UNAUTHORIZED.value(),
+                                requestId
+                        ))));
+    }
+
+    @Operation(summary = "Déconnexion de l'utilisateur",
+            description = """
+                    Invalide le refresh token de l'utilisateur et supprime le cookie.
+                    """,
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Déconnexion réussie",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResult.class)
+                    ))
+    })
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<ApiResult<Void>>> logout(ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+
+        // Créer la réponse avec le cookie expiré
+        ResponseEntity<ApiResult<Void>> response = ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, ResponseCookie.from("refresh_token", "")
+                        .httpOnly(true)
+                        .maxAge(0)
+                        .path("/api/auth")
+                        .build().toString())
+                .body(new ApiResult<Void>(
+                        null,
+                        "Déconnexion réussie.",
+                        HttpStatus.OK.value(),
+                        requestId
+                ));
+
+        return authFacade.getAuthenticatedUserId()
+                .flatMap(userId -> refreshTokenService.deleteByUserId(userId)
+                        .then(Mono.just(response))
+                )
+                .switchIfEmpty(Mono.just(response));
+    }
+
     @GetMapping("/me")
     public Mono<ResponseEntity<ApiResult<UserDto>>> getCurrentUser(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
