@@ -197,7 +197,7 @@ export class UserFormComponent<T = any> implements OnInit, OnDestroy {
       errors['number'] = true;
     }
 
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    if (!/[!@#$%^&*(),.?":{}|<>;]/.test(password)) {
       errors['specialCharacter'] = true;
     }
 
