@@ -8,9 +8,6 @@ import com.mdd.back.services.AuthFacade;
 import com.mdd.back.services.JwtService;
 import com.mdd.back.services.RefreshTokenService;
 import com.mdd.back.utils.context.RequestIdContext;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import java.time.Duration;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,12 +16,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @Tag(
         name = "auth-controller",
@@ -175,6 +176,9 @@ public class AuthController {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Détecter si la requête est en HTTPS
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+
         return authFacade.login(loginRequest)
                 .flatMap(userId -> {
                     // Générer l'access token
@@ -194,10 +198,10 @@ public class AuthController {
                                 // Créer un cookie HttpOnly pour le refresh token
                                 ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
                                         .httpOnly(true)
-                                        .secure(true)
-                                        .path("/api/auth")
+                                        .secure(isSecure)
+                                        .sameSite(isSecure ? "Strict" : "Lax")
+                                        .path("/")
                                         .maxAge(Duration.ofDays(7))
-                                        .sameSite("Strict")
                                         .build();
 
                                 // Retourner la réponse avec le cookie
@@ -256,6 +260,7 @@ public class AuthController {
     public Mono<ResponseEntity<ApiResult<AuthSuccess>>> refreshToken(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
 
         // Récupérer le refresh token depuis le cookie
         return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst("refresh_token"))
@@ -279,10 +284,10 @@ public class AuthController {
                                         // Configurer le cookie de refresh token (prolonger sa durée)
                                         ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
                                                 .httpOnly(true)
-                                                .secure(true)
-                                                .path("/api/auth")
+                                                .secure(isSecure)
+                                                .sameSite(isSecure ? "Strict" : "Lax")
+                                                .path("/")//.path("/api/auth")
                                                 .maxAge(Duration.ofDays(7))
-                                                .sameSite("Strict")
                                                 .build();
 
                                         return Mono.just(ResponseEntity.ok()
@@ -326,13 +331,16 @@ public class AuthController {
     public Mono<ResponseEntity<ApiResult<Void>>> logout(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+        boolean isSecure = exchange.getRequest().getSslInfo() != null;
 
         // Créer la réponse avec le cookie expiré
         ResponseEntity<ApiResult<Void>> response = ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, ResponseCookie.from("refresh_token", "")
                         .httpOnly(true)
+                        .secure(isSecure)
+                        .sameSite(isSecure ? "Strict" : "Lax")
+                        .path("/")
                         .maxAge(0)
-                        .path("/api/auth")
                         .build().toString())
                 .body(new ApiResult<Void>(
                         null,

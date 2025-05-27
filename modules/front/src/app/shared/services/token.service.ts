@@ -51,12 +51,14 @@ export class TokenService {
     }
 
     this.refreshInProgress = true;
+    console.log('Tentative de rafraîchissement du token...');
 
     return this.http.post<ApiResult<AuthSuccess>>(`${environment.backendUrl}auth/refresh`, {}, {
       withCredentials: true // Important pour envoyer le cookie HttpOnly
     }).pipe(
       tap(response => {
         if (response.data && response.data.token) {
+          console.log('Réponse de refresh reçue:', response);
           this.setToken(response.data.token);
         }
         this.refreshInProgress = false;

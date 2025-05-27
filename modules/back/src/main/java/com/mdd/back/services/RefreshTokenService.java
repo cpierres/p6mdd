@@ -2,6 +2,7 @@ package com.mdd.back.services;
 
 import com.mdd.back.entities.RefreshToken;
 import com.mdd.back.repositories.RefreshTokenRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.UUID;
 /**
  * Service pour gérer les opérations liées aux refresh tokens.
  */
+@Slf4j
 @Service
 public class RefreshTokenService {
 
@@ -50,10 +52,15 @@ public class RefreshTokenService {
      * @return Un Mono contenant l'ID de l'utilisateur si le token est valide
      */
     public Mono<UUID> validateRefreshToken(String token) {
+        log.debug("Tentative de validation du refresh token: {}", token.substring(0, 6) + "...");
         return refreshTokenRepository.findByToken(token)
+                .doOnNext(rt -> log.debug("Refresh token trouvé, expiration: {}", rt.getExpiryDate()))
                 .filter(refreshToken -> refreshToken.getExpiryDate().isAfter(Instant.now()))
+                .doOnNext(rt -> log.debug("Refresh token valide pour l'utilisateur: {}", rt.getUserId()))
+                .switchIfEmpty(Mono.fromRunnable(() -> log.debug("Refresh token expiré ou invalide")))
                 .map(RefreshToken::getUserId);
     }
+
 
     /**
      * Supprime tous les refresh tokens d'un utilisateur.

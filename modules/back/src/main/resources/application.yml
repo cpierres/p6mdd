@@ -31,6 +31,8 @@ logging:
   level:
     org.springframework: DEBUG
     com.mdd.back: DEBUG
+    com.mdd.back.services.RefreshTokenService: DEBUG
+    com.mdd.back.controller.AuthController: DEBUG
 
 management:
   endpoints:
