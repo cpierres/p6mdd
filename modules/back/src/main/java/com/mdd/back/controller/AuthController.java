@@ -16,10 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
@@ -42,6 +40,7 @@ public class AuthController {
     private final UserMapper userMapper;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
     public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper, RefreshTokenService refreshTokenService, UserRepository userRepository) {
         this.authFacade = authFacade;
@@ -177,7 +176,7 @@ public class AuthController {
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
         // Détecter si la requête est en HTTPS
-        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+        boolean isSecure = isSslEnabled(exchange);
 
         return authFacade.login(loginRequest)
                 .flatMap(userId -> {
@@ -195,11 +194,15 @@ public class AuthController {
                                         requestId
                                 );
 
+                                // Déterminer le mode SameSite/secure en fonction du contexte (proxy, HTTPS, cross-site)
+                                boolean crossSite = isCrossSite(exchange);
+                                String sameSite = chooseSameSite(isSecure, crossSite);
+
                                 // Créer un cookie HttpOnly pour le refresh token
-                                ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                                ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                                         .httpOnly(true)
                                         .secure(isSecure)
-                                        .sameSite(isSecure ? "Strict" : "Lax")
+                                        .sameSite(sameSite)
                                         .path("/")
                                         .maxAge(Duration.ofDays(7))
                                         .build();
@@ -255,16 +258,17 @@ public class AuthController {
                                             """))
             )
     })
+
     @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping("/refresh")
     public Mono<ResponseEntity<ApiResult<AuthSuccess>>> refreshToken(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
-        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+        boolean isSecure = isSslEnabled(exchange);
 
         // Récupérer le refresh token depuis le cookie
-        return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst("refresh_token"))
-                .map(cookie -> cookie.getValue())
+        return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst(REFRESH_TOKEN_COOKIE_NAME))
+                .map(HttpCookie::getValue)
                 .flatMap(refreshToken -> refreshTokenService.validateRefreshToken(refreshToken)
                         .flatMap(userId -> {
                             // Récupérer l'utilisateur pour obtenir son identifiant
@@ -282,10 +286,12 @@ public class AuthController {
                                         );
 
                                         // Configurer le cookie de refresh token (prolonger sa durée)
-                                        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                                        boolean crossSite = isCrossSite(exchange);
+                                        String sameSite = chooseSameSite(isSecure, crossSite);
+                                        ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
                                                 .httpOnly(true)
                                                 .secure(isSecure)
-                                                .sameSite(isSecure ? "Strict" : "Lax")
+                                                .sameSite(sameSite)
                                                 .path("/")//.path("/api/auth")
                                                 .maxAge(Duration.ofDays(7))
                                                 .build();
@@ -331,14 +337,16 @@ public class AuthController {
     public Mono<ResponseEntity<ApiResult<Void>>> logout(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
-        boolean isSecure = exchange.getRequest().getSslInfo() != null;
+        boolean isSecure = isSslEnabled(exchange);
 
         // Créer la réponse avec le cookie expiré
+        boolean crossSite = isCrossSite(exchange);
+        String sameSite = chooseSameSite(isSecure, crossSite);
         ResponseEntity<ApiResult<Void>> response = ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, ResponseCookie.from("refresh_token", "")
+                .header(HttpHeaders.SET_COOKIE, ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
                         .httpOnly(true)
                         .secure(isSecure)
-                        .sameSite(isSecure ? "Strict" : "Lax")
+                        .sameSite(sameSite)
                         .path("/")
                         .maxAge(0)
                         .build().toString())
@@ -354,6 +362,68 @@ public class AuthController {
                         .then(Mono.just(response))
                 )
                 .switchIfEmpty(Mono.just(response));
+    }
+
+    private static boolean isSslEnabled(ServerWebExchange exchange) {
+        // Détection HTTPS réelle (derrière proxy pris en charge via ForwardedHeaderTransformer)
+        return exchange.getRequest().getSslInfo() != null;
+    }
+
+    /**
+     * Détermine si la requête est cross-site en comparant l'en-tête Origin
+     * à l'origine (schéma + hôte + port) de la requête vue par l'application
+     * après application des en-têtes Forwarded/X-Forwarded-*. 
+     */
+    private static boolean isCrossSite(ServerWebExchange exchange) {
+        String origin = exchange.getRequest().getHeaders().getOrigin();
+        if (origin == null || origin.isBlank()) {
+            return false; // Pas d'origin => on considère même-site
+        }
+        String scheme = exchange.getRequest().getURI().getScheme();
+        String host = exchange.getRequest().getHeaders().getHost() != null
+                ? exchange.getRequest().getHeaders().getHost().getHostName()
+                : exchange.getRequest().getURI().getHost();
+
+        int port = determinePort(exchange.getRequest());
+        String portPart = "";
+        if (port > 0 && !(("http".equalsIgnoreCase(scheme) && port == 80) || ("https".equalsIgnoreCase(scheme) && port == 443))) {
+            portPart = ":" + port;
+        }
+        String requestOrigin = scheme + "://" + host + portPart;
+        return !origin.equalsIgnoreCase(requestOrigin);
+    }
+
+    private static int determinePort(ServerHttpRequest request) {
+        // Essayer d'abord l'en-tête Host
+        if (request.getHeaders().getHost() != null) {
+            int hostPort = request.getHeaders().getHost().getPort();
+            if (hostPort != -1) {
+                return hostPort;
+            }
+        }
+
+        // Fallback vers l'URI
+        int uriPort = request.getURI().getPort();
+        if (uriPort != -1) {
+            return uriPort;
+        }
+
+        // Valeurs par défaut selon le schéma
+        String scheme = request.getURI().getScheme();
+        return "https".equals(scheme) ? 443 : 80;
+    }
+
+    /**
+     * Choisit la stratégie SameSite suivant le contexte.
+     * - Cross-site en HTTPS: SameSite=None (Secure requis par les navigateurs)
+     * - HTTPS même-site: SameSite=Strict
+     * - HTTP (dev local): SameSite=Lax
+     */
+    private static String chooseSameSite(boolean isSecure, boolean crossSite) {
+        if (crossSite && isSecure) {
+            return "None";
+        }
+        return isSecure ? "Strict" : "Lax";
     }
 
     @GetMapping("/me")

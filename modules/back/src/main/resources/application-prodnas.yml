@@ -33,6 +33,8 @@ spring:
       max-create-connection-time: 30s
       validation-query: SELECT 1
       validation-depth: LOCAL
+server:
+  forward-headers-strategy: framework
 logging:
   level:
     root: INFO
