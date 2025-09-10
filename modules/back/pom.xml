@@ -27,10 +27,10 @@
         </developer>
     </developers>
     <scm>
-        <connection></connection>
-        <developerConnection></developerConnection>
-        <tag>v1.0.0</tag>
-        <url></url>
+        <connection>scm:git:https://github.com/cpierres/p6mdd.git</connection>
+        <developerConnection>scm:git:https://github.com/cpierres/p6mdd.git</developerConnection>
+        <url>https://github.com/cpierres/p6mdd</url>
+        <tag>HEAD</tag>
     </scm>
     <dependencyManagement>
         <!-- on remplace le parent BOM qui existait avant par un import BOM -->
