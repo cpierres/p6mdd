@@ -22,6 +22,7 @@ import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,6 +34,9 @@ public class SecurityConfig {
     // Modifier le type pour accepter une liste d'URLs
     @Value("#{'${frontend.url}'.split(',')}")
     private List<String> frontendUrls;
+
+    @Value("${api.url:}")
+    private String apiUrl;
 
 
     /**
@@ -136,7 +140,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(frontendUrls); // Utiliser la liste CSV depuis la propriété frontend.url
+
+        List<String> allowedOrigins = new ArrayList<>(frontendUrls);
+        if (apiUrl != null && !apiUrl.isEmpty() && !allowedOrigins.contains(apiUrl)) {
+            allowedOrigins.add(apiUrl);
+        }
+
+        corsConfig.setAllowedOrigins(allowedOrigins);
+
         log.debug("*** corsConfigurationSource (origines autorisées) *** : {}", frontendUrls);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cookie"));

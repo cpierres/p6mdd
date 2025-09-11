@@ -52,6 +52,7 @@ services:
       P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
       P6_DB_USER: ${P6_DB_USER}
       P6_DB_PASSWORD: ${P6_DB_PASSWORD}
+      P6_API_BASE_URL: ${P6_API_BASE_URL:-https://apimdd.cpierres.dscloud.me}
       P6_JWT_SECRET_KEY: ${P6_JWT_SECRET_KEY}
       P6_JWT_EXPIRATION_TIME: ${P6_JWT_EXPIRATION_TIME}
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd

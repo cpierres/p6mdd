@@ -426,6 +426,7 @@ public class AuthController {
         return isSecure ? "Strict" : "Lax";
     }
 
+    @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/me")
     public Mono<ResponseEntity<ApiResult<UserDto>>> getCurrentUser(ServerWebExchange exchange) {
         // Récupérer l'ID de requête depuis les attributs d'échange
