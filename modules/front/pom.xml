@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.mdd</groupId>
     <artifactId>p6mdd-parent</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -22,7 +22,7 @@
         <configuration>
           <nodeVersion>${node.version}</nodeVersion>
           <npmVersion>${npm.version}</npmVersion>
-          <workingDirectory>${project.basedir}</workingDirectory>
+          <workingDirectory>.</workingDirectory>
         </configuration>
         <executions>
           <!-- Installation de Node et npm -->
