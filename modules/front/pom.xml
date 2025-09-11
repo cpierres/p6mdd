@@ -22,7 +22,7 @@
         <configuration>
           <nodeVersion>${node.version}</nodeVersion>
           <npmVersion>${npm.version}</npmVersion>
-          <workingDirectory>${project.basedir}</workingDirectory>
+          <workingDirectory>.</workingDirectory>
         </configuration>
         <executions>
           <!-- Installation de Node et npm -->
@@ -62,7 +62,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run build</arguments>
+              <arguments>run build:prodnas</arguments>
             </configuration>
           </execution>
 
