@@ -10,6 +10,8 @@
     - [Installation option 2](#installation-option-2--installation-classique-pour-le-développement)
         - [Installation de la base de données](#installation-de-la-base-de-données-postgresql-depuis-docker-compose)
         - [Exécution de l'application](#exécution-de-lapplication-sur-le-poste-de-dev)
+- [Sécurité renforcée et meilleures pratiques](#sécurité-renforcée-et-meilleures-pratiques)
+- [Configuration Reverse Proxy](#configuration-reverse-proxy)
 - [Technologies et bonnes pratiques appliquées](#technologies-et-bonnes-pratiques-appliquées)
     - [Automatisation des installations](#automatisation-des-installations-et-déploiements-avec-docker-et-docker-compose)
     - [Gestion automatisée des migrations](#gestion-automatisée-des-migrations-de-données-avec-flyway)
@@ -43,7 +45,7 @@
 depuis la page d'Accueil de ce site, cliquez sur le **Projet P6 - MDD (Client Orion)**
 
 - Application accessible depuis internet : [https://mdd.cpierres.dscloud.me/](https://mdd.cpierres.dscloud.me/)
-- Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me:8068/swagger-ui/](http://apimdd.cpierres.dscloud.me:8068/swagger-ui/)
+- Documentation swagger de l'API : [http://apimdd.cpierres.dscloud.me/swagger-ui/index.html](http://apimdd.cpierres.dscloud.me/swagger-ui/index.html)
 
 ## Introduction
 A la base, l'application présente vise à répondre au cahier des charges du projet 6 MDD d'OpenClassrooms (réseau social MDD : le "Monde Des Développeurs").
@@ -62,6 +64,53 @@ Ce projet n'aborde pas certains points car non demandés dans les objectifs du M
 - pas de tests. Ce sujet a déjà été bien développé dans le projet précédent : https://github.com/cpierres/P5-Test-full-stack.
 - ces sujets seront néanmoins développés dans une prochaine release !
 
+## Sécurité renforcée et meilleures pratiques
+
+Suite aux remarques de l'évaluateur, la sécurité de l'application a été considérablement renforcée en intégrant les meilleures pratiques de sécurité web :
+
+### Cookies sécurisés avec attributs HttpOnly
+
+- **Cookies HttpOnly** : Les refresh tokens sont stockés dans des cookies avec l'attribut `HttpOnly`, empêchant l'accès via JavaScript et réduisant les risques d'attaques XSS
+- **Attribut Secure** : Les cookies sont marqués comme `Secure` en HTTPS, garantissant leur transmission uniquement via des connexions chiffrées
+- **Attribut SameSite** : Configuration dynamique de l'attribut SameSite selon le contexte :
+  - `SameSite=Strict` pour les connexions HTTPS même-site (sécurité maximale)
+  - `SameSite=None` pour les connexions cross-site HTTPS (avec Secure obligatoire)
+  - `SameSite=Lax` pour le développement HTTP local (fallback sécurisé)
+
+### Protection CSRF et configuration CORS
+
+- **Désactivation CSRF appropriée** : CSRF désactivé car utilisation de tokens JWT stateless et cookies HttpOnly avec SameSite
+- **Configuration CORS stricte** : 
+  - Origines autorisées limitées aux domaines de confiance
+  - Headers autorisés contrôlés (`Authorization`, `Content-Type`, `Cookie`)
+  - Support des credentials pour les cookies HttpOnly (`setAllowCredentials(true)`)
+  - Cache des réponses pre-flight optimisé (1 heure)
+
+### Authentification et autorisation renforcées
+
+- **Architecture OAuth2 resource server** : Implémentation du pattern OAuth2 avec serveur de ressources autonome
+- **Validation JWT robuste** : Décodage et validation des tokens JWT avec clés secrètes sécurisées
+- **Séparation des rôles** : Distinction claire entre serveur d'autorisation (émission tokens) et serveur de ressources (validation tokens)
+- **Chiffrement BCrypt** : Mots de passe chiffrés avec l'algorithme BCrypt résistant aux attaques par force brute
+
+## Configuration Reverse Proxy
+
+Les configurations ont été adaptées pour supporter le reverse proxy du NAS cloud, avec prise en charge native des en-têtes forwarded :
+
+### Support des en-têtes forwarded
+
+- **ForwardedHeaderTransformer** : Bean configuré pour traiter automatiquement les en-têtes `X-Forwarded-*` ajoutés par le reverse proxy Nginx
+- **Reconnaissance du schéma HTTPS** : Détection automatique du protocole (HTTP/HTTPS) via les en-têtes forwarded pour une configuration correcte des cookies
+- **Gestion de l'hôte et du port** : Prise en compte des en-têtes `X-Forwarded-Host` et `X-Forwarded-Port` pour la génération d'URLs correctes
+
+### Configuration Nginx optimisée
+
+- **Headers de proxy standardisés** : Configuration complète des en-têtes de proxy (`X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`, etc.)
+- **Support WebSocket/SSE** : Configuration des timeouts étendus et des en-têtes `Upgrade`/`Connection` pour les Server-Sent Events
+- **Gestion HTTPS** : Configuration spécifique pour les connexions HTTPS avec port 443 et SSL activé
+- **Timeouts adaptés** : Configuration des timeouts de connexion, lecture et écriture adaptés aux besoins de l'application
+
+Cette approche sécurisée garantit une protection robuste contre les principales vulnérabilités web (XSS, CSRF, attaques de session) tout en maintenant une expérience utilisateur optimale et un support complet des environnements de production avec reverse proxy.
 
 ## Préalables d'installation
 
@@ -180,7 +229,7 @@ Son principal avantage réside dans sa capacité à versionner et automatiser le
 
 ### Backend avec SpringBoot 3.4.4 et Spring WebFlux
 
-#### Mise à jour instantanée (SSE : Server Send Event)
+#### Mise à jour instantanée (SSE : Server Sent Event)
 - Mise à jour instantanée pour tous les utilisateurs suite à l'ajout d'un article ou d'un commentaire (SSE)
   - Les statistiques de popularité et les ajouts d'éléments sont actualisés en temps réel pour tous.
   - Voici un diagramme de séquence illustrant la mise en oeuvre d'un SSE avec Spring WebFlux.
@@ -188,6 +237,10 @@ Son principal avantage réside dans sa capacité à versionner et automatiser le
   - Le use case est la mise à jour du SSE suite à l'ajout d'un commentaire (ce qui envoie l'information du commentaire ainsi que la mise à jour des statistiques de popularité pour tous les clients) :
   
 ![postCommentSSE.png](modules/front/docs/assets/diagrams/sequence/postCommentSSE.png)
+
+- Représentation simplifiée du flux SSE multi-utilisateurs :
+
+![archi-flux-SSE.png](modules/front/docs/assets/diagrams/archi-flux-SSE.png)
 
 #### Sécurité basée sur OAuth2 et token
 

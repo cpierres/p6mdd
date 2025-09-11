@@ -5,6 +5,7 @@ import {provideRouter} from '@angular/router';
 import {routes} from './app/app.routes';
 import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {jwtInterceptor} from './app/shared/interceptors/jwt.interceptor';
+import {credentialsInterceptor} from './app/shared/interceptors/credentials.interceptor';
 import {errorInterceptor} from './app/shared/interceptors/error.interceptor';
 
 bootstrapApplication(AppComponent, {
@@ -13,9 +14,10 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([
+        credentialsInterceptor,
         jwtInterceptor,
         errorInterceptor
-      ])
+      ]),
     )
   ]
 }).catch(err => console.error(err));

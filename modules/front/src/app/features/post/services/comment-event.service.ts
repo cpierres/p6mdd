@@ -11,6 +11,16 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class CommentEventService implements OnDestroy {
+  /**
+   * EventSource est une API JavaScript standard qui crée une connexion HTTP unidirectionnelle (du serveur vers le client)
+   * permettant au serveur d'envoyer des mises à jour au client sans que celui-ci ait besoin de les demander.
+   * Caractéristiques principales d'EventSource
+   * 1. Connexion persistante : Établit une connexion HTTP longue durée avec le serveur
+   * 2. Reconnexion automatique : Se reconnecte automatiquement en cas de perte de connexion
+   * 3. Format texte : Utilise un format texte simple pour les messages (généralement JSON)
+   * 4. Événements typés : Permet de définir différents types d'événements que le client peut écouter
+   * 5. Compatibilité : Fonctionne sur HTTP/HTTPS standard, sans besoin de protocoles spéciaux
+   */
   private eventSource: EventSource | null = null;
   private newCommentSubject = new BehaviorSubject<PostCommentDto | null>(null);
 

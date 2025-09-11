@@ -42,8 +42,8 @@ services:
 #      - "log_statement=all"
 
   backend:
-    image: cpierres/ocr-p6-mdd-backend-prodnas:${PROJECT_VERSION:-1.0.0-SNAPSHOT}
-    container_name: ocr-p6-mdd-backend-prodnas-${PROJECT_VERSION:-1.0.0-SNAPSHOT}
+    image: cpierres/ocr-p6-mdd-backend-prodnas:${MAVEN_PROJECT_VERSION:-1.0.2-SNAPSHOT}
+    container_name: ocr-p6-mdd-backend-prodnas-${MAVEN_PROJECT_VERSION:-1.0.2-SNAPSHOT}
     restart: on-failure:5
     depends_on:
       postgres-r2dbc:
@@ -52,6 +52,7 @@ services:
       P6_FRONTEND_URL: ${P6_FRONTEND_URL} #pour CORS
       P6_DB_USER: ${P6_DB_USER}
       P6_DB_PASSWORD: ${P6_DB_PASSWORD}
+      P6_API_BASE_URL: ${P6_API_BASE_URL:-https://apimdd.cpierres.dscloud.me}
       P6_JWT_SECRET_KEY: ${P6_JWT_SECRET_KEY}
       P6_JWT_EXPIRATION_TIME: ${P6_JWT_EXPIRATION_TIME}
       SPRING_R2DBC_URL: r2dbc:postgresql://postgres-r2dbc:5432/dbmdd
@@ -79,8 +80,8 @@ services:
       dockerfile: Dockerfile
       args:
         ENV_NAME: prodnas # Définit l'environnement utilisé pour Angular et nginx
-        VERSION: ${PROJECT_VERSION:-1.0.0-SNAPSHOT}
-    image: cpierres/ocr-p6-mdd-frontend-prodnas:${PROJECT_VERSION:-1.0.0-SNAPSHOT}
+        VERSION: ${MAVEN_PROJECT_VERSION:-1.0.2-SNAPSHOT}
+    image: cpierres/ocr-p6-mdd-frontend-prodnas:${MAVEN_PROJECT_VERSION:-1.0.2-SNAPSHOT}
     container_name: ocr-p6-mdd-frontend-prodnas
     restart: always
     depends_on:

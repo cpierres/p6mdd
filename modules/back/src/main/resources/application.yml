@@ -27,10 +27,15 @@ spring:
 #    username: ${P6_DB_USER:mdduser}
 #    password: ${P6_DB_PASSWORD:mddpw}
 #    driver-class-name: org.postgresql.Driver
+server:
+  forward-headers-strategy: framework
+
 logging:
   level:
     org.springframework: DEBUG
     com.mdd.back: DEBUG
+    com.mdd.back.services.RefreshTokenService: DEBUG
+    com.mdd.back.controller.AuthController: DEBUG
 
 management:
   endpoints:

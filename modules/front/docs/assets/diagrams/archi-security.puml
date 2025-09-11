@@ -1,0 +1,151 @@
+@startuml "Secure Token Storage with Angular Signals and HttpOnly Cookies"
+
+skinparam backgroundColor white
+skinparam handwritten false
+skinparam DefaultFontName "Arial"
+skinparam DefaultFontSize 12
+skinparam ArrowColor #333333
+skinparam NoteBackgroundColor #FFFFCC
+skinparam NoteBorderColor #999999
+skinparam RectangleBackgroundColor #F8F8F8
+skinparam RectangleBorderColor #CCCCCC
+skinparam DatabaseBackgroundColor #F8F8F8
+skinparam DatabaseBorderColor #CCCCCC
+skinparam ActorBackgroundColor #F8F8F8
+skinparam ActorBorderColor #CCCCCC
+skinparam SequenceLifeLineBorderColor #CCCCCC
+skinparam SequenceBoxBorderColor #CCCCCC
+skinparam SequenceBoxBackgroundColor #F8F8F8
+skinparam ParticipantBorderColor #CCCCCC
+skinparam ParticipantBackgroundColor #F8F8F8
+
+' Définition des participants
+actor "Utilisateur" as User
+participant "Angular\nApplication" as Frontend
+participant "TokenService\n(Angular)" as TokenService
+participant "AuthService\n(Angular)" as AuthService
+participant "HTTP Interceptor" as Interceptor
+participant "Spring Boot\nBackend" as Backend
+database "Base de\nDonnées" as Database
+
+' Titre et légende
+title Gestion Sécurisée des Tokens avec Angular Signals et Cookies HttpOnly
+legend right
+  <b>Légende</b>
+  <i>Access Token</i> : Stocké uniquement en mémoire via Angular Signals
+  <i>Refresh Token</i> : Stocké dans un cookie HttpOnly
+endlegend
+
+' Flux d'authentification initial
+group Authentification Initiale
+    User -> Frontend : Connexion (email/mot de passe)
+    Frontend -> AuthService : login(credentials)
+    AuthService -> Backend : POST /api/auth/login
+    Backend -> Database : Vérifier identifiants
+    Database --> Backend : Identifiants valides
+
+    Backend -> Backend : Générer Access Token\n(courte durée: 15min)
+    Backend -> Backend : Générer Refresh Token\n(longue durée: 7 jours)
+
+    Backend --> AuthService : Retourner Access Token + \nCookie HttpOnly (Refresh Token)
+
+    note right of AuthService
+      Le Refresh Token est automatiquement
+      stocké comme cookie HttpOnly
+      par le navigateur
+    end note
+
+    AuthService -> TokenService : setToken(accessToken)
+
+    note right of TokenService
+      Stockage de l'Access Token
+      uniquement en mémoire via
+      Angular Signal
+      accessToken = signal<string | null>(token)
+    end note
+
+    TokenService --> AuthService : Token stocké
+    AuthService --> Frontend : Authentification réussie
+    Frontend --> User : Redirection vers page d'accueil
+end
+
+' Flux d'utilisation normale
+group Requêtes API Authentifiées
+    User -> Frontend : Action nécessitant API
+    Frontend -> Interceptor : Requête HTTP
+    Interceptor -> TokenService : Obtenir token()
+    TokenService --> Interceptor : Access Token (depuis Signal)
+    Interceptor -> Backend : Requête avec Authorization: Bearer {token}
+    Backend -> Backend : Valider Access Token
+    Backend --> Interceptor : Réponse
+    Interceptor --> Frontend : Données
+    Frontend --> User : Affichage des données
+end
+
+' Flux de rafraîchissement automatique
+group Rafraîchissement Automatique (Token Expiré)
+    User -> Frontend : Action nécessitant API
+    Frontend -> Interceptor : Requête HTTP
+    Interceptor -> TokenService : Obtenir token()
+    TokenService --> Interceptor : Access Token (depuis Signal)
+    Interceptor -> Backend : Requête avec Authorization: Bearer {token}
+    Backend -> Backend : Token expiré
+    Backend --> Interceptor : 401 Unauthorized
+
+    Interceptor -> TokenService : refreshToken()
+    TokenService -> Backend : POST /api/auth/refresh\n(avec cookie HttpOnly)
+
+    note right of TokenService
+      Le cookie HttpOnly contenant
+      le Refresh Token est automatiquement
+      envoyé avec la requête
+    end note
+
+    Backend -> Backend : Valider Refresh Token
+    Backend -> Backend : Générer nouveau Access Token
+    Backend --> TokenService : Nouveau Access Token
+
+    TokenService -> TokenService : setToken(newAccessToken)
+    TokenService --> Interceptor : Nouveau token disponible
+
+    Interceptor -> Backend : Répéter requête originale\navec nouveau token
+    Backend --> Interceptor : Réponse
+    Interceptor --> Frontend : Données
+    Frontend --> User : Affichage des données
+end
+
+' Flux d'initialisation de l'application
+group Initialisation de l'Application
+    User -> Frontend : Ouvrir l'application
+    Frontend -> TokenService : initializeApp()
+    TokenService -> Backend : POST /api/auth/refresh\n(avec cookie HttpOnly si présent)
+
+    alt Refresh Token Valide
+        Backend -> Backend : Valider Refresh Token
+        Backend -> Backend : Générer nouveau Access Token
+        Backend --> TokenService : Nouveau Access Token
+        TokenService -> TokenService : setToken(newAccessToken)
+        TokenService --> Frontend : Utilisateur authentifié
+    else Pas de Refresh Token ou Token Invalide
+        Backend --> TokenService : 401 Unauthorized
+        TokenService --> Frontend : Utilisateur non authentifié
+    end
+
+    Frontend --> User : Affichage approprié (connecté/déconnecté)
+end
+
+' Flux de déconnexion
+group Déconnexion
+    User -> Frontend : Déconnexion
+    Frontend -> AuthService : logout()
+    AuthService -> Backend : POST /api/auth/logout
+    Backend -> Backend : Invalider Refresh Token
+    Backend --> AuthService : Cookie HttpOnly expiré
+    AuthService -> TokenService : clearToken()
+    TokenService -> TokenService : accessToken.set(null)
+    TokenService --> AuthService : Token effacé
+    AuthService --> Frontend : Déconnexion réussie
+    Frontend --> User : Redirection vers page de connexion
+end
+
+@enduml

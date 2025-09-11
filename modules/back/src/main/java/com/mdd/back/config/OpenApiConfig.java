@@ -11,18 +11,31 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class OpenApiConfig {
+
+    @Value("#{'${frontend.url}'.split(',')}")
+    private List<String> frontendUrls;
+
+    //propriété spécifique pour l'URL de l'API
+    @Value("${api.base.url:https://apimdd.cpierres.dscloud.me}")
+    private String apiBaseUrl;
+
 
     @Bean
     public OpenAPI myOpenApi() {
         // Nom du schéma de sécurité (utilisé dans les requêtes)
         String securitySchemeName = "Bearer Authentication";
 
-        return new OpenAPI()
+        // Créer une instance OpenAPI avec les serveurs configurés
+        OpenAPI openAPI = new OpenAPI()
                 .info(new Info()
                         .title("MDD API")
                         .description("Documentation de l'API pour le réseau social MDD (Monde des développeurs)")
@@ -35,22 +48,39 @@ public class OpenApiConfig {
                                 .email("cpierres[at]hotmail.com")
                         )
                 )
-//                .addSecurityItem(new SecurityRequirement()
-//                        .addList(securitySchemeName)) // Applique le schéma à toutes les requêtes
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()
                                         .name(securitySchemeName)
                                         .type(Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT"))// Indique que le token est de type JWT
-                        // Réponses d'erreur standard
+                                        .bearerFormat("JWT"))
                         .addResponses("Unauthorized", createUnauthorizedResponse())
                         .addResponses("NotFound", createNotFoundResponse())
                         .addResponses("BadRequest", createBadRequestResponse())
                         .addResponses("InternalServerError", createInternalServerErrorResponse())
                 );
 
+        // Ajouter les serveurs en utilisant les URLs frontend
+//        for (String url : frontendUrls) {
+//            // Convertir explicitement en HTTPS si c'est une URL externe (pas localhost)
+//            if (url.contains("http://") && !url.contains("localhost")) {
+//                url = url.replace("http://", "https://");
+//            }
+//            openAPI.addServersItem(new Server().url(url));
+//        }
+
+        // Ajouter le serveur API (pas le frontend !)
+        openAPI.addServersItem(new Server()
+                .url(apiBaseUrl)
+                .description("API Server"));
+
+        // localhost pour le développement
+        openAPI.addServersItem(new Server()
+                .url("http://localhost:8080")
+                .description("Development Server"));
+
+        return openAPI;
     }
 
     private ApiResponse createUnauthorizedResponse() {

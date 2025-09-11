@@ -1,9 +1,11 @@
 import { Injectable, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { User } from '../../features/user/interfaces/user.interface';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { ApiResult } from '../interfaces/ApiResult';
+import { TokenService } from './token.service';
+import { catchError, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +17,7 @@ export class SessionService implements OnInit {
 
   private isLoggedSubject = new BehaviorSubject<boolean>(this.isLogged);
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private tokenService: TokenService) {
     // Appeler checkToken immédiatement dans le constructeur
     this.checkToken();
   }
@@ -27,25 +29,53 @@ export class SessionService implements OnInit {
 
   //pour gérer le cas d'un refresh du browser (on perdait le menu)
   private checkToken(): void {
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (this.tokenService.hasToken()) {
       // Si un token existe, récupérer les informations de l'utilisateur
-      // Avec la nouvelle structure ApiResult, nous devons extraire l'utilisateur du champ data
-      this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`).subscribe({
+      this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`, {
+        withCredentials: true // Important pour envoyer le cookie HttpOnly
+      }).subscribe({
         next: (apiResult: ApiResult<User>) => {
           if (apiResult.data) {
             this.logIn(apiResult.data);
           } else {
-            // Si data est null, déconnecter l'utilisateur
-            this.logOut();
+            // Si data est null, tenter de rafraîchir le token
+            this.refreshTokenAndGetUser();
           }
         },
         error: () => {
-          // En cas d'erreur (token invalide), déconnecter l'utilisateur
-          this.logOut();
+          // En cas d'erreur, tenter de rafraîchir le token
+          this.refreshTokenAndGetUser();
         }
       });
     }
+  }
+
+  /**
+   * Tente de rafraîchir le token et de récupérer les informations utilisateur
+   */
+  private refreshTokenAndGetUser(): void {
+    this.tokenService.refreshToken().pipe(
+      tap(() => {
+        // Si le rafraîchissement réussit, récupérer les informations utilisateur
+        this.http.get<ApiResult<User>>(`${environment.backendUrl}auth/me`, {
+          withCredentials: true
+        }).subscribe({
+          next: (apiResult: ApiResult<User>) => {
+            if (apiResult.data) {
+              this.logIn(apiResult.data);
+            } else {
+              this.logOut();
+            }
+          },
+          error: () => this.logOut()
+        });
+      }),
+      catchError(() => {
+        // En cas d'échec du rafraîchissement, déconnecter l'utilisateur
+        this.logOut();
+        return of(null);
+      })
+    ).subscribe();
   }
 
   public $isLogged(): Observable<boolean> {
@@ -60,7 +90,7 @@ export class SessionService implements OnInit {
   }
 
   public logOut(): void {
-    localStorage.removeItem('token');
+    this.tokenService.clearToken();
     this.user = undefined;
     this.isLogged = false;
     this.next();

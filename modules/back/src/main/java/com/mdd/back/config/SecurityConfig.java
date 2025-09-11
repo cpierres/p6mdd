@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,12 +16,13 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +34,9 @@ public class SecurityConfig {
     // Modifier le type pour accepter une liste d'URLs
     @Value("#{'${frontend.url}'.split(',')}")
     private List<String> frontendUrls;
+
+    @Value("${api.url:}")
+    private String apiUrl;
 
 
     /**
@@ -68,6 +71,7 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
+                                "/api/auth/refresh",
                                 "/api/topics",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -136,15 +140,33 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(frontendUrls);
-        //log.debug("*** corsConfigurationSource *** : "+frontendUrls.toString());
+
+        List<String> allowedOrigins = new ArrayList<>(frontendUrls);
+        if (apiUrl != null && !apiUrl.isEmpty() && !allowedOrigins.contains(apiUrl)) {
+            allowedOrigins.add(apiUrl);
+        }
+
+        corsConfig.setAllowedOrigins(allowedOrigins);
+
+        log.debug("*** corsConfigurationSource (origines autorisées) *** : {}", frontendUrls);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        corsConfig.setAllowCredentials(true); // Si vous utilisez des cookies ou des sessions partagées
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cookie"));
+        corsConfig.setExposedHeaders(Arrays.asList("Set-Cookie", "Access-Control-Allow-Credentials"));
+        corsConfig.setAllowCredentials(true); // Important pour les cookies HttpOnly
+        corsConfig.setMaxAge(3600L); // Cache la réponse pre-flight pendant 1 heure
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig); // Appliquer à tous les endpoints
         return source;
     }
 
+    /**
+     * Active la prise en compte des en-têtes Forwarded / X-Forwarded-*
+     * ajoutés par un reverse proxy (ex: Synology / Nginx) afin que
+     * Spring reconnaisse correctement le schéma (HTTP/HTTPS), l'hôte et les préfixes.
+     */
+    @Bean
+    public ForwardedHeaderTransformer forwardedHeaderTransformer() {
+        return new ForwardedHeaderTransformer();
+    }
 }

@@ -3,8 +3,10 @@ package com.mdd.back.controller;
 import com.mdd.back.exception.ResourceNotFoundException;
 import com.mdd.back.mappers.UserMapper;
 import com.mdd.back.models.*;
+import com.mdd.back.repositories.UserRepository;
 import com.mdd.back.services.AuthFacade;
 import com.mdd.back.services.JwtService;
+import com.mdd.back.services.RefreshTokenService;
 import com.mdd.back.utils.context.RequestIdContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,12 +16,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @Tag(
         name = "auth-controller",
@@ -34,11 +38,16 @@ public class AuthController {
     private final AuthFacade authFacade;
     private final JwtService jwtService;
     private final UserMapper userMapper;
+    private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
 
-    public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper) {
+    public AuthController(AuthFacade authFacade, JwtService jwtService, UserMapper userMapper, RefreshTokenService refreshTokenService, UserRepository userRepository) {
         this.authFacade = authFacade;
         this.jwtService = jwtService;
         this.userMapper = userMapper;
+        this.refreshTokenService = refreshTokenService;
+        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Enregistrement d'un utilisateur (contrôle d'unicité sur email et username)",
@@ -166,17 +175,43 @@ public class AuthController {
         // Récupérer l'ID de requête depuis les attributs d'échange
         String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
 
+        // Détecter si la requête est en HTTPS
+        boolean isSecure = isSslEnabled(exchange);
+
         return authFacade.login(loginRequest)
                 .flatMap(userId -> {
+                    // Générer l'access token
                     String token = jwtService.generateToken(userId, loginRequest.getIdentifier());
-//                    return Mono.just(ok(new AuthSuccess(token)));// Retourne le JWT au client
-                    ApiResult<AuthSuccess> successResponse = new ApiResult<>(
-                            new AuthSuccess(token),
-                            "Authentification réussie.",
-                            HttpStatus.OK.value(),
-                            requestId
-                    );
-                    return Mono.just(ResponseEntity.ok(successResponse));
+
+                    // Créer un refresh token
+                    return refreshTokenService.createRefreshToken(userId)
+                            .map(refreshToken -> {
+                                // Créer la réponse avec l'access token
+                                ApiResult<AuthSuccess> successResponse = new ApiResult<>(
+                                        new AuthSuccess(token),
+                                        "Authentification réussie.",
+                                        HttpStatus.OK.value(),
+                                        requestId
+                                );
+
+                                // Déterminer le mode SameSite/secure en fonction du contexte (proxy, HTTPS, cross-site)
+                                boolean crossSite = isCrossSite(exchange);
+                                String sameSite = chooseSameSite(isSecure, crossSite);
+
+                                // Créer un cookie HttpOnly pour le refresh token
+                                ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                                        .httpOnly(true)
+                                        .secure(isSecure)
+                                        .sameSite(sameSite)
+                                        .path("/")
+                                        .maxAge(Duration.ofDays(7))
+                                        .build();
+
+                                // Retourner la réponse avec le cookie
+                                return ResponseEntity.ok()
+                                        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                                        .body(successResponse);
+                            });
                 })
                 .switchIfEmpty(Mono.just(ResponseEntity
                         .status(HttpStatus.UNAUTHORIZED)
@@ -223,6 +258,174 @@ public class AuthController {
                                             """))
             )
     })
+
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PostMapping("/refresh")
+    public Mono<ResponseEntity<ApiResult<AuthSuccess>>> refreshToken(ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+        boolean isSecure = isSslEnabled(exchange);
+
+        // Récupérer le refresh token depuis le cookie
+        return Mono.justOrEmpty(exchange.getRequest().getCookies().getFirst(REFRESH_TOKEN_COOKIE_NAME))
+                .map(HttpCookie::getValue)
+                .flatMap(refreshToken -> refreshTokenService.validateRefreshToken(refreshToken)
+                        .flatMap(userId -> {
+                            // Récupérer l'utilisateur pour obtenir son identifiant
+                            return userRepository.findById(userId)
+                                    .flatMap(user -> {
+                                        // Générer un nouveau token
+                                        String newToken = jwtService.generateToken(userId, user.getEmail());
+
+                                        // Créer la réponse
+                                        ApiResult<AuthSuccess> successResponse = new ApiResult<>(
+                                                new AuthSuccess(newToken),
+                                                "Token rafraîchi avec succès.",
+                                                HttpStatus.OK.value(),
+                                                requestId
+                                        );
+
+                                        // Configurer le cookie de refresh token (prolonger sa durée)
+                                        boolean crossSite = isCrossSite(exchange);
+                                        String sameSite = chooseSameSite(isSecure, crossSite);
+                                        ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                                                .httpOnly(true)
+                                                .secure(isSecure)
+                                                .sameSite(sameSite)
+                                                .path("/")//.path("/api/auth")
+                                                .maxAge(Duration.ofDays(7))
+                                                .build();
+
+                                        return Mono.just(ResponseEntity.ok()
+                                                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                                                .body(successResponse));
+                                    });
+                        })
+                        .switchIfEmpty(Mono.just(ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(new ApiResult<>(
+                                        null,
+                                        "Refresh token invalide.",
+                                        HttpStatus.UNAUTHORIZED.value(),
+                                        requestId
+                                ))))
+                )
+                .switchIfEmpty(Mono.just(ResponseEntity
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .body(new ApiResult<>(
+                                null,
+                                "Refresh token manquant.",
+                                HttpStatus.UNAUTHORIZED.value(),
+                                requestId
+                        ))));
+    }
+
+    @Operation(summary = "Déconnexion de l'utilisateur",
+            description = """
+                    Invalide le refresh token de l'utilisateur et supprime le cookie.
+                    """,
+            security = @SecurityRequirement(name = "Bearer Authentication")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Déconnexion réussie",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResult.class)
+                    ))
+    })
+    @PostMapping("/logout")
+    public Mono<ResponseEntity<ApiResult<Void>>> logout(ServerWebExchange exchange) {
+        // Récupérer l'ID de requête depuis les attributs d'échange
+        String requestId = (String) exchange.getAttributes().get(RequestIdContext.REQUEST_ID_KEY);
+        boolean isSecure = isSslEnabled(exchange);
+
+        // Créer la réponse avec le cookie expiré
+        boolean crossSite = isCrossSite(exchange);
+        String sameSite = chooseSameSite(isSecure, crossSite);
+        ResponseEntity<ApiResult<Void>> response = ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                        .httpOnly(true)
+                        .secure(isSecure)
+                        .sameSite(sameSite)
+                        .path("/")
+                        .maxAge(0)
+                        .build().toString())
+                .body(new ApiResult<Void>(
+                        null,
+                        "Déconnexion réussie.",
+                        HttpStatus.OK.value(),
+                        requestId
+                ));
+
+        return authFacade.getAuthenticatedUserId()
+                .flatMap(userId -> refreshTokenService.deleteByUserId(userId)
+                        .then(Mono.just(response))
+                )
+                .switchIfEmpty(Mono.just(response));
+    }
+
+    private static boolean isSslEnabled(ServerWebExchange exchange) {
+        // Détection HTTPS réelle (derrière proxy pris en charge via ForwardedHeaderTransformer)
+        return exchange.getRequest().getSslInfo() != null;
+    }
+
+    /**
+     * Détermine si la requête est cross-site en comparant l'en-tête Origin
+     * à l'origine (schéma + hôte + port) de la requête vue par l'application
+     * après application des en-têtes Forwarded/X-Forwarded-*. 
+     */
+    private static boolean isCrossSite(ServerWebExchange exchange) {
+        String origin = exchange.getRequest().getHeaders().getOrigin();
+        if (origin == null || origin.isBlank()) {
+            return false; // Pas d'origin => on considère même-site
+        }
+        String scheme = exchange.getRequest().getURI().getScheme();
+        String host = exchange.getRequest().getHeaders().getHost() != null
+                ? exchange.getRequest().getHeaders().getHost().getHostName()
+                : exchange.getRequest().getURI().getHost();
+
+        int port = determinePort(exchange.getRequest());
+        String portPart = "";
+        if (port > 0 && !(("http".equalsIgnoreCase(scheme) && port == 80) || ("https".equalsIgnoreCase(scheme) && port == 443))) {
+            portPart = ":" + port;
+        }
+        String requestOrigin = scheme + "://" + host + portPart;
+        return !origin.equalsIgnoreCase(requestOrigin);
+    }
+
+    private static int determinePort(ServerHttpRequest request) {
+        // Essayer d'abord l'en-tête Host
+        if (request.getHeaders().getHost() != null) {
+            int hostPort = request.getHeaders().getHost().getPort();
+            if (hostPort != -1) {
+                return hostPort;
+            }
+        }
+
+        // Fallback vers l'URI
+        int uriPort = request.getURI().getPort();
+        if (uriPort != -1) {
+            return uriPort;
+        }
+
+        // Valeurs par défaut selon le schéma
+        String scheme = request.getURI().getScheme();
+        return "https".equals(scheme) ? 443 : 80;
+    }
+
+    /**
+     * Choisit la stratégie SameSite suivant le contexte.
+     * - Cross-site en HTTPS: SameSite=None (Secure requis par les navigateurs)
+     * - HTTPS même-site: SameSite=Strict
+     * - HTTP (dev local): SameSite=Lax
+     */
+    private static String chooseSameSite(boolean isSecure, boolean crossSite) {
+        if (crossSite && isSecure) {
+            return "None";
+        }
+        return isSecure ? "Strict" : "Lax";
+    }
+
     @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/me")
     public Mono<ResponseEntity<ApiResult<UserDto>>> getCurrentUser(ServerWebExchange exchange) {

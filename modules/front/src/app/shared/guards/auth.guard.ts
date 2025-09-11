@@ -1,7 +1,8 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { SessionService } from '../services/session-service.service';
-import {map, take} from 'rxjs';
+import {catchError, map, of, switchMap, take} from 'rxjs';
+import {TokenService} from '../services/token.service';
 
 /**
  * Guard d'authentification qui vérifie si l'utilisateur est connecté
@@ -13,15 +14,26 @@ import {map, take} from 'rxjs';
  */
 export const authGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
+  const tokenService = inject(TokenService);
   const router = inject(Router);
 
   return sessionService.$isLogged().pipe(
     take(1),
-    map(isLogged => {
+    switchMap(isLogged => {
       if (isLogged) {
-        return true;
+        return of(true);
       }
-      return router.parseUrl('/auth/login');
+
+      // Si l'utilisateur n'est pas connecté, tenter de rafraîchir le token
+      return tokenService.refreshToken().pipe(
+        // Si le rafraîchissement réussit, autoriser l'accès
+        map(() => true),
+        catchError(() => {
+          // Si le rafraîchissement échoue, rediriger vers la page de connexion
+          return of(router.parseUrl('/auth/login'));
+        })
+      );
     })
   );
 };
+
