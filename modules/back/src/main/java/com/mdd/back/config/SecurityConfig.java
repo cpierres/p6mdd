@@ -20,7 +20,9 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,6 +34,9 @@ public class SecurityConfig {
     // Modifier le type pour accepter une liste d'URLs
     @Value("#{'${frontend.url}'.split(',')}")
     private List<String> frontendUrls;
+
+    @Value("${api.url:}")
+    private String apiUrl;
 
 
     /**
@@ -135,9 +140,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        //corsConfig.setAllowedOrigins(frontendUrls);TODO RETABLIR
-        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200")); // URL directe du frontend
-        //log.debug("*** corsConfigurationSource *** : "+frontendUrls.toString());
+
+        List<String> allowedOrigins = new ArrayList<>(frontendUrls);
+        if (apiUrl != null && !apiUrl.isEmpty() && !allowedOrigins.contains(apiUrl)) {
+            allowedOrigins.add(apiUrl);
+        }
+
+        corsConfig.setAllowedOrigins(allowedOrigins);
+
+        log.debug("*** corsConfigurationSource (origines autorisées) *** : {}", frontendUrls);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cookie"));
         corsConfig.setExposedHeaders(Arrays.asList("Set-Cookie", "Access-Control-Allow-Credentials"));
@@ -149,4 +160,13 @@ public class SecurityConfig {
         return source;
     }
 
+    /**
+     * Active la prise en compte des en-têtes Forwarded / X-Forwarded-*
+     * ajoutés par un reverse proxy (ex: Synology / Nginx) afin que
+     * Spring reconnaisse correctement le schéma (HTTP/HTTPS), l'hôte et les préfixes.
+     */
+    @Bean
+    public ForwardedHeaderTransformer forwardedHeaderTransformer() {
+        return new ForwardedHeaderTransformer();
+    }
 }

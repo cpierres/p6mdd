@@ -33,6 +33,8 @@ spring:
       max-create-connection-time: 30s
       validation-query: SELECT 1
       validation-depth: LOCAL
+server:
+  forward-headers-strategy: framework
 logging:
   level:
     root: INFO
@@ -52,6 +54,7 @@ logging:
 jwt:
   secret-key: ${P6_JWT_SECRET_KEY:vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=}
   expiration-time: ${P6_JWT_EXPIRATION_TIME:3600}
+
 springdoc:
   api-docs:
     enabled: true
@@ -59,5 +62,10 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
+    oauth-redirect-url: https://apimdd.cpierres.dscloud.me/swagger-ui/oauth2-redirect.html
+
 frontend:
   url: ${P6_FRONTEND_URL}
+
+api:
+  url: ${P6_API_URL:https://apimdd.cpierres.dscloud.me}
