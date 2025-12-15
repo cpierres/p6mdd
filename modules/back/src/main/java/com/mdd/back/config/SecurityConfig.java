@@ -38,6 +38,16 @@ public class SecurityConfig {
     @Value("${api.url:}")
     private String apiUrl;
 
+    /**
+     * URL du JWK Set publiée par l'auth-service (si externalisé).
+     * Lorsqu'elle est définie, l'application devient un Resource Server pur et
+     * valide les JWT via la clé publique exposée à cette URL.
+     * Lorsqu'elle est vide, on conserve le comportement actuel basé sur une clé HMAC locale
+     * (compatibilité progressive le temps d'introduire l'auth-service).
+     */
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:}")
+    private String jwkSetUri;
+
 
     /**
      * Configure la chaîne de filtrage de sécurité pour l'application, en définissant des politiques de sécurité telles
@@ -116,9 +126,16 @@ public class SecurityConfig {
      */
     @Bean
     public ReactiveJwtDecoder reactiveJwtDecoder(JwtService jwtService) {
-        log.debug("*** ReactiveJwtDecoder ***");
-        return NimbusReactiveJwtDecoder
-                .withSecretKey(jwtService.getSecretKey()).build();
+        // Choix dynamique du mode de validation JWT selon la configuration
+        if (jwkSetUri != null && !jwkSetUri.isBlank()) {
+            // Mode « Resource Server »: validation via la JWK Set URL de l'auth-service
+            log.info("[Security] Configuration Resource Server via JWK Set URI: {}", jwkSetUri);
+            return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        }
+
+        // Fallback: validation HMAC locale (mode autonome actuel)
+        log.warn("[Security] JWK Set URI non défini. Utilisation de la clé secrète locale (mode autonome HMAC).");
+        return NimbusReactiveJwtDecoder.withSecretKey(jwtService.getSecretKey()).build();
     }
 
     /**

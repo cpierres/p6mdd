@@ -3,6 +3,29 @@ spring:
     name: mddback
   profiles:
     active: dev
+  kafka:
+    # Adresse du broker Kafka. En local (apps lancées depuis l'hôte), utilisez localhost:9092
+    # Si l'application tourne en conteneur sur le même réseau Docker que Kafka, utilisez kafka:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: mddback
+      auto-offset-reset: earliest
+      properties:
+        isolation.level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Lorsque vous externalisez l'authentification vers auth-service,
+          # décommentez et renseignez l'URL du JWK Set ci-dessous pour activer le mode Resource Server pur.
+          # Exemple: https://auth.example.com/.well-known/jwks.json
+          jwk-set-uri: ${P6_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
   docker:
     compose:
       file: ../../docker-compose.yml
@@ -41,7 +64,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: 'beans'
+        include: 'health,info,beans'
 jwt:
   secret-key: ${P6_JWT_SECRET_KEY:vfUI9b82X2CaSN9clY9o2ijcwkgtoWpbjvyD96iRYUU=}
   expiration-time: ${P6_JWT_EXPIRATION_TIME:3600}
@@ -54,3 +77,9 @@ springdoc:
     path: /swagger-ui.html
 frontend:
   url: ${P6_FRONTEND_URL:http://localhost:4200}
+
+# Notes de configuration:
+# - frontend.url: liste CSV des origines Front autorisées pour CORS.
+# - jwt.secret-key: utilisé uniquement en mode autonome (sans jwk-set-uri). Lorsque vous basculez
+#   vers auth-service, configurez spring.security.oauth2.resourceserver.jwt.jwk-set-uri puis
+#   (TODO : supprimer cette section).

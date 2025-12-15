@@ -5,7 +5,7 @@
     <option name="beforeCompileTasks">
       <set>
         <MavenCompilerTask>
-          <option name="goal" value="org.springframework.boot:spring-boot-maven-plugin:3.4.4:build-image" />
+          <option name="goal" value="org.springframework.boot:spring-boot-maven-plugin:4.0.0:build-image" />
           <option name="projectPath" value="$PROJECT_DIR$/modules/back/pom.xml" />
         </MavenCompilerTask>
       </set>

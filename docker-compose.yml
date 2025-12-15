@@ -16,6 +16,36 @@ services:
       interval: 5s
       timeout: 3s
       retries: 2
+  
+  # Broker Kafka en mode KRaft (sans ZooKeeper) pour le développement local
+  # Compatibilité vérifiée avec Spring Boot 4.x (clients Kafka 3.7+)
+  kafka:
+    image: bitnami/kafka:3.7.0
+    container_name: kafka-mdd
+    restart: unless-stopped
+    ports:
+      - "9092:9092"   # Port client (PLAINTEXT)
+    environment:
+      # Mode KRaft (un seul nœud: broker + controller)
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+
+      # Listeners (interne/contrôleur + client exposé)
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+      # Qualité de vie en dev
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 volumes:
   postgres_data:
     driver: local

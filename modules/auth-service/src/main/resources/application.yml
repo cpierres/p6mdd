@@ -1,0 +1,65 @@
+server:
+  port: 8081
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: auth-service
+  profiles:
+    active: dev
+    security:
+      oauth2:
+        client:
+          registration:
+            google:
+              client-id: ${GOOGLE_CLIENT_ID}
+              client-secret: ${GOOGLE_CLIENT_SECRET}
+              scope: openid,profile,email
+          provider:
+            google:
+              issuer-uri: https://accounts.google.com
+  flyway:
+    enabled: true
+    url: jdbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
+    user: ${P6_DB_USER:mdduser}
+    password: ${P6_DB_PASSWORD:mddpw}
+    driver-class-name: org.postgresql.Driver
+    create-schemas: true
+    default-schema: mddauth
+    schemas: mddauth
+  r2dbc:
+    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
+    username: ${P6_DB_USER:mdduser}
+    password: ${P6_DB_PASSWORD:mddpw}
+    properties:
+      schema: mddauth
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,info'
+
+logging:
+  level:
+    org.springframework: INFO
+    com.mdd.auth: DEBUG
+
+# Configuration applicative
+app:
+  issuer: ${P6_AUTH_ISSUER:http://localhost:8081}
+  jwt:
+    access-token-expiration: ${P6_AUTH_ACCESS_EXP:900}
+    refresh-token-expiration: ${P6_AUTH_REFRESH_EXP:604800}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+# CORS (liste CSV des origines front autorisées)
+frontend:
+  url: ${P6_FRONTEND_URL:http://localhost:4200}

@@ -1,15 +1,17 @@
 package com.mdd.back;
 
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.flywaydb.core.Flyway;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.mdd.back.config.init.SafeJwtPropertyInitializer;
 
 @SpringBootApplication
 public class BackApplication {
     public static void main(String[] args) {
-        SpringApplication.run(BackApplication.class, args);
+        // Enregistre un initialiseur défensif qui corrige une mauvaise configuration fréquente
+        // (clé plate "spring.security.oauth2.resourceserver.jwt" au lieu de
+        // "spring.security.oauth2.resourceserver.jwt.jwk-set-uri").
+        SpringApplication app = new SpringApplication(BackApplication.class);
+        app.addInitializers(new SafeJwtPropertyInitializer());
+        app.run(args);
     }
 }
