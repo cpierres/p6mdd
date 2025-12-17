@@ -77,6 +77,29 @@ Suite aux remarques de l'évaluateur, la sécurité de l'application a été con
   - `SameSite=None` pour les connexions cross-site HTTPS (avec Secure obligatoire)
   - `SameSite=Lax` pour le développement HTTP local (fallback sécurisé)
 
+#### Pourquoi `HttpOnly` est important dans ce projet
+
+- Empêche la lecture/exfiltration des cookies sensibles par un script injecté (XSS) — défense clé pour les cookies de session/refresh token.
+- Réduit la surface d’attaque côté front (aucun accès via `document.cookie`, extensions ou scripts tiers).
+- S’inscrit dans une défense en profondeur avec `Secure` + `SameSite` et CSP.
+
+Limites à garder en tête :
+- `HttpOnly` n’empêche pas l’envoi automatique du cookie par le navigateur — il ne protège donc pas contre le CSRF à lui seul. Nous combinons avec `SameSite` et une configuration CORS stricte.
+- Il ne chiffre pas le trafic : l’attribut `Secure` et HTTPS sont obligatoires en production.
+
+Vérification rapide côté navigateur :
+- Ouvrir DevTools > Application/Storage > Cookies et vérifiez que la colonne `HttpOnly` est cochée pour les cookies sensibles (ex. refresh token).
+
+Exemple (en-tête HTTP attendu) :
+
+```
+Set-Cookie: REFRESH_TOKEN=<token>; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=1800
+```
+
+Remarque d’implémentation (projet) :
+- Le backend Spring émet les cookies d’authentification avec `HttpOnly` et ajuste `SameSite`/`Secure` selon le contexte (dev local, même-site, cross-site HTTPS).
+- Le frontend Angular n’accède jamais directement au token (inaccessible par design), il s’appuie sur l’envoi automatique du cookie par le navigateur.
+
 ### Protection CSRF et configuration CORS
 
 - **Désactivation CSRF appropriée** : CSRF désactivé car utilisation de tokens JWT stateless et cookies HttpOnly avec SameSite
