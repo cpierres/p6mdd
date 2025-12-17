@@ -51,6 +51,7 @@ spring:
 #    password: ${P6_DB_PASSWORD:mddpw}
 #    driver-class-name: org.postgresql.Driver
 server:
+  port: 8082
   forward-headers-strategy: framework
 
 logging:
