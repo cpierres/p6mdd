@@ -17,6 +17,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
+import org.springframework.security.web.server.authorization.HttpStatusServerAccessDeniedHandler;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -79,9 +82,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
-                                "/api/auth/login",
-                                "/api/auth/register",
-                                "/api/auth/refresh",
                                 "/api/topics",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -93,6 +93,11 @@ public class SecurityConfig {
                         .anyExchange().authenticated() // Authentification pour toutes les autres routes
                 )
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable) // Désactiver authentication HTTP basic si non nécessaire
+                // Évite un challenge `WWW-Authenticate: Basic` (popup navigateur) en renvoyant un simple 401/403.
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler(new HttpStatusServerAccessDeniedHandler(HttpStatus.FORBIDDEN))
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults())) // Configurer OAuth2 avec JWT si utilisé
                 .build();
     }
@@ -127,7 +132,7 @@ public class SecurityConfig {
     @Bean
     public ReactiveJwtDecoder reactiveJwtDecoder(JwtService jwtService) {
         // Choix dynamique du mode de validation JWT selon la configuration
-        if (jwkSetUri != null && !jwkSetUri.isBlank()) {
+        if (jwkSetUri != null && !jwkSetUri.trim().isEmpty()) {
             // Mode « Resource Server »: validation via la JWK Set URL de l'auth-service
             log.info("[Security] Configuration Resource Server via JWK Set URI: {}", jwkSetUri);
             return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).build();

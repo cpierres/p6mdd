@@ -28,7 +28,9 @@ spring:
     default-schema: mddauth
     schemas: mddauth
   r2dbc:
-    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd
+    # Important: pour PostgreSQL + R2DBC, préciser explicitement le schéma dans l'URL
+    # afin que les requêtes non qualifiées (ex: table `users`) ciblent bien `mddauth`.
+    url: r2dbc:${P6_DB_URL:postgresql://localhost:5432}/dbmdd?schema=mddauth
     username: ${P6_DB_USER:mdduser}
     password: ${P6_DB_PASSWORD:mddpw}
     properties:
@@ -44,6 +46,9 @@ logging:
   level:
     org.springframework: INFO
     com.mdd.auth: DEBUG
+    # Logs utiles pour diagnostiquer les erreurs R2DBC (ex: table introuvable, contraintes, etc.)
+    org.springframework.r2dbc: DEBUG
+    io.r2dbc.postgresql: DEBUG
 
 # Configuration applicative
 app:

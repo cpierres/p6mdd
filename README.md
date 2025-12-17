@@ -199,12 +199,32 @@ Depuis le répertoire racine :
 
 ##### Backend (Spring Boot)
 
-1. Naviguez vers le répertoire du backend :
+> **Architecture micro-services (Gateway + auth-service + back)**
+>
+> - `gateway` (Spring Cloud Gateway) : **8080** (point d'entrée unique pour le front)
+> - `auth-service` : **8081** (endpoints `/api/auth/**` + `/.well-known/jwks.json`)
+> - `back` (API métier) : **8082** (topics/posts/… protégés par JWT validé via JWKS)
+>
+> Le front doit continuer d'appeler `http://localhost:8080/api/` (c'est la Gateway qui route).
+
+1. Lancer la Gateway :
+   ```
+   cd .\modules\gateway\
+   mvn spring-boot:run
+   ```
+
+2. Lancer `auth-service` :
+   ```
+   cd ..\auth-service\
+   mvnw.cmd spring-boot:run -P dev
+   ```
+
+3. Lancer le service `back` (API métier) :
    ```
    cd .\modules\back\
    ```
 
-2. Exécutez l'application avec Maven :
+4. Exécutez l'application avec Maven :
    ```
    ./mvnw spring-boot:run -P dev
    ```
@@ -236,7 +256,10 @@ Depuis le répertoire racine :
    ```
 
 - Ouvrez votre navigateur et accédez à `http://localhost:4200/`
-- Documentation de l'API : [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+- Documentation :
+  - Gateway health : `http://localhost:8080/actuator/health`
+  - Auth-service swagger : `http://localhost:8081/swagger-ui.html`
+  - Back swagger : `http://localhost:8082/swagger-ui.html`
 
 
 ## Technologies et bonnes pratiques appliquées
